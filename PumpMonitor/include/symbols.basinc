@@ -1,0 +1,59 @@
+; symbols.basinc
+; Definitions to be used in other files
+; Jotham Gates
+; 22/11/2020
+
+; Pins
+; Serial
+; RX = C.5
+; TX = B.0
+
+; Constants that can be set by the user
+symbol LISTEN_TIME = 120 ; Listen for 60s (0.5s each) after each transmission
+symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
+symbol RECEIVE_FLASH_INT = 1 ; Every half second
+
+; Temperature and battery voltage calibration
+symbol CAL_BATT_NUMERATOR = 58
+symbol CAL_BATT_DENOMINATOR = 85
+#IFDEF ENABLE_TEMP
+symbol CAL_TEMP_NUMERATOR = 52
+symbol CAL_TEMP_DENOMINATOR = 17
+#ENDIF
+
+#DEFINE LORA_FREQ 433000000
+symbol LORA_FREQ_MSB = 0x6C ; Python script can be used to calculate these 3 bytes
+symbol LORA_FREQ_MID = 0x40
+symbol LORA_FREQ_LSB = 0x00
+; symbol LORA_BANDWIDTH = 125000 ; Not implemented, uses default 125000
+symbol LORA_LDO_ON = 0 ; Need to use the python script to calculate this for the spreading factor. Changes with spreading factor
+#DEFINE LORA_SPREADING_FACTOR 9
+symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out and should be reset.
+
+
+#DEFINE LORA_RECEIVED DIO0 = 1
+symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by
+symbol PJON_INVALID_PACKET = 65534 ; Says the packet is invalid, not a PJON packet, or not addressed to us
+
+symbol UPSTREAM_ADDRESS = 255 ; Address to send things to
+
+; symbol transmit_enable = bit1
+symbol mask = tmpwd0l
+symbol level = tmpwd0h
+symbol counter = tmpwd1l
+symbol counter2 = tmpwd1h
+symbol total_length = tmpwd2l
+symbol s_transfer_storage = tmpwd2h ; Saves param1 duing LoRa spiing
+symbol crc0 = tmpwd3l ; crcs can be used whenever a crc calculation is not required
+symbol crc1 = tmpwd3h
+symbol crc2 = tmpwd4l
+symbol crc3 = tmpwd4h
+symbol counter3 = tmpbt0
+; b11, b12, b13, b1, b15, b16, b17, b18, b19 are free
+symbol start_time = store_start_time
+symbol start_time_h = store_start_timeh
+symbol start_time_l = store_start_timel
+symbol tmpwd = update_start_time
+; symbol param1 = b24
+; symbol param2 = b25
+; symbol rtrn = w13
