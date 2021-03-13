@@ -18,13 +18,6 @@
 #TERMINAL 38400
 ; #COM /dev/ttyUSB0
 
-; Before conversion to tablesertxd: 2005
-; After conversion to tablesertxd: 1765
-; TableSertxd extension settings
-#DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
-#DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
-#DEFINE TABLE_SERTXD_TMP_BYTE b16
-
 ; Sensors
 ; #DEFINE ENABLE_TEMP
 ; #DEFINE ENABLE_FVR
@@ -42,10 +35,20 @@ symbol LED_PIN = B.3
 ; Variables unique to this - see symbols.basinc for the rest
 symbol fence_enable = bit0
 symbol transmit_enable = bit1
+symbol tx_intervals = b17
+symbol tx_interval_count = b18
+
+; TableSertxd extension settings
+; Before conversion to tablesertxd: 2005
+; After conversion to tablesertxd: 1765
+#DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
+#DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
+#DEFINE TABLE_SERTXD_TMP_BYTE b16
 
 ; Constants
-symbol LISTEN_TIME = 120 ; Listen for 60s (number of 0.5s counts) after each transmission
-symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
+symbol LISTEN_TIME = 60 ; Listen for 30s (number of 0.5s counts) after each transmission and every 3 minutes
+symbol SLEEP_TIME = 65 ; Roughly 2.5 mins at 26*2.3s each
+symbol TX_INTERVALS_DEFAULT = 10 ; Default to 1 transmission every 10 receive / sleep cycles (roughly once every 30 min).
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 
 ; Temperature and battery voltage calibration
@@ -58,12 +61,13 @@ symbol CAL_TEMP_DENOMINATOR = 17
 
 init:
 	; Initial setup
+	setfreq m32
 	high FENCE_PIN ; Fence is fail deadly to keep cattle in at all costs :)
+	high LED_PIN
 	fence_enable = 1
 	transmit_enable = 1
+	tx_intervals = TX_INTERVALS_DEFAULT
 
-	setfreq m32
-	high LED_PIN
 	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jan 2021", cr, lf)
 	; Attempt to start the module
 	gosub begin_lora
@@ -91,18 +95,28 @@ main:
 	endif
 	;#sertxd("Sent packet", cr, lf)
 
+	; Alternate between sleeping and receiving for a while
+	for tx_interval_count = 1 to tx_intervals
+		gosub receive_mode ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
+		gosub sleep_mode ; Sleep for 30s
+	next tx_interval_count
+	goto main
+
+receive_mode:
 	; Go into listen mode
 	; Listens for the designated time and handles incoming packets
+	; Maximum stack depth used: 7
+
 	pulsout LED_PIN, 10000
 	; sertxd("Entering receive mode", cr, lf)
-	gosub setup_lora_receive
+	gosub setup_lora_receive ; Stack depth 4
 	start_time = time
 	rtrn = time ; Start time for led flashing
 	do
 		; Handle packets arriving
 		if LORA_RECEIVED then
 			; sertxd("DI0 high", cr, lf)
-			gosub read_pjon_packet
+			gosub read_pjon_packet ; Stack depth 4
 			if rtrn != PJON_INVALID_PACKET then
 				;#sertxd("Valid", cr, lf)
 				; Valid packet
@@ -143,6 +157,16 @@ main:
 								dec rtrn
 							endif
 							level = 1
+						case 0x49 ; "I" | 0x80 ; Interval between transmissions
+							; 1 byte, number of 5 minute blocks to .
+							;#sertxd("Transmit interval is ")
+							if rtrn > 0 then
+								tx_intervals = @bptrinc
+								sertxd(#tx_intervals)
+								;#sertxd(" *3 minutes", cr, lf)
+								dec rtrn
+							endif
+							level = 1
 						case 0xF3 ; "s" | 0x80 ; Request status, msb is high as it is an instruction
 							; No payload.
 							;#sertxd("Status", cr, lf)
@@ -158,6 +182,9 @@ main:
 				if level = 1 then
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
+					; Reset interval counter as we just send a packet back
+					tx_interval_count = 1
+
 				endif
 				;#sertxd("Finished", cr, lf)
 
@@ -177,23 +204,22 @@ main:
 		endif
 		tmpwd = time - start_time
 	loop while tmpwd < LISTEN_TIME
+	return
 
+sleep_mode:
 	; Go into power saving mode
-	; TODO: Flash led once per minute
 	;#sertxd("Entering sleep mode", cr, lf)
 	gosub sleep_lora
 	low LED_PIN
 	
 	disablebod
-	for counter = 1 to SLEEP_TIME
-		sleep 26 ; About 1 minute
-		pulsout LED_PIN, 10000
-	next counter
+	sleep SLEEP_TIME
 	enablebod
-	goto main
+	return
 
 send_status:
 	; Sends the monitor's status
+	; Maximum stack depth used: 6
 	high LED_PIN
 	;#sertxd("Sending state", cr, lf)
 	
@@ -232,7 +258,15 @@ send_status:
 	@bptrinc = transmit_enable
 	param1 = UPRSTEAM_ADDRESS
 	;#sertxdnl
-	gosub end_pjon_packet
+
+	; TX interval
+	;sertxd("TX Interval: ")
+	sertxd(#tx_intervals)
+	;#sertxdnl
+	@bptrinc = "I"
+	@bptrinc = tx_intervals
+
+	gosub end_pjon_packet ; Stack is 6
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 		;#sertxd("LoRa dropped out.")
 		for tmpwd = 0 to 15
@@ -240,7 +274,7 @@ send_status:
 			pause 4000
 		next tmpwd
 
-		gosub begin_lora
+		gosub begin_lora ; Stack is 6
 		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
 			;#sertxd("Reconnected ok")
 			param1 = LORA_SPREADING_FACTOR
@@ -291,10 +325,6 @@ add_word:
 	tmpwd = rtrn / 0xff
 	@bptrinc = tmpwd
 	return
-
-; println:
-	; param1 is the address in the table
-	; TODO: Print from table, allows more debugging prints without filling instructions
 
 ; Libraries that will not be run first thing.
 #INCLUDE "include/LoRa.basinc"
