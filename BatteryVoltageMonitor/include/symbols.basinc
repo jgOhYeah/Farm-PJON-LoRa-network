@@ -29,7 +29,7 @@ symbol crc1 = b8
 symbol crc2 = b9
 symbol crc3 = b10
 symbol counter3 = b11
-; b12, b13, b1, b15, b16, b17, b18, b19 are free
+; b12, b13, b14, b15, b16, b17, b18, b19 are free
 symbol start_time = w10
 symbol start_time_h = b21
 symbol start_time_l = b20

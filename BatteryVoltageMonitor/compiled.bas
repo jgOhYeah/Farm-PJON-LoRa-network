@@ -1,8 +1,8 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 11:47PM, February 10, 2021----
+'----UPDATED AT 09:25PM, March 13, 2021----
 '----SAVING AS compiled.bas ----
 
-'---BEGIN ./BatteryVoltsMonitor.bas ---
+'---BEGIN BatteryVoltsMonitor.bas ---
 ; BatteryVoltsMonitor.bas
 ; A remote LoRa battery monitor and electric fence energiser switch.
 ; Jotham Gates, Jan 2021
@@ -45,7 +45,7 @@ symbol crc1 = b8
 symbol crc2 = b9
 symbol crc3 = b10
 symbol counter3 = b11
-; b12, b13, b1, b15, b16, b17, b18, b19 are free
+; b12, b13, b14, b15, b16, b17, b18, b19 are free
 symbol start_time = w10
 symbol start_time_h = b21
 symbol start_time_l = b20
@@ -90,6 +90,11 @@ symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 #TERMINAL 38400
 ; #COM /dev/ttyUSB0
 
+; TableSertxd extension settings
+; #DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
+; #DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
+; #DEFINE TABLE_SERTXD_TMP_BYTE b16
+
 ; Sensors
 ; #DEFINE ENABLE_TEMP
 ; #DEFINE ENABLE_FVR
@@ -129,14 +134,23 @@ init:
 
 	setfreq m32
 	high LED_PIN
-	sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jan 2021", cr, lf)
+;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jan 2021", cr, lf) 'Evaluated below
+w6 = 0
+w7 = 50
+gosub print_table_sertxd
 	; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
-		sertxd("Failed to start LoRa",cr,lf)
+;#sertxd("Failed to start LoRa",cr,lf) 'Evaluated below
+w6 = 51
+w7 = 72
+gosub print_table_sertxd
 		goto failed
 	else
-		sertxd("LoRa Started",cr,lf)
+;#sertxd("LoRa Started",cr,lf) 'Evaluated below
+w6 = 73
+w7 = 86
+gosub print_table_sertxd
 	endif
 
 	; Set the spreading factor
@@ -154,7 +168,10 @@ main:
 	if transmit_enable = 1 then
 		gosub send_status
 	endif
-	Sertxd("Sent packet", cr, lf)
+;#sertxd("Sent packet", cr, lf) 'Evaluated below
+w6 = 87
+w7 = 99
+gosub print_table_sertxd
 
 	; Go into listen mode
 	; Listens for the designated time and handles incoming packets
@@ -169,7 +186,10 @@ main:
 			; sertxd("DI0 high", cr, lf)
 			gosub read_pjon_packet
 			if rtrn != PJON_INVALID_PACKET then
-				sertxd("Valid", cr, lf)
+;#sertxd("Valid", cr, lf) 'Evaluated below
+w6 = 100
+w7 = 106
+gosub print_table_sertxd
 				; Valid packet
 				high LED_PIN
 				; Processing and actions
@@ -180,14 +200,23 @@ main:
 					select mask
 						case 0xC6 ; "F" | 0x80 ; Fence on and off
 							; 1 byte, 0 for off, anything else for on.
-							sertxd("Fence ")
+;#sertxd("Fence ") 'Evaluated below
+w6 = 107
+w7 = 112
+gosub print_table_sertxd
 							if rtrn > 0 then
 								if @bptrinc = 0 then
-									sertxd("Off", cr, lf)
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 113
+w7 = 117
+gosub print_table_sertxd
 									fence_enable = 0
 									low FENCE_PIN
 								else
-									sertxd("On", cr, lf)
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 118
+w7 = 121
+gosub print_table_sertxd
 									fence_enable = 1
 									high FENCE_PIN
 								endif
@@ -196,13 +225,22 @@ main:
 							level = 1
 						case 0xF2 ; "r" | 0x80 ; Radio transmissions on and off
 							; 1 byte, 0 for off, anything else for on.
-							sertxd("Transmit ")
+;#sertxd("Transmit ") 'Evaluated below
+w6 = 122
+w7 = 130
+gosub print_table_sertxd
 							if rtrn > 0 then
 								if @bptrinc = 0 then
-									sertxd("Off", cr, lf)
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 131
+w7 = 135
+gosub print_table_sertxd
 									transmit_enable = 0
 								else
-									sertxd("On", cr, lf)
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 136
+w7 = 139
+gosub print_table_sertxd
 									transmit_enable = 1
 								endif
 								dec rtrn
@@ -210,25 +248,42 @@ main:
 							level = 1
 						case 0xF3 ; "s" | 0x80 ; Request status, msb is high as it is an instruction
 							; No payload.
-							sertxd("Status", cr, lf)
+;#sertxd("Status", cr, lf) 'Evaluated below
+w6 = 140
+w7 = 147
+gosub print_table_sertxd
 							level = 1
 						else
 							; Something not recognised or implemented
 							; NOTE: Should the rest of the packet be discarded to ensure any possible data of unkown length is not treated as a field?
-							sertxd("Field ", #mask, " unkown", cr, lf)
+;#sertxd("Field ") 'Evaluated below
+w6 = 148
+w7 = 153
+gosub print_table_sertxd
+							sertxd(#mask)
+;#sertxd(" unkown", cr, lf) 'Evaluated below
+w6 = 154
+w7 = 162
+gosub print_table_sertxd
 					endselect
 				loop
 				if level = 1 then
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
 				endif
-				sertxd("Finished", cr, lf)
+;#sertxd("Finished", cr, lf) 'Evaluated below
+w6 = 163
+w7 = 172
+gosub print_table_sertxd
 
 				low LED_PIN
 				start_time = time ; Reset the time. Possible security risk of being able to keep the box in high power state?
 				rtrn = time
 			else
-				sertxd("Invalid", cr, lf)
+;#sertxd("Invalid", cr, lf) 'Evaluated below
+w6 = 173
+w7 = 181
+gosub print_table_sertxd
 			endif
 		endif
 
@@ -243,7 +298,10 @@ main:
 
 	; Go into power saving mode
 	; TODO: Flash led once per minute
-	sertxd("Entering sleep mode", cr, lf)
+;#sertxd("Entering sleep mode", cr, lf) 'Evaluated below
+w6 = 182
+w7 = 202
+gosub print_table_sertxd
 	gosub sleep_lora
 	low LED_PIN
 	
@@ -258,7 +316,10 @@ main:
 send_status:
 	; Sends the monitor's status
 	high LED_PIN
-	sertxd("Sending state", cr, lf)
+;#sertxd("Sending state", cr, lf) 'Evaluated below
+w6 = 203
+w7 = 217
+gosub print_table_sertxd
 	
 	gosub begin_pjon_packet
 
@@ -266,30 +327,53 @@ send_status:
 	@bptrinc = "V"
 	gosub get_voltage
 	gosub add_word
-	sertxd("Batt is: (", #rtrn, "*0.1) V", cr, lf)
+;#sertxd("Batt is: (") 'Evaluated below
+w6 = 218
+w7 = 227
+gosub print_table_sertxd
+	sertxd(#rtrn)
+;#sertxd("*0.1) V", cr, lf) 'Evaluated below
+w6 = 228
+w7 = 236
+gosub print_table_sertxd
 
 	; Temperature
 ; ; #IFDEF ENABLE_TEMP [#IF CODE REMOVED]
 ; 	@bptrinc = "T" [#IF CODE REMOVED]
 ; 	gosub get_temperature [#IF CODE REMOVED]
 ; 	gosub add_word [#IF CODE REMOVED]
-; 	sertxd("Temp is: (", #rtrn, "*0.1 C", cr, lf) [#IF CODE REMOVED]
+; 	;#sertxd("Temp is: (") [#IF CODE REMOVED]
+; 	sertxd(#rtrn) [#IF CODE REMOVED]
+; 	;#sertxd("*0.1 C", cr, lf) [#IF CODE REMOVED]
 ; #ENDIF
 
 	; Fence enable
-	sertxd("Fence: ", #fence_enable, cr, lf)
+;#sertxd("Fence: ") 'Evaluated below
+w6 = 237
+w7 = 243
+gosub print_table_sertxd
+	sertxd(#fence_enable)
+gosub print_newline_sertxd
 	@bptrinc = "F"
 	@bptrinc = fence_enable
 
 	; Transmit enable
-	sertxd("Transmit: ", #transmit_enable, cr, lf)
+;#sertxd("Transmit: ") 'Evaluated below
+w6 = 244
+w7 = 253
+gosub print_table_sertxd
+	sertxd(#transmit_enable)
+gosub print_newline_sertxd
 	@bptrinc = "r"
 	@bptrinc = transmit_enable
 	param1 = UPRSTEAM_ADDRESS
-	sertxd(cr, lf)
+gosub print_newline_sertxd
 	gosub end_pjon_packet
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
-		sertxd("LoRa dropped out.")
+;#sertxd("LoRa dropped out.") 'Evaluated below
+w6 = 254
+w7 = 270
+gosub print_table_sertxd
 		for tmpwd = 0 to 15
 			toggle LED_PIN
 			pause 4000
@@ -297,11 +381,17 @@ send_status:
 
 		gosub begin_lora
 		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
-			sertxd("Reconnected ok")
+;#sertxd("Reconnected ok") 'Evaluated below
+w6 = 271
+w7 = 284
+gosub print_table_sertxd
 			param1 = 9
 			gosub set_spreading_factor
 		else
-			sertxd("Could not reconnect")
+;#sertxd("Could not reconnect") 'Evaluated below
+w6 = 285
+w7 = 303
+gosub print_table_sertxd
 		endif
 	endif
 	low LED_PIN
@@ -1479,3 +1569,42 @@ crc32_compute:
 '---END include/PJON.basinc---
 
 '---END BatteryVoltsMonitor.bas---
+
+
+'---Extras added by the preprocessor---
+print_table_sertxd:
+    for w6 = w6 to w7
+    readtable w6, b16
+    sertxd(b16)
+next w6
+
+    return
+
+table 0, ("Electric Fence Controller",cr,lf,"Jotham Gates, Jan 2021",cr,lf) ;#sertxd
+table 51, ("Failed to start LoRa",cr,lf) ;#sertxd
+table 73, ("LoRa Started",cr,lf) ;#sertxd
+table 87, ("Sent packet",cr,lf) ;#sertxd
+table 100, ("Valid",cr,lf) ;#sertxd
+table 107, ("Fence ") ;#sertxd
+table 113, ("Off",cr,lf) ;#sertxd
+table 118, ("On",cr,lf) ;#sertxd
+table 122, ("Transmit ") ;#sertxd
+table 131, ("Off",cr,lf) ;#sertxd
+table 136, ("On",cr,lf) ;#sertxd
+table 140, ("Status",cr,lf) ;#sertxd
+table 148, ("Field ") ;#sertxd
+table 154, (" unkown",cr,lf) ;#sertxd
+table 163, ("Finished",cr,lf) ;#sertxd
+table 173, ("Invalid",cr,lf) ;#sertxd
+table 182, ("Entering sleep mode",cr,lf) ;#sertxd
+table 203, ("Sending state",cr,lf) ;#sertxd
+table 218, ("Batt is: (") ;#sertxd
+table 228, ("*0.1) V",cr,lf) ;#sertxd
+table 237, ("Fence: ") ;#sertxd
+table 244, ("Transmit: ") ;#sertxd
+table 254, ("LoRa dropped out.") ;#sertxd
+table 271, ("Reconnected ok") ;#sertxd
+table 285, ("Could not reconnect") ;#sertxd
+print_newline_sertxd:
+    sertxd(cr, lf)
+    return
