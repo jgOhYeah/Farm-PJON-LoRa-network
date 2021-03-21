@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 01:41PM, March 21, 2021----
+'----UPDATED AT 04:15PM, March 21, 2021----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -20,9 +20,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 15/03/2021
+; Modified 21/03/2021
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
-; #DEFINE TABLE_SERTXD_BACKUP_LOC 121 ; 5 bytes from here
+; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
 ; #DEFINE TABLE_SERTXD_ADDRESS_VAR param1
 ; #DEFINE TABLE_SERTXD_ADDRESS_VAR_L param1l
 ; #DEFINE TABLE_SERTXD_ADDRESS_VAR_H param1h
@@ -36,11 +36,12 @@
 ; #DEFINE ENABLE_LORA_TRANSMIT
 ; #DEFINE ENABLE_PJON_TRANSMIT
 
-; #DEFINE PIN_PUMP pinB.3
-; #DEFINE PIN_LED_STATUS C.2
+; #DEFINE PIN_PUMP pinC.2 ; Must be interrupt capable and PIN_PUMP_BIN must be updated to match
+; #DEFINE PIN_PUMP_BIN %00000100
+; #DEFINE PIN_LED_ALARM B.3 ; Swapped with PIN_PUMP for V2 due to interrupt requirements
 ; #DEFINE PIN_LED_ON B.6
+; #DEFINE LED_ON_STATE pinB.6 ; Used to keep track of pump status
 ; #DEFINE PIN_BUTTON B.7
-; #DEFINE PIN_ALARM B.2
 ; #DEFINE PIN_I2C_SDA B.1
 ; #DEFINE PIN_I2C_SCL B.4
 ; #DEFINE PIN_RX pinC.4
@@ -56,29 +57,20 @@ symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; 2*30*60 = 3600 - time increments once every half seconds
 ; #DEFINE STORE_INTERVAL 3600 ; Once every 10s.
-; #DEFINE STATIC_THRESHOLD 3590 ; Detect if the pump is running all the time.
-; (THRESHOLD * 5.555555)% over the average is the threshold for the alarm being raised
-; #DEFINE THRESHOLD 1
-; #DEFINE REENABLE_THRESHOLD 1
-; #DEFINE PERCENT_MULTIPLIER 18 ; Max count times this must be less than 65535. Percentage steps is 100 / PERCENT_MULTIPLIER
-; For a 1 hour interval, maximum would be 3600, so 0xFFFF is way higher than what would be possible, even for longer intervals
+
 ; #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 ; #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
 ; 2 KiB EEPROM and always have at least one space free for the start / end marker.
 ; #DEFINE BUFFER_MAXLENGTH 2047
 ; #DEFINE BUFFER_SIZE 2048
-; #DEFINE BUFFER_INVALID_ADDRESS 65535
-; #DEFINE DISABLE_TIME_LOC 28 ; bptr 28 and 29 to free up named registers
-; #DEFINE STORE_START_TIME_SECONDARY_LOCH 126 ; Spot to store stuff long term
-; #DEFINE STORE_START_TIME_SECONDARY_LOCL 127 ; Spot to store stuff long term
-; #DEFINE MINIMUM_LENGTH 12 ; Minimum length
 
-; #DEFINE DISABLE_TIME_MIN 7200
-symbol disabled = bit0
+; USING PIN_symbol pump_on = bit0 ; Using a bit in case pin state changes between lines of code
 symbol buffer_start = w1
 symbol buffer_startl = b2
 symbol buffer_starth = b3
 symbol buffer_length = w2
+symbol buffer_lengthl = b4
+symbol buffer_lengthh = b5
 symbol tmpwd0 = w3
 symbol tmpwd0l = b6
 symbol tmpwd0h = b7
@@ -94,15 +86,15 @@ symbol tmpwd3h = b13
 symbol tmpwd4 = w7
 symbol tmpwd4l = b14
 symbol tmpwd4h = b15
-symbol store_start_time = w8
-symbol store_start_timel = b16
-symbol store_start_timeh = b17
-symbol update_start_time = w9
-symbol update_start_timel = b18
-symbol update_start_timeh = b19
-symbol total_time = w10
-symbol total_timel = b20
-symbol total_timeh = b21
+symbol interval_start_time = w8
+symbol interval_start_timel = b16
+symbol interval_start_timeh = b17
+symbol pump_start_time = w9
+symbol pump_start_timel = b18
+symbol pump_start_timeh = b19
+symbol block_on_time = w10
+symbol block_on_timel = b20
+symbol block_on_timeh = b21
 symbol param1 = w11
 symbol param1l = b22
 symbol param1h = b23
@@ -111,6 +103,12 @@ symbol tmpbt0 = b25
 symbol rtrn = w13
 symbol rtrnl = b26
 symbol rtrnh = b27
+
+; #DEFINE BUFFER_START_BACKUP_LOC_L 123
+; #DEFINE BUFFER_START_BACKUP_LOC_H 124
+; #DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
+; #DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
+
 
 'PARSED MACRO EEPROM_SETUP
 '---END include/PumpMonitorCommon.basinc---
@@ -167,10 +165,10 @@ symbol crc2 = tmpwd4l
 symbol crc3 = tmpwd4h
 symbol counter3 = tmpbt0
 ; b11, b12, b13, b1, b15, b16, b17, b18, b19 are free
-symbol start_time = store_start_time
-symbol start_time_h = store_start_timeh
-symbol start_time_l = store_start_timel
-symbol tmpwd = update_start_time
+symbol start_time = interval_start_time
+symbol start_time_h = interval_start_timeh
+symbol start_time_l = interval_start_timel
+symbol tmpwd = pump_start_time
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13
@@ -178,6 +176,8 @@ symbol tmpwd = update_start_time
 
 init:
 	setfreq m32
+    high B.6
+    high B.3
 
 ;#sertxd("Pump Monitor v2.0 BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", "21-03-2021", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
@@ -185,14 +185,17 @@ param1 = 0
 rtrn = 64
 gosub print_table_sertxd
     gosub buffer_index
-
+    gosub buffer_backup
+    
 ;#sertxd("Press 't' for EEPROM tools.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 65
 rtrn = 93
 gosub print_table_sertxd
+    low B.3
 	serrxd[16000, start_slot_1], tmpwd0l
 	if tmpwd0l = "t" then
+        gosub print_help
 		goto eeprom_main
 	endif
     ; Fall throught to start slot 1 if the received char wasn't "t".
@@ -204,11 +207,13 @@ gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 94
 rtrn = 120
 gosub print_table_sertxd
+    low B.6
     run 1
 
 eeprom_main:
-    gosub print_help
-    serrxd tmpwd4l
+    toggle B.3
+    toggle B.6
+    serrxd [32000, eeprom_main], tmpwd4l
     select case tmpwd4l
         case "a"
 ;#sertxd(cr, lf, "Printing all", cr, lf) 'Evaluated below
@@ -460,6 +465,21 @@ print_digit:
 ; Written by Jotham Gates
 ; Created 15/03/2021
 ; Modified 15/03/2021
+buffer_backup:
+	; Saves buffer_start and buffer_length to storage ram so it can be used for something else
+	poke 125, buffer_lengthl
+	poke 126, buffer_lengthh
+	poke 123, buffer_startl
+	poke 124, buffer_starth
+	return
+
+buffer_restore:
+	; Restores buffer_start and buffer_length from storage ram
+	peek 125, buffer_lengthl
+	peek 126, buffer_lengthh
+	peek 123, buffer_startl
+	peek 124, buffer_starth
+	return
 
 buffer_upload:
 	; Prints all stored data in the buffer to the serial console
@@ -602,11 +622,11 @@ buffer_index:
 
 '---Extras added by the preprocessor---
 backup_table_sertxd:
-    poke 121, param2
-    poke 122, param1l
-    poke 123, param1h
-    poke 124, rtrnl
-    poke 125, rtrnh
+    poke 127, param2
+    poke 128, param1l
+    poke 129, param1h
+    poke 130, rtrnl
+    poke 131, rtrnh
     return
 
 print_table_sertxd:
@@ -615,11 +635,11 @@ print_table_sertxd:
     sertxd(param2)
 next param1
 
-    peek 121, param2
-    peek 122, param1l
-    peek 123, param1h
-    peek 124, rtrnl
-    peek 125, rtrnh
+    peek 127, param2
+    peek 128, param1l
+    peek 129, param1h
+    peek 130, rtrnl
+    peek 131, rtrnh
     return
 
 table 0, ("Pump Monitor v2.0 BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","21-03-2021",cr,lf) ;#sertxd

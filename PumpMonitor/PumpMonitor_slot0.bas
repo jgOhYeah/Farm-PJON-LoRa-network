@@ -15,13 +15,18 @@
 
 init:
 	setfreq m32
+    high PIN_LED_ON
+    high PIN_LED_ALARM
 
 	;#sertxd("Pump Monitor v2.0 BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     gosub buffer_index
+    gosub buffer_backup
 
     ;#sertxd("Press 't' for EEPROM tools.", cr, lf)
+    low PIN_LED_ALARM
 	serrxd[16000, start_slot_1], tmpwd0l
 	if tmpwd0l = "t" then
+        gosub print_help
 		goto eeprom_main
 	endif
     ; Fall throught to start slot 1 if the received char wasn't "t".
@@ -29,11 +34,15 @@ init:
 start_slot_1:
     ; Go to 
 	;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf)
+    low PIN_LED_ON
     run 1
 
 eeprom_main:
-    gosub print_help
-    serrxd tmpwd4l
+    ; Debugging interface
+    ; Variables modified: param1, rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4
+    toggle PIN_LED_ALARM
+    toggle PIN_LED_ON
+    serrxd [32000, eeprom_main], tmpwd4l
     select case tmpwd4l
         case "a"
             ;#sertxd(cr, lf, "Printing all", cr, lf)
@@ -96,7 +105,10 @@ eeprom_main:
     goto eeprom_main
 
 erase:
+    ; Wipes the eeprom chip
+    ; Variables modified: tmpwd1, tmpwd4l
     for tmpwd1 = 0 to 2047
+        toggle PIN_LED_ALARM
         EEPROM_SETUP(tmpwd1, tmpwd4l)
         hi2cout tmpwd1l, (0xFF)
         pause 80
@@ -104,6 +116,9 @@ erase:
     return
 
 print_help:
+    ; Prints a help message with a list of available options
+    ; Variables modified: none
+
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
     ;#sertxd(cr, lf, "EEPROM Tools", cr, lf)
@@ -125,7 +140,7 @@ print_help:
 print_block:
     ; Read the 8 bytes and display them as hex
     ;
-    ; Variables modified: tmpwd0, param1, tmpwd1, tmpwd2, 
+    ; Variables modified: tmpwd0, param1, tmpwd1, tmpwd2
     tmpwd0 = param1
     param1 = param1h
     gosub print_byte

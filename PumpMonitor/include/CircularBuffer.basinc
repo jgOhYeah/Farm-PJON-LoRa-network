@@ -3,11 +3,28 @@
 ; Written by Jotham Gates
 ; Created 15/03/2021
 ; Modified 15/03/2021
+buffer_backup:
+	; Saves buffer_start and buffer_length to storage ram so it can be used for something else
+	poke BUFFER_LENGTH_BACKUP_LOC_L, buffer_lengthl
+	poke BUFFER_LENGTH_BACKUP_LOC_H, buffer_lengthh
+	poke BUFFER_START_BACKUP_LOC_L, buffer_startl
+	poke BUFFER_START_BACKUP_LOC_H, buffer_starth
+	return
+
+buffer_restore:
+	; Restores buffer_start and buffer_length from storage ram
+	peek BUFFER_LENGTH_BACKUP_LOC_L, buffer_lengthl
+	peek BUFFER_LENGTH_BACKUP_LOC_H, buffer_lengthh
+	peek BUFFER_START_BACKUP_LOC_L, buffer_startl
+	peek BUFFER_START_BACKUP_LOC_H, buffer_starth
+	return
 
 buffer_upload:
-	; Prints all stored data in the buffer to the serial console
+	; Prints all stored data in the buffer to the serial console as csv in the form
+	; position, data
 	;
 	; Variables modified: tmpwd0, tmpwd1, tmpwd2
+	; Variables read: buffer_start, buffer_length
 	tmpwd1 = buffer_start
 	for tmpwd0 = 1 to buffer_length
 		EEPROM_SETUP(tmpwd1, tmpwd2l)
@@ -24,6 +41,8 @@ buffer_average: ; TODO: Exclude everthing above base
 	; Param1 is the last number of records to average. If there are less records than this, the average of those present is returned.
     ;
     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+	; Variables read: buffer_start, buffer_length
+	
 	; Limit the amount read out if there is not much stored
 	if param1 > buffer_length then
 		param1 = buffer_length
@@ -57,6 +76,8 @@ buffer_write:
 	; Appends param1 to the circular buffer. If full, deletes the earliest.
 	;
 	; Variables modified: tmpwd0, tmpwd1
+	; Variables read: buffer_start, buffer_length
+
 	; Write the value to save
 	; sertxd("buffer_start: ", #buffer_start, "  buffer_length: ", #buffer_length, "  BUFFER_SIZE: ", #BUFFER_SIZE, cr, lf)
 	tmpwd0 = 2 * buffer_length + buffer_start % BUFFER_SIZE ; Where to write the data.
