@@ -1,0 +1,110 @@
+; Pump duty cycle monitor circular buffer
+; Handles reading and writing to and from a circular buffer in eeprom
+; Written by Jotham Gates
+; Created 15/03/2021
+; Modified 15/03/2021
+
+buffer_upload:
+	; Prints all stored data in the buffer to the serial console
+	;
+	; Variables modified: tmpwd0, tmpwd1, tmpwd2
+	tmpwd1 = buffer_start
+	for tmpwd0 = 1 to buffer_length
+		EEPROM_SETUP(tmpwd1, tmpwd2l)
+		hi2cin tmpwd1l, (tmpwd2h, tmpwd2l)
+		sertxd(#tmpwd0, ",", #tmpwd2, cr, lf)
+		tmpwd1 = tmpwd1 + 2 % BUFFER_SIZE
+	next tmpwd0
+	return
+    
+
+buffer_average: ; TODO: Exclude everthing above base
+	; Returns the average of the contents of the buffer
+    ; Based off https://www.quora.com/How-can-I-compute-the-average-of-a-large-array-of-integers-without-running-into-overflow
+	; Param1 is the last number of records to average. If there are less records than this, the average of those present is returned.
+    ;
+    ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+	; Limit the amount read out if there is not much stored
+	if param1 > buffer_length then
+		param1 = buffer_length
+	endif
+	; Calculate the starting location
+	tmpwd4 = 2 * buffer_length ; Start location
+	tmpwd3 = 2 * param1 ; Attempt to get bodmas to work
+	tmpwd4 = tmpwd4 - tmpwd3 + buffer_start % BUFFER_SIZE ; Adding BUFFER_SIZE so hopefully no overflow
+
+	; Setup for finding the average
+    rtrn = 0
+    tmpwd0 = 0 ; Numerator
+    for tmpwd1 = 1 to param1
+        EEPROM_SETUP(tmpwd4, tmpwd2l)
+        hi2cin tmpwd4l, (tmpwd2h, tmpwd2l)
+        ; sertxd("ADDR: ", #tmpwd4, "Reading: ", #tmpwd2, " ave: ", #rtrn, " rem: ", #tmpwd0, cr, lf)
+        rtrn = tmpwd2 / param1 + rtrn
+        tmpwd2 = tmpwd2 % param1
+        tmpwd3 = param1 - tmpwd2
+        if tmpwd0 >= tmpwd3 then
+            inc rtrn
+            tmpwd0 = tmpwd0 - tmpwd3
+        else
+            tmpwd0 = tmpwd0 + tmpwd2
+        endif
+		tmpwd4 = tmpwd4 + 2 % BUFFER_SIZE
+    next tmpwd1
+    return
+	
+buffer_write:
+	; Appends param1 to the circular buffer. If full, deletes the earliest.
+	;
+	; Variables modified: tmpwd0, tmpwd1
+	; Write the value to save
+	; sertxd("buffer_start: ", #buffer_start, "  buffer_length: ", #buffer_length, "  BUFFER_SIZE: ", #BUFFER_SIZE, cr, lf)
+	tmpwd0 = 2 * buffer_length + buffer_start % BUFFER_SIZE ; Where to write the data.
+	; sertxd("Location is: ", #tmpwd0, cr, lf)
+	EEPROM_SETUP(tmpwd0, tmpwd1h)
+	hi2cout tmpwd0l, (param1h, param1l)
+    pause 80 ; Wait for writing to be done
+	; Wipe the byte after if needed so that indexing will work next time
+	tmpwd0 = tmpwd0 + 2 % BUFFER_SIZE
+	; sertxd("After address is: ", #tmpwd0, cr, lf)
+	EEPROM_SETUP(tmpwd0, tmpwd1h)
+	hi2cin tmpwd0l, (tmpwd1h, tmpwd1l)
+	; sertxd("Byte after is: ", #tmpwd1)
+	if tmpwd1 != BUFFER_BLANK_CHAR then
+		hi2cout tmpwd0l, (BUFFER_BLANK_CHAR_HALF, BUFFER_BLANK_CHAR_HALF)
+		buffer_start = buffer_start + 2 % BUFFER_SIZE
+		pause 80 ; Wait for writing to be done
+	else
+		inc buffer_length
+	endif
+	return
+
+; Thinking about having a bootloader that does initialisation so indexing does not have to be done later.
+#IFDEF INCLUDE_BUFFER_INIT
+buffer_index:
+	; Calculates and sets buffer_length and buffer_start.
+	;
+	; Modifies variables: tmpwd0, tmpwd1, tmpwd2, buffer_length, buffer_start
+	; Setup
+	tmpwd1 = BUFFER_BLANK_CHAR ; Setup previous
+	buffer_length = 0
+
+	; Iterate through all values to count those that are not blank and find the start
+	for tmpwd0 = 0 to BUFFER_MAXLENGTH step 2
+		; Read the value at this address
+		EEPROM_SETUP(tmpwd0, tmpwd2l)
+		hi2cin tmpwd0l, (tmpwd2h, tmpwd2l) ; Get the current
+		; Process
+		if tmpwd2 != BUFFER_BLANK_CHAR then
+			; Non empty character.
+			inc buffer_length
+			if tmpwd1 = BUFFER_BLANK_CHAR then
+				; The previous char was blank so this must be the start.
+				buffer_start = tmpwd0
+			endif
+		endif
+		tmpwd1 = tmpwd2 ; previous = current
+    next tmpwd0
+	return
+
+#ENDIF
