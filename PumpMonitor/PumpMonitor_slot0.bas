@@ -8,26 +8,30 @@
 #PICAXE 18M2
 #SLOT 0
 #NO_DATA
+#DEFINE VERSION "v2.0.1"
 ; #COM /dev/ttyUSB0
 #DEFINE INCLUDE_BUFFER_INIT
 #INCLUDE "include/PumpMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
 
 init:
+    disconnect
 	setfreq m32
     high PIN_LED_ON
     high PIN_LED_ALARM
 
-	;#sertxd("Pump Monitor v2.0 BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+	;#sertxd("Pump Monitor", VERSION , "BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     gosub buffer_index
     gosub buffer_backup
 
-    ;#sertxd("Press 't' for EEPROM tools.", cr, lf)
+    ;#sertxd("Press 't' for EEPROM tools or '`' for computers", cr, lf)
     low PIN_LED_ALARM
 	serrxd[16000, start_slot_1], tmpwd0l
 	if tmpwd0l = "t" then
         gosub print_help
 		goto eeprom_main
+    else
+        goto computer_mode
 	endif
     ; Fall throught to start slot 1 if the received char wasn't "t".
 
@@ -40,9 +44,9 @@ start_slot_1:
 eeprom_main:
     ; Debugging interface
     ; Variables modified: param1, rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4
-    toggle PIN_LED_ALARM
-    toggle PIN_LED_ON
-    serrxd [32000, eeprom_main], tmpwd4l
+    high PIN_LED_ON
+    low PIN_LED_ALARM
+    serrxd tmpwd4l
     select case tmpwd4l
         case "a"
             ;#sertxd(cr, lf, "Printing all", cr, lf)
@@ -63,7 +67,8 @@ eeprom_main:
             ;#sertxd("ADDRESS: ")
             serrxd #tmpwd0
             EEPROM_SETUP(tmpwd0, tmpwd4l)
-            ;#sertxd(#tmpwd0, cr, lf, "VALUE: ")
+            sertxd(#tmpwd0)
+            ;#sertxd(cr, lf, "VALUE: ")
             serrxd #tmpwd4l
             hi2cout tmpwd0l, (tmpwd4l)
             sertxd(#tmpwd4l, cr, lf)
@@ -128,8 +133,8 @@ print_help:
 	;#sertxd(" u Read buffer old to new", cr, lf)
 	;#sertxd(" z Add value to buffer", cr, lf)
     sertxd(" w Write at address", cr, lf)
-	;#sertxd(" i Buffer info", cr, lf)
-    ;#sertxd(" e Erase all", cr, lf)
+	sertxd(" i Buffer info", cr, lf)
+    sertxd(" e Erase all", cr, lf)
     sertxd(" p Enter programming mode", cr, lf)
 	sertxd(" q Reset", cr, lf)
     sertxd(" h Show this help", cr, lf)
@@ -151,7 +156,7 @@ print_block:
     tmpwd0 = param1 + 7
     tmpwd1 = param1
     for tmpwd2 = tmpwd1 to tmpwd0
-        EEPROM_SETUP(tmpwd2, param1)
+        EEPROM_SETUP(tmpwd2, param1l)
         hi2cin tmpwd2l, (param1)
         gosub print_byte
         sertxd(" ")
@@ -183,5 +188,55 @@ print_digit:
     endif
     sertxd(param1)
     return
+
+computer_mode:
+    ; Mode for interacting with a program on a computer that is not nice to look at
+    ; TODO
+    ; NOTE: Possibly use firmata if appropriate???
+    sertxd(1)
+    low PIN_LED_ON
+    high PIN_LED_ALARM
+
+computer_mode_loop:
+    serrxd tmpwd0l
+    select case tmpwd0l
+        case "r" ; Read bytes
+            low PIN_LED_ALARM
+            serrxd tmpwd1l, tmpwd1h, tmpwd2l, tmpwd2h ; Start and end address (inclusive) in little endian
+            ; Upload everything
+            high PIN_LED_ALARM
+            high PIN_LED_ON
+            for tmpwd0 = tmpwd1 to tmpwd2
+                EEPROM_SETUP(tmpwd0, tmpwd3l)
+                hi2cin tmpwd0l, (tmpwd3l)
+                sertxd(tmpwd3l)
+            next tmpwd0
+            low PIN_LED_ON
+        case "w" ; Write bytes
+            low PIN_LED_ALARM
+            serrxd tmpwd1l, tmpwd1h, tmpwd2l, tmpwd2h ; Start and end address (inclusive) in little endian
+            ; Read everything
+            high PIN_LED_ALARM
+            high PIN_LED_ON
+            for tmpwd0 = tmpwd1 to tmpwd2
+                sertxd(1) ; Acknowledge
+                EEPROM_SETUP(tmpwd0, tmpwd3l)
+                serrxd tmpwd3l
+                hi2cout tmpwd0l, (tmpwd3l)
+                toggle PIN_LED_ON
+                pause 80
+            next tmpwd0
+            low PIN_LED_ON
+            ; Done
+        ; TODO: Other cases
+        case "q" ; Reset
+            reset
+        case "p" ; Programming mode
+            reconnect
+            stop
+        case "?" ; Query if this program is running correctly
+            sertxd(1)
+    end select
+    goto computer_mode_loop
 
 #INCLUDE "include/CircularBuffer.basinc"
