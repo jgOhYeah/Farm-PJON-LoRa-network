@@ -33,7 +33,6 @@ buffer_upload:
 		tmpwd1 = tmpwd1 + 2 % BUFFER_SIZE
 	next tmpwd0
 	return
-    
 
 buffer_average: ; TODO: Exclude everthing above base
 	; Returns the average of the contents of the buffer
@@ -99,6 +98,47 @@ buffer_write:
 		inc buffer_length
 	endif
 	return
+
+#IFDEF INCLUDE_BUFFER_ALARM_CHECK
+buffer_alarm_check:
+	; Checks if the previous x elements are above the allowed threshold. If so, alarm = 1, else alarm = 0
+    ; rtrn is the average from buffer_average
+    ; Variables modified: rtrn, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+	; Variables read: buffer_start, buffer_length
+	; TODO: Update variables
+	
+	; Read the number of blocks to check
+	read EEPROM_ALARM_CONSECUTIVE_BLOCKS, param1
+
+	; Calculate the starting location
+	tmpwd4 = 2 * buffer_length ; Start location
+	tmpwd3 = 2 * param1 ; Attempt to get bodmas to work
+	tmpwd4 = tmpwd4 - tmpwd3 + buffer_start % BUFFER_SIZE ; Adding BUFFER_SIZE so hopefully no overflow
+
+	; Get the multiplier for being above the threshold
+	read EEPROM_ALARM_MULT_NUM, tmpwd3l
+	read EEPROM_ALARM_MULT_DEN, tmpwd3h
+	rtrn = rtrn * tmpwd3l / tmpwd3h ; Multiply to get the threshold
+
+	; Iterate over the last X blocks
+    for tmpwd1 = 1 to param1
+        EEPROM_SETUP(tmpwd4, tmpwd2l)
+        hi2cin tmpwd4l, (tmpwd2h, tmpwd2l)
+        
+		; If tmpwd2 is not out of bounds, there is no alarm, return
+		if tmpwd2 <= rtrn then
+			; A least one of the last X blocks was below the threshold. Therefore no alarm.
+			alarm = 0
+			return
+		endif
+
+		tmpwd4 = tmpwd4 + 2 % BUFFER_SIZE
+    next tmpwd1
+
+	; If we got to this point, all of the last X blocks were over the threshold, so raise the alarm
+	alarm = 1
+    return
+#ENDIF
 
 ; Thinking about having a bootloader that does initialisation so indexing does not have to be done later.
 #IFDEF INCLUDE_BUFFER_INIT

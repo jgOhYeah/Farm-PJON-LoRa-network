@@ -8,7 +8,7 @@
 #PICAXE 18M2
 #SLOT 0
 #NO_DATA
-#DEFINE VERSION "v2.0.1"
+
 ; #COM /dev/ttyUSB0
 #DEFINE INCLUDE_BUFFER_INIT
 #INCLUDE "include/PumpMonitorCommon.basinc"
@@ -20,7 +20,7 @@ init:
     high PIN_LED_ON
     high PIN_LED_ALARM
 
-	;#sertxd("Pump Monitor", VERSION , "BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+	;#sertxd("Pump Monitor ", VERSION , " BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     gosub buffer_index
     gosub buffer_backup
 

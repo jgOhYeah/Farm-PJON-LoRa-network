@@ -3,6 +3,9 @@
 ; Written by Jotham Gates
 ; Created 15/03/2021
 ; Modified 21/03/2021
+
+#DEFINE VERSION "v2.0.2"
+
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
 #DEFINE TABLE_SERTXD_ADDRESS_VAR param1
@@ -46,7 +49,8 @@ symbol DIO0 = pinC.5 ; High when a packet has been received
 #DEFINE BUFFER_MAXLENGTH 2047
 #DEFINE BUFFER_SIZE 2048
 
-symbol debugging = bit0 ; If 1, slot 0 will go straight to debugging mode
+symbol alarm = bit0
+symbol lora_fail = bit1
 symbol buffer_start = w1
 symbol buffer_startl = b2
 symbol buffer_starth = b3
@@ -86,13 +90,25 @@ symbol rtrn = w13
 symbol rtrnl = b26
 symbol rtrnh = b27
 
+; To save and restore the words used by the buffer
 #DEFINE BUFFER_START_BACKUP_LOC_L 123
 #DEFINE BUFFER_START_BACKUP_LOC_H 124
 #DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
 #DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
 
+; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
+#DEFINE INTERVAL_START_BACKUP_LOC_L 121
+#DEFINE INTERVAL_START_BACKUP_LOC_H 123
+
+#DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
+#DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
+#DEFINE EEPROM_ALARM_MULT_DEN 2 ; Multiplier for the average (denominator)
+; A block is counted as > baseline if (on_time > (average * multiplier) / deniminator)
+; If consecutive block count is over, raise alarm.
 
 #MACRO EEPROM_SETUP(ADDR, TMPVAR)
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	TMPVAR = ADDR / 128 & %00001110
 	TMPVAR = TMPVAR | %10100000

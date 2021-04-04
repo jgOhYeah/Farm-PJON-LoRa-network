@@ -9,7 +9,6 @@
 #PICAXE 18M2
 #SLOT 1
 #NO_DATA
-#DEFINE VERSION "v2.0.1"
 
 #DEFINE INCLUDE_BUFFER_ALARM_CHECK
 #INCLUDE "include/PumpMonitorCommon.basinc"
@@ -18,7 +17,8 @@
 init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
-    ;#sertxd("Pump Monitor ", VERSION , "MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+    ;#sertxd("Pump Monitor ", VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+    sertxd(#buffer_length, ", ", #buffer_start, cr, lf)
     ; Assuming that the program in slot 0 has initialised the eeprom circular buffer for us.
     gosub begin_lora
 	if rtrn = 0 then
@@ -40,7 +40,7 @@ init:
     else
         low PIN_LED_ON
     endif
-    setint PIN_PUMP_BIN, PIN_PUMP_BIN ; Interrupt when the pump turns on
+    setint 0, PIN_PUMP_BIN ; Interrupt when the pump turns on
     ; TODO: Put receiver into receiving mode and listen for incoming signals
 
 main:
@@ -91,10 +91,10 @@ get_and_reset_time:
     ; Restore interrupts
     if LED_ON_STATE = 1 then
         ; Pump is currently on. Resume with interrupt for when off
-        setint 0, PIN_PUMP_BIN
+        setint PIN_PUMP_BIN, PIN_PUMP_BIN
     else
         ; Pump is currently off. Resume with interrupt for when on
-        setint PIN_PUMP_BIN, PIN_PUMP_BIN
+        setint 0, PIN_PUMP_BIN
     endif
     return
 
@@ -182,10 +182,11 @@ interrupt:
         ; Pump just turned on.
         pump_start_time = time
         high PIN_LED_ON ; Turn on the on LED and remember the pump is on
-        setint 0, PIN_PUMP_BIN ; Interrupt for when the pump turns off
+        setint PIN_PUMP_BIN, PIN_PUMP_BIN ; Interrupt for when the pump turns off
     else
         ; Pump just turned off. Save the time to total time
         block_on_time = time - pump_start_time + block_on_time ; Add to current time
         low PIN_LED_ON ; Turn off the LED and remember the pump is off
+        setint 0, PIN_PUMP_BIN ; Interrupt for when the pump turns on
     endif
     return
