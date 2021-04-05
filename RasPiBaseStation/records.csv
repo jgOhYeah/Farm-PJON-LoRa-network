@@ -1,0 +1,658 @@
+1611905946.482722,bytearray(b'\x00\x00\x00\x00\x00'),-83,8.0
+1611906286.5450644,bytearray(b'\xff&\x10_JV+\x00F\x01r\x01\xb5c\xd5\xfc'),-116,-14.0
+1611906286.6557796,bytearray(b'\x00\x00\x00\x00\x00'),-90,11.75
+1611906572.2526789,bytearray(b'\x00\x00\x00\x00\x00'),-88,9.75
+1611906626.7207825,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-114,-14.0
+1611906626.8314054,bytearray(b'\x00\x00\x00\x00\x00'),-88,9.0
+1611906967.1372418,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.75
+1611907307.0743098,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.5
+1611907647.0069036,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-7.75
+1611907987.440502,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.25
+1611908327.3775218,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.5
+1611908369.4330225,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.75
+1611908655.800754,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.75
+1611908995.7354453,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.0
+1611909335.669059,bytearray(b'\x00\x00\x00\x00\x00'),-87,12.0
+1611909676.110113,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.25
+1611910016.044286,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-3.5
+1611910166.7354848,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.0
+1611910355.983244,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-2.25
+1611910696.4202113,bytearray(b'\x00\x00\x00\x00\x00'),-86,9.25
+1611911036.3647177,bytearray(b'\x00\x00\x00\x00\x00'),-86,10.0
+1611911376.3066683,bytearray(b'\x00\x00\x00\x00\x00'),-85,10.25
+1611911716.7390754,bytearray(b'\x00\x00\x00\x00\x00'),-85,10.75
+1611912056.6771474,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,0.0
+1611912397.1148171,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.25
+1611912737.0520298,bytearray(b'\x00\x00\x00\x00\x00'),-86,11.5
+1611913077.493895,bytearray(b'\x00\x00\x00\x00\x00'),-86,10.0
+1611913417.4288921,bytearray(b'\x00\x00\x00\x00\x00'),-85,11.5
+1611913757.3734405,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.5
+1611914097.808712,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.25
+1611914437.744019,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.75
+1611914777.6778598,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-1.75
+1611915118.117095,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.75
+1611915458.0542493,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.5
+1611915559.1842365,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xc5\x01\xe57\x9b\x9d'),-121,-10.0
+1611915797.9882329,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.5
+1611916137.9296522,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.5
+1611916477.8755755,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,-1.25
+1611916818.3185222,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.0
+1611917158.2526116,bytearray(b'\x00\x00\x00\x00\x00'),-85,8.75
+1611917357.5075772,bytearray(b'\x00\x00\x00\x00\x00'),-85,8.75
+1611917498.1915994,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.25
+1611917838.1242967,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.0
+1611918178.0606635,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.25
+1611918518.505627,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.25
+1611918858.448859,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.5
+1611919154.8308637,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.25
+1611919198.88998,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.5
+1611919538.8309872,bytearray(b'\x00\x00\x00\x00\x00'),-85,9.5
+1611919879.2717826,bytearray(b'\x00\x00\x00\x00\x00'),-84,11.5
+1611920219.213962,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.5
+1611920559.1484778,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+1611920899.579349,bytearray(b'\x00\x00\x00\x00\x00'),-89,9.5
+1611920952.146386,bytearray(b'\x00\x00\x00\x00\x00'),-89,9.25
+1611921238.5072834,bytearray(b'\x00\x00\x00\x00\x00'),-91,11.75
+Restart 22:55
+1611921578.4617746,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-117,-12.5
+1611921918.5925314,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,-7.75
+1611922258.8320878,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,-7.25
+1611922598.475638,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-7.0
+1611922598.6782625,bytearray(b'\x00\x00\x00\x00\x00'),-91,12.25
+1611922748.6350238,bytearray(b'\x00\x00\x00\x00\x00'),-91,12.0
+1611922938.7583096,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-8.5
+2021-01-29 12:27:58,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-7.25
+2021-01-29 12:33:38,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-8.5
+2021-01-29 12:39:18,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,-8.0
+2021-01-29 12:44:58,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.75
+2021-01-29 12:49:05,bytearray(b'\x00\x00\x00\x00\x00'),-91,11.5
+2021-01-29 12:50:38,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.5
+2021-01-29 12:50:38,bytearray(b'\x00\x00\x00\x00\x00'),-91,12.25
+2021-01-29 12:56:18,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-8.25
+2021-01-29 13:01:58,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.75
+2021-01-29 13:07:39,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.25
+2021-01-29 13:13:19,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-4.25
+2021-01-29 13:18:59,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.5
+2021-01-29 13:19:02,bytearray(b'\x00\x00\x00\x00\x00'),-89,10.75
+2021-01-29 13:23:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 13:29:28,bytearray(b'\xff&\x10_JVx\x00F\x01r\x01c:6\xe1'),-122,-5.75
+2021-01-29 13:35:08,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 13:40:48,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-5.75
+2021-01-29 13:46:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 13:48:59,bytearray(b'\x00\x00\x00\x00\x00'),-80,14.0
+2021-01-29 13:52:09,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 13:57:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.5
+2021-01-29 13:57:49,bytearray(b'\x00\x00\x00\x00\x00'),-91,11.0
+2021-01-29 14:03:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-7.5
+2021-01-29 14:09:09,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.5
+2021-01-29 14:14:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-7.0
+2021-01-29 14:18:56,bytearray(b'\x00\x00\x00\x00\x00'),-86,10.0
+2021-01-29 14:20:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-7.25
+2021-01-29 14:26:09,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.75
+2021-01-29 14:31:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-29 14:37:30,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.5
+2021-01-29 14:43:10,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-117,-11.5
+2021-01-29 14:48:50,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 14:48:53,bytearray(b'\xff\xe6_R\x93\\\x9f\x03h\xc0\x01\xb0af\xf8'),-122,-15.5
+2021-01-29 14:53:40,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.0
+2021-01-29 14:59:19,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-5.75
+2021-01-29 15:04:59,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.75
+2021-01-29 15:04:59,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.0
+2021-01-29 15:10:39,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.0
+2021-01-29 15:10:40,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.75
+2021-01-29 15:16:20,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 15:18:50,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xbf\x010\xe7\n\xe1'),-122,-12.75
+2021-01-29 15:22:00,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 15:27:40,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 15:33:20,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 15:33:20,bytearray(b'\x00\x00\x00\x00\x00'),-91,11.5
+2021-01-29 15:39:00,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 15:44:40,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.5
+2021-01-29 15:48:47,bytearray(b'\x00\x00\x00\x00\x00'),-91,12.0
+2021-01-29 15:50:21,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 15:56:01,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 16:01:41,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.75
+2021-01-29 16:07:21,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.75
+2021-01-29 16:07:21,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.75
+2021-01-29 16:13:01,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-29 16:18:42,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 16:18:43,bytearray(b'\xff&\x0f\x07ZP\x10\x15a\xbe\x01)\xfc;\xa0'),-122,-14.5
+2021-01-29 16:23:30,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 16:29:10,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 16:34:50,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-6.75
+2021-01-29 16:40:30,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.25
+2021-01-29 16:46:10,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 16:46:11,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.5
+2021-01-29 16:48:40,bytearray(b'\xff\x16:Wos\x02\x00C\xbd\x01\x02\xd1hS'),-123,-14.5
+2021-01-29 16:51:51,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 16:57:31,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.75
+2021-01-29 17:03:11,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 17:08:51,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 17:14:31,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 17:18:38,bytearray(b'\x00\x00\x00\x00\x00'),-83,7.0
+2021-01-29 17:20:11,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 17:25:52,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 17:31:32,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-29 17:37:12,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.75
+2021-01-29 17:42:52,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 17:48:32,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 17:48:35,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xbc\x01\x1b\xcaY"'),-123,-15.25
+2021-01-29 17:53:22,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.75
+2021-01-29 17:59:02,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 17:59:02,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 18:04:42,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 18:04:42,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 18:10:22,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.0
+2021-01-29 18:16:02,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 18:18:33,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.0
+2021-01-29 18:21:42,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 18:27:23,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.5
+2021-01-29 18:33:03,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-121,-5.5
+2021-01-29 18:38:43,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 18:44:23,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-5.5
+2021-01-29 18:48:30,bytearray(b'\xff>?\x9aC\x19G\x04-\xbf\x02\xf7\xfb\xff\xe5'),-123,-15.0
+2021-01-29 18:50:03,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-5.5
+2021-01-29 18:50:03,bytearray(b'\x00\x00\x00\x00\x00'),-90,8.75
+2021-01-29 18:55:43,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 18:55:43,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.5
+2021-01-29 19:01:24,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 19:07:04,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 19:12:44,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.25
+2021-01-29 19:12:44,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.5
+2021-01-29 19:18:24,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-29 19:18:28,bytearray(b'\x00\x00\x00\x00\x00'),-85,8.0
+2021-01-29 19:23:14,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-29 19:28:54,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-2.75
+2021-01-29 19:34:35,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.25
+2021-01-29 19:40:15,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 19:45:55,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.25
+2021-01-29 19:48:25,bytearray(b'\xffF\x0f\x0bZd:\x8ak\x1a\x085\x88W\xb3'),-123,-15.75
+2021-01-29 19:51:35,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.0
+2021-01-29 19:57:15,bytearray(b'\xff&\xd5UJV}\x00N\x01ra3\xf7\xa7R'),-120,-6.25
+2021-01-29 20:02:56,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-3.5
+2021-01-29 20:08:36,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-2.5
+2021-01-29 20:14:16,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.75
+2021-01-29 20:14:16,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 20:18:22,bytearray(b'\x00\x00\x00\x00\x00'),-85,7.5
+2021-01-29 20:19:56,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-2.5
+2021-01-29 20:25:36,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 20:25:36,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 20:31:16,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.0
+2021-01-29 20:36:57,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-29 20:42:37,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-7.0
+2021-01-29 20:48:17,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.25
+2021-01-29 20:48:20,bytearray(b'\xff&\x0f\x07ZP6\x00a\xb9\x01H\xdc\xe0A'),-122,-14.25
+2021-01-29 20:53:06,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.0
+2021-01-29 20:58:46,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-3.75
+2021-01-29 21:04:26,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.75
+2021-01-29 21:10:06,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.75
+2021-01-29 21:15:47,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-3.0
+2021-01-29 21:18:17,bytearray(b'\xff&\x0f\x07ZP5\x00a\xb8\x01\x16g\xab\xd0'),-121,-14.75
+2021-01-29 21:21:27,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.25
+2021-01-29 21:27:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 21:32:47,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-29 21:38:27,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-29 21:44:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.5
+2021-01-29 21:44:07,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 21:49:47,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.25
+2021-01-29 21:55:27,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.5
+2021-01-29 22:01:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.0
+2021-01-29 22:06:47,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-29 22:12:28,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-29 22:18:08,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.5
+2021-01-29 22:23:48,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.25
+2021-01-29 22:29:28,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-119,-2.75
+2021-01-29 22:35:08,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-7.75
+2021-01-29 22:35:08,bytearray(b'\x00\x00\x00\x00\x00'),-90,9.0
+2021-01-29 22:40:48,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-9.25
+2021-01-29 22:46:28,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-7.25
+2021-01-29 22:48:09,bytearray(b'\x00\x00\x00\x00\x00'),-90,12.0
+2021-01-29 22:52:09,bytearray(b'\xff&\x10UJV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.5
+2021-01-29 22:57:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-8.0
+2021-01-29 22:57:49,bytearray(b'\x00\x00\x00\x00\x00'),-98,9.25
+2021-01-29 23:03:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-29 23:09:09,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-6.5
+2021-01-29 23:14:49,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.5
+2021-01-29 23:14:50,bytearray(b'\x00\x00\x00\x00\x00'),-95,11.5
+2021-01-29 23:18:06,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xb6\x01\xe1%\xb1\xa8'),-123,-11.5
+2021-01-29 23:20:30,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-7.0
+2021-01-29 23:20:30,bytearray(b'\x00\x00\x00\x00\x00'),-97,11.0
+2021-01-29 23:26:10,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-123,-8.75
+2021-01-29 23:31:50,bytearray(b'\x00\x00\x00\x00\x00'),-95,11.75
+2021-01-29 23:37:30,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.5
+2021-01-29 23:43:11,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-6.75
+2021-01-29 23:43:11,bytearray(b'\x00\x00\x00\x00\x00'),-95,12.0
+2021-01-29 23:48:03,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xb6\x01\xe1%\xb1\xa8'),-122,-10.25
+2021-01-29 23:48:51,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-6.5
+2021-01-29 23:54:31,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-121,-6.25
+2021-01-30 00:00:11,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-6.0
+2021-01-30 00:05:52,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-121,-5.5
+2021-01-30 00:11:32,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-121,-5.75
+2021-01-30 00:17:12,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-118,-9.5
+2021-01-30 00:17:12,bytearray(b'\x00\x00\x00\x00\x00'),-95,11.5
+2021-01-30 00:18:01,bytearray(b'\xff&\x0f\x07ZP7\x00a\xb5\x01\xd9\t\x86\xfd'),-123,-11.5
+2021-01-30 00:22:48,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-6.0
+2021-01-30 00:28:28,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.75
+2021-01-30 00:34:08,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-7.25
+2021-01-30 00:39:49,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.5
+2021-01-30 00:45:29,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-7.25
+2021-01-30 00:45:30,bytearray(b'\x00\x00\x00\x00\x00'),-96,11.5
+2021-01-30 00:47:59,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xb5\x01\xca\x08\xe2k'),-123,-11.25
+2021-01-30 00:51:10,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.75
+2021-01-30 00:56:50,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-6.75
+2021-01-30 01:02:31,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-6.75
+2021-01-30 01:02:31,bytearray(b'\x00\x00\x00\x00\x00'),-97,12.0
+2021-01-30 01:08:11,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-119,-10.25
+2021-01-30 01:13:52,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-6.5
+2021-01-30 01:17:57,bytearray(b'\xff&\x0f\x07ZPW\x01a\xb5\x01\xf8\x87\x96\xd5'),-121,-9.75
+2021-01-30 01:19:32,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-6.75
+2021-01-30 01:25:13,bytearray(b'\xff&\x10_JV\x84\x00F\x01B\x01\x01j\xef\x83'),-121,-7.0
+2021-01-30 01:30:54,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-120,-9.5
+2021-01-30 01:36:34,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.75
+2021-01-30 01:42:15,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-7.5
+2021-01-30 01:47:54,bytearray(b'\xff&\x0f\x07ZP8\x00a\xb4\x01BB m'),-122,-13.5
+2021-01-30 01:47:55,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-6.25
+2021-01-30 01:53:36,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.75
+2021-01-30 01:59:17,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-6.75
+2021-01-30 02:04:57,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-7.0
+2021-01-30 02:04:57,bytearray(b'\x00\x00\x00\x00\x00'),-98,9.0
+2021-01-30 02:10:38,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-5.0
+2021-01-30 02:16:18,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-7.25
+2021-01-30 02:17:52,bytearray(b'\xff&\x0f\x07ZP\xaf\x00a\xb4\x01!d\xdbm'),-123,-12.75
+2021-01-30 02:21:59,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-6.0
+2021-01-30 02:27:39,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-123,-7.0
+2021-01-30 02:33:20,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-6.25
+2021-01-30 02:39:00,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-6.0
+2021-01-30 02:39:00,bytearray(b'\x00\x00\x00\x00\x00'),-100,12.0
+2021-01-30 02:44:41,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.5
+2021-01-30 02:47:50,bytearray(b'\xff&\x0f\x07ZP7\x00a\xb3\x01\x8fS!{'),-122,-11.25
+2021-01-30 02:50:22,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.5
+2021-01-30 02:56:02,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-123,-6.25
+2021-01-30 03:01:43,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-6.5
+2021-01-30 03:07:23,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-7.75
+2021-01-30 03:13:04,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-6.5
+2021-01-30 03:17:48,bytearray(b'\x00\x00\x00\x00\x00'),-93,10.25
+2021-01-30 03:18:45,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-4.75
+2021-01-30 03:24:25,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-6.75
+2021-01-30 03:30:06,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-123,-7.5
+2021-01-30 03:35:47,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-118,-8.5
+2021-01-30 03:35:47,bytearray(b'\x00\x00\x00\x00\x00'),-98,9.75
+2021-01-30 03:41:27,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-5.5
+2021-01-30 03:47:08,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-6.25
+2021-01-30 03:47:08,bytearray(b'\x00\x00\x00\x00\x00'),-100,12.0
+2021-01-30 03:52:48,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-7.25
+2021-01-30 03:58:29,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-7.0
+2021-01-30 04:04:10,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-6.25
+2021-01-30 04:09:50,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-6.0
+2021-01-30 04:15:31,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-120,-5.25
+2021-01-30 04:17:45,bytearray(b'\x00\x00\x00\x00\x00'),-99,11.75
+2021-01-30 04:21:12,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-8.5
+2021-01-30 04:26:52,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-7.0
+2021-01-30 04:26:52,bytearray(b'\x00\x00\x00\x00\x00'),-102,8.75
+2021-01-30 04:32:33,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-8.75
+2021-01-30 04:38:13,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-6.0
+2021-01-30 04:43:54,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-5.75
+2021-01-30 04:47:43,bytearray(b'\xff&\x0f\x07ZP:\x00a\xb2\x01n\xd8\xd4\x8b'),-123,-13.5
+2021-01-30 04:49:35,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-118,-10.0
+2021-01-30 04:55:15,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-119,-9.75
+2021-01-30 05:00:56,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-123,-6.0
+2021-01-30 05:06:36,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-10.25
+2021-01-30 05:12:17,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.75
+2021-01-30 05:17:41,bytearray(b'\x00\x00\x00\x00\x00'),-92,10.0
+2021-01-30 05:17:58,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.75
+2021-01-30 05:23:38,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-6.0
+2021-01-30 05:29:19,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-5.25
+2021-01-30 05:35:00,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-8.75
+2021-01-30 05:40:40,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-6.25
+2021-01-30 05:46:21,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-5.75
+2021-01-30 05:47:39,bytearray(b"\xff&\x0f\x07ZP\x00\x00a\xb1\x01\xaed\'o"),-121,-11.75
+2021-01-30 05:52:02,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-7.25
+2021-01-30 05:57:42,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-6.75
+2021-01-30 06:03:23,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-6.75
+2021-01-30 06:09:04,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-120,-6.25
+2021-01-30 06:14:44,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-5.5
+2021-01-30 06:17:37,bytearray(b'\xff&\x0f\x07ZP\x0e\x01a\xb1\x01\xa9\xe8\xfek'),-121,-10.25
+2021-01-30 06:20:25,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-8.0
+2021-01-30 06:20:25,bytearray(b'\x00\x00\x00\x00\x00'),-94,12.25
+2021-01-30 06:26:05,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-4.5
+2021-01-30 06:31:46,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-7.0
+2021-01-30 06:31:46,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 06:37:27,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-6.0
+2021-01-30 06:43:07,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-123,-7.0
+2021-01-30 06:48:48,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-123,-7.0
+2021-01-30 06:48:48,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 06:54:29,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.5
+2021-01-30 07:00:09,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-7.5
+2021-01-30 07:05:50,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.75
+2021-01-30 07:05:50,bytearray(b'\x00\x00\x00\x00\x00'),-95,9.5
+2021-01-30 07:11:31,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.5
+2021-01-30 07:17:11,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-118,-8.0
+2021-01-30 07:18:48,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.5
+2021-01-30 07:22:52,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-5.0
+2021-01-30 07:28:32,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-4.75
+2021-01-30 07:28:32,bytearray(b'\x00\x00\x00\x00\x00'),-95,12.0
+2021-01-30 07:34:13,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-123,-3.5
+2021-01-30 07:34:13,bytearray(b'\x00\x00\x00\x00\x00'),-95,12.0
+2021-01-30 07:39:54,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-119,-10.0
+2021-01-30 07:45:34,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-7.0
+2021-01-30 07:48:46,bytearray(b'\xff&\x0f\x07Zp\xbb \xeb\x90\x05_N\x88\xb9'),-120,-15.5
+2021-01-30 07:51:15,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-5.25
+2021-01-30 07:56:55,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-123,-4.75
+2021-01-30 08:02:36,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-4.5
+2021-01-30 08:02:36,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.25
+2021-01-30 08:08:16,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-119,-8.75
+2021-01-30 08:13:57,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-118,-10.0
+2021-01-30 08:18:43,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xaf\x01z%\x18\xb0'),-122,-10.0
+2021-01-30 08:19:37,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-121,-5.25
+2021-01-30 08:25:18,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-5.0
+2021-01-30 08:25:18,bytearray(b'\x00\x00\x00\x00\x00'),-95,11.0
+2021-01-30 08:30:59,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-122,-5.75
+2021-01-30 08:36:39,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-117,-9.75
+2021-01-30 08:42:20,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-5.5
+2021-01-30 08:48:00,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-121,-6.0
+2021-01-30 08:48:41,bytearray(b'\xff&\x0f\x07ZP7\x00a\xaf\x01i$|&'),-123,-11.0
+2021-01-30 08:53:27,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-118,-10.25
+2021-01-30 08:59:08,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-117,-9.0
+2021-01-30 09:04:48,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-6.0
+2021-01-30 09:10:28,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-123,-4.5
+2021-01-30 09:10:28,bytearray(b'\x00\x00\x00\x00\x00'),-94,10.5
+2021-01-30 09:16:08,bytearray(b'\xff&\x10_JV\x81\x00F\x01r\x01Q\xa7~0'),-123,-5.5
+2021-01-30 09:16:09,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 09:18:38,bytearray(b'\xff&\x0f\x07ZP8\x00a\xae\x01\xf2o\xda\xb6'),-123,-10.5
+2021-01-30 09:21:49,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-5.0
+2021-01-30 09:27:29,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-4.5
+2021-01-30 09:33:09,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.75
+2021-01-30 09:38:49,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-3.25
+2021-01-30 09:38:49,bytearray(b'\x00\x00\x00\x00\x00'),-94,11.25
+2021-01-30 09:44:29,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.75
+2021-01-30 09:48:35,bytearray(b'\xff&\x0f\x07ZP_\x00a\xae\x01\xd9}q\xeb'),-122,-9.25
+2021-01-30 09:50:09,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-120,-4.0
+2021-01-30 09:55:49,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.5
+2021-01-30 10:01:29,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-3.25
+2021-01-30 10:01:30,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.5
+2021-01-30 10:07:10,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.25
+2021-01-30 10:12:50,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.25
+2021-01-30 10:18:30,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-4.0
+2021-01-30 10:18:31,bytearray(b'\xff&\x0f\x07ZP\x8a\x01a\xae\x01 \xd4\xe6\xa7'),-122,-10.25
+2021-01-30 10:18:31,bytearray(b'\x00\x00\x00\x00\x00'),-95,9.75
+2021-01-30 10:23:18,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-4.25
+2021-01-30 10:28:58,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-1.5
+2021-01-30 10:34:38,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.25
+2021-01-30 10:40:18,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-9.0
+2021-01-30 10:40:18,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.75
+2021-01-30 10:45:58,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-123,-6.5
+2021-01-30 10:48:28,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xad\x01H\x13z2'),-123,-13.0
+2021-01-30 10:51:38,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-7.25
+2021-01-30 10:57:18,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-6.75
+2021-01-30 10:57:18,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.5
+2021-01-30 11:02:58,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-5.0
+2021-01-30 11:08:39,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-5.5
+2021-01-30 11:14:19,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.25
+2021-01-30 11:14:19,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.5
+2021-01-30 11:18:25,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xad\x01H\x13z2'),-123,-11.5
+2021-01-30 11:19:59,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-6.75
+2021-01-30 11:25:39,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-120,-5.25
+2021-01-30 11:25:39,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.5
+2021-01-30 11:31:19,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-10.75
+2021-01-30 11:36:59,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-120,-6.5
+2021-01-30 11:42:39,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-6.0
+2021-01-30 11:48:20,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-123,-7.75
+2021-01-30 11:48:22,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xac\x01Q\x08Ks'),-123,-11.75
+2021-01-30 11:53:08,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.0
+2021-01-30 11:58:49,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-6.25
+2021-01-30 12:04:29,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-6.0
+2021-01-30 12:10:09,bytearray(b'\xff&\x10_JVy\x06F7r\x01~?\x06Y'),-118,-12.75
+2021-01-30 12:15:49,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-5.75
+2021-01-30 12:18:18,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xac\x01Q\x08Ks'),-123,-9.0
+2021-01-30 12:18:19,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 12:21:30,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-118,-10.75
+2021-01-30 12:27:10,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-119,-8.75
+2021-01-30 12:27:10,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.5
+2021-01-30 12:32:50,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-8.25
+2021-01-30 12:38:30,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-7.5
+2021-01-30 12:44:10,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-8.0
+2021-01-30 12:44:11,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.5
+2021-01-30 12:48:15,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xab\x01\x1eI\xdd\xb4'),-122,-11.5
+2021-01-30 12:49:51,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-7.25
+2021-01-30 12:55:31,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-120,-5.75
+2021-01-30 13:01:11,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-7.0
+2021-01-30 13:01:12,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.0
+2021-01-30 13:06:52,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-7.0
+2021-01-30 13:12:32,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-8.0
+2021-01-30 13:12:32,bytearray(b'\x00\x00\x00\x00\x00'),-93,10.75
+2021-01-30 13:18:11,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xab\x01\x1eI\xdd\xb4'),-123,-10.0
+2021-01-30 13:18:12,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-4.25
+2021-01-30 13:23:52,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-7.0
+2021-01-30 13:29:33,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.5
+2021-01-30 13:35:13,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-115,-12.25
+2021-01-30 13:40:53,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-6.0
+2021-01-30 13:46:33,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-6.5
+2021-01-30 13:48:08,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xaa\x01\x07R\xec\xf5'),-123,-10.25
+2021-01-30 13:52:14,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-6.25
+2021-01-30 13:57:54,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.5
+2021-01-30 14:03:34,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.5
+2021-01-30 14:03:34,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.0
+2021-01-30 14:09:15,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-6.75
+2021-01-30 14:14:55,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.75
+2021-01-30 14:18:04,bytearray(b'\xff&\x0f\x07ZP5\x00a\xaa\x01n\x93\xdb\x03'),-122,-10.0
+2021-01-30 14:20:35,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-7.0
+2021-01-30 14:26:15,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 14:31:56,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-6.75
+2021-01-30 14:31:56,bytearray(b'\x00\x00\x00\x00\x00'),-92,11.75
+2021-01-30 14:37:36,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-30 14:43:16,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-5.0
+2021-01-30 14:43:17,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.75
+2021-01-30 14:48:00,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa9\x01,\x7f\xbf6'),-123,-9.0
+2021-01-30 14:48:57,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-122,-6.5
+2021-01-30 14:54:37,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-30 15:00:17,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-5.75
+2021-01-30 15:00:17,bytearray(b'\x00\x00\x00\x00\x00'),-93,10.0
+2021-01-30 15:05:57,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-6.75
+2021-01-30 15:11:37,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 15:17:18,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-123,-7.0
+2021-01-30 15:17:57,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa9\x01,\x7f\xbf6'),-123,-9.25
+2021-01-30 15:22:43,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-7.0
+2021-01-30 15:28:23,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-30 15:34:03,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 15:39:44,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.25
+2021-01-30 15:45:24,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.25
+2021-01-30 15:45:24,bytearray(b'\x00\x00\x00\x00\x00'),-93,9.25
+2021-01-30 15:47:53,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa8\x015d\x8ew'),-123,-9.75
+2021-01-30 15:51:04,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-30 15:51:04,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 15:56:44,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.75
+2021-01-30 16:02:24,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-30 16:08:05,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.0
+2021-01-30 16:08:05,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 16:13:45,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.75
+2021-01-30 16:17:50,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa8\x015d\x8ew'),-123,-8.75
+2021-01-30 16:19:25,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-30 16:25:05,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.25
+2021-01-30 16:30:45,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.5
+2021-01-30 16:36:26,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.25
+2021-01-30 16:42:06,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-30 16:47:46,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa7\x01\xb2\xfc\x92\xb8'),-121,-8.25
+2021-01-30 16:53:26,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 16:53:26,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.5
+2021-01-30 16:59:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.75
+2021-01-30 17:04:47,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-30 17:04:47,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.75
+2021-01-30 17:10:27,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.75
+2021-01-30 17:16:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.5
+2021-01-30 17:17:42,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa6\x01\xab\xe7\xa3\xf9'),-123,-8.75
+2021-01-30 17:21:48,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-30 17:27:28,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 17:33:08,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-30 17:38:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-30 17:44:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 17:47:39,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa6\x01\xab\xe7\xa3\xf9'),-122,-8.75
+2021-01-30 17:50:10,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.25
+2021-01-30 17:55:50,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-30 18:01:30,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.0
+2021-01-30 18:01:31,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.75
+2021-01-30 18:07:11,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.75
+2021-01-30 18:12:52,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.0
+2021-01-30 18:17:36,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa5\x01\x80\xca\xf0:'),-121,-8.0
+2021-01-30 18:18:32,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.5
+2021-01-30 18:24:13,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-5.5
+2021-01-30 18:29:53,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.75
+2021-01-30 18:35:34,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.75
+2021-01-30 18:41:14,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-6.5
+2021-01-30 18:46:54,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-7.0
+2021-01-30 18:46:55,bytearray(b'\x00\x00\x00\x00\x00'),-93,10.5
+2021-01-30 18:47:33,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa5\x01\x80\xca\xf0:'),-122,-8.75
+2021-01-30 18:52:20,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-5.75
+2021-01-30 18:58:00,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.25
+2021-01-30 19:03:41,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.0
+2021-01-30 19:09:21,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.0
+2021-01-30 19:15:01,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.25
+2021-01-30 19:15:01,bytearray(b'\x00\x00\x00\x00\x00'),-93,12.0
+2021-01-30 19:17:30,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa4\x01\x99\xd1\xc1{'),-122,-7.75
+2021-01-30 19:20:41,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.25
+2021-01-30 19:26:22,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.75
+2021-01-30 19:32:02,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.25
+2021-01-30 19:37:42,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.5
+2021-01-30 19:43:23,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 19:47:27,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa4\x01\x99\xd1\xc1{'),-121,-7.75
+2021-01-30 19:49:03,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-30 19:49:03,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.75
+2021-01-30 19:54:43,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.25
+2021-01-30 19:54:44,bytearray(b'\x00\x00\x00\x00\x00'),-93,11.75
+2021-01-30 20:00:24,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 20:06:04,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-122,-4.5
+2021-01-30 20:11:45,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.25
+2021-01-30 20:17:23,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa3\x01\xd6\x90W\xbc'),-122,-7.75
+2021-01-30 20:17:25,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.25
+2021-01-30 20:23:05,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-121,-3.75
+2021-01-30 20:28:46,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 20:34:26,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.5
+2021-01-30 20:40:06,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-122,-4.5
+2021-01-30 20:45:47,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 20:47:19,bytearray(b'\xff&\x0f\x07ZP4\x00a\xa3\x01\x821I\xfa'),-122,-6.75
+2021-01-30 20:51:27,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.75
+2021-01-30 20:57:07,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-3.25
+2021-01-30 21:02:48,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.25
+2021-01-30 21:08:28,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.75
+2021-01-30 21:14:08,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.0
+2021-01-30 21:17:16,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa2\x01\xcf\x8bf\xfd'),-123,-5.75
+2021-01-30 21:19:48,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-121,-4.0
+2021-01-30 21:25:29,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-4.5
+2021-01-30 21:31:09,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-6.25
+2021-01-30 21:31:09,bytearray(b'\x00\x00\x00\x00\x00'),-94,10.0
+2021-01-30 21:36:49,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,0.0
+2021-01-30 21:42:30,bytearray(b'\xff&\x10_JV}\x00F\x01r\x013\xf7\xa7R'),-122,-2.5
+2021-01-30 21:47:12,bytearray(b'\xff&\x0f\x07ZP\x9e\x04a\xa3\x017\xc4Y\x9a'),-123,-9.0
+2021-01-30 21:48:10,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.5
+2021-01-30 21:53:50,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-123,-5.75
+2021-01-30 21:53:50,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.0
+2021-01-30 21:59:30,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-3.25
+2021-01-30 22:05:11,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 22:05:11,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 22:10:51,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-2.75
+2021-01-30 22:16:31,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-6.0
+2021-01-30 22:17:09,bytearray(b'\xff&\x0f\x07ZP\xf5\ra\xa7\x01\xc0B\x95H'),-122,-10.5
+2021-01-30 22:21:55,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-4.0
+2021-01-30 22:27:36,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-2.5
+2021-01-30 22:33:16,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-118,-2.0
+2021-01-30 22:38:56,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-120,-5.5
+2021-01-30 22:38:56,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 22:44:36,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-2.75
+2021-01-30 22:44:37,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.25
+2021-01-30 22:47:05,bytearray(b'\xff&\x0f\x07ZPc\x08a\xa9\x017Y\x9aD'),-123,-10.0
+2021-01-30 22:47:06,bytearray(b'\x00\x00\x00\x00\x00'),-94,10.75
+2021-01-30 22:50:17,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-121,-2.75
+2021-01-30 22:50:17,bytearray(b'\x00\x00\x00\x00\x00'),-94,9.0
+2021-01-30 22:55:57,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-4.5
+2021-01-30 23:01:37,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-1.75
+2021-01-30 23:07:18,bytearray(b'\xff&\x10_JV~\x00F\x01r\x01\xb5c\xd5\xfc'),-122,-5.25
+2021-01-30 23:12:58,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-3.75
+2021-01-30 23:17:02,bytearray(b'\xff&\x0f\x07ZP\x00\x00a\xa8\x015d\x8ew'),-121,-9.75
+2021-01-30 23:18:38,bytearray(b'\xff&\x10_JV\x7f\x00F\x01r\x01~?\x06Y'),-121,-2.5
+2021-01-30 23:24:18,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-3.5
+2021-01-30 23:24:19,bytearray(b'\x00\x00\x00\x00\x00'),-93,10.75
+2021-01-30 23:29:59,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-3.0
+2021-01-30 23:35:39,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-122,-4.0
+2021-01-30 23:41:19,bytearray(b'\xff&\x10_JV\x80\x00F\x01r\x01\x9a\xfb\xad\x95'),-121,-4.75
+2021-01-30 23:46:59,bytearray(b'\xff&\x0f\x07ZP4\x00a\xa8\x01a\xc5\x901'),-121,-9.75
+2021-01-30 23:47:00,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-121,-3.75
+2021-01-30 23:52:40,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-122,-4.0
+2021-01-30 23:58:21,bytearray(b'\xff&\x10_JV\x82\x00F\x01r\x01\xd73\x0c\x9e'),-122,-5.25
+2021-01-31 00:04:01,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-4.5
+2021-01-31 00:09:41,bytearray(b'\xff&\x10_JV\x83\x00F\x01r\x01\x1co\xdf;'),-121,-4.25
+2021-01-31 00:15:22,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-122,-4.0
+2021-01-31 00:16:57,bytearray(b'\xff&\x0f\x07ZP2\x00a\xa8\x01\xee\x85e\x91'),-123,-12.0
+2021-01-31 00:21:02,bytearray(b'\xff&\x10_JV\x84\x00F\x01r\x01\x01j\xef\x83'),-121,-3.25
+2021-01-31 02:52:12,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.25
+2021-01-31 02:52:12,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.5
+2021-01-31 02:52:13,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.75
+2021-01-31 02:52:13,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.5
+2021-01-31 02:52:13,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,13.25
+2021-01-31 02:52:13,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.0
+2021-01-31 02:52:18,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.25
+2021-01-31 02:52:18,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.25
+2021-01-31 02:52:18,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.0
+2021-01-31 02:52:18,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,11.0
+2021-01-31 02:52:18,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-89,12.75
+2021-01-31 02:52:19,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-89,12.5
+2021-01-31 02:52:23,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,13.0
+2021-01-31 02:52:24,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-88,12.5
+2021-01-31 02:52:24,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,12.5
+2021-01-31 02:52:24,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-90,11.5
+2021-01-31 02:52:24,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-91,9.75
+2021-01-31 02:52:25,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.5
+2021-01-31 02:52:34,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,12.0
+2021-01-31 02:52:34,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,11.75
+2021-01-31 02:52:34,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,11.75
+2021-01-31 02:52:35,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,11.75
+2021-01-31 02:52:35,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,12.25
+2021-01-31 02:52:35,bytearray(b'J\x06\x07\xff\xff\xf3~'),-91,12.25
+2021-01-31 02:52:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-90,12.0
+2021-01-31 02:52:37,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,11.5
+2021-01-31 02:52:37,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-90,11.25
+2021-01-31 02:52:37,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-90,12.5
+2021-01-31 02:52:37,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.25
+2021-01-31 02:52:38,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,11.75
+2021-01-31 02:54:03,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-4.25
+2021-01-31 02:54:03,bytearray(b'\x00\x00\x00\x00\x00'),-96,11.5
+2021-01-31 02:54:29,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.0
+2021-01-31 02:54:29,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.25
+2021-01-31 02:54:30,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,10.25
+2021-01-31 02:54:30,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-90,12.25
+2021-01-31 02:54:30,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-89,12.25
+2021-01-31 02:54:32,bytearray(b'\xff&\x10_JV\x86\x00F\x00r\x01M`$\xbf'),-122,-1.75
+2021-01-31 02:54:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.25
+2021-01-31 02:54:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-89,12.25
+2021-01-31 02:54:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-88,12.5
+2021-01-31 02:54:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-88,12.25
+2021-01-31 02:54:36,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-88,12.25
+2021-01-31 02:54:38,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-122,-2.5
+2021-01-31 02:54:47,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-82,13.5
+2021-01-31 02:54:48,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-88,12.75
+2021-01-31 02:54:48,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-88,12.5
+2021-01-31 02:54:48,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-88,12.0
+2021-01-31 02:54:48,bytearray(b'J\x06\x08\x90\xff\xc6\x00\xc6'),-88,12.5
+2021-01-31 02:54:50,bytearray(b'\xff&\x10_JV\x86\x00F\x00r\x01M`$\xbf'),-122,-3.0
+2021-01-31 02:55:14,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-81,11.75
+2021-01-31 02:55:15,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,13.0
+2021-01-31 02:55:15,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,12.75
+2021-01-31 02:55:15,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,12.75
+2021-01-31 02:55:15,bytearray(b'J\x06\x08\x90\xff\xc6\x01@'),-87,12.75
+2021-01-31 02:55:17,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-122,-4.0
+2021-01-31 02:55:17,bytearray(b'\x00\x00\x00\x00\x00'),-95,12.25
+2021-01-31 03:00:57,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-122,-3.75
+2021-01-31 03:06:38,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-3.5
+2021-01-31 03:12:19,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-3.25
+2021-01-31 03:16:43,bytearray(b'\xff&\x0f\x07ZPm\x00a\xa5\x01\xe1hC\xc6'),-122,-9.75
+2021-01-31 03:17:59,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-3.75
+2021-01-31 03:23:40,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-120,-3.75
+2021-01-31 03:29:21,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-3.75
+2021-01-31 03:35:02,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-121,-4.25
+2021-01-31 03:40:42,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-120,-5.0
+2021-01-31 03:46:23,bytearray(b'\xff&\x10_JV\x86\x00F\x01r\x01L\xa2N\x88'),-122,-4.5
+2021-01-31 03:46:41,bytearray(b'\xff&\x0f\x07ZP\xfd\x00a\xa5\x010nd\xd6'),-121,-10.5
+2021-01-31 03:51:29,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-4.25
+2021-01-31 03:57:09,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-121,-4.5
+2021-01-31 04:02:50,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-4.25
+2021-01-31 04:08:30,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-4.5
+2021-01-31 04:08:31,bytearray(b'\x00\x00\x00\x00\x00'),-93,12.0
+2021-01-31 04:14:11,bytearray(b'\xff&\x10_JV\x85\x00F\x01r\x01\xca6<&'),-122,-4.25
