@@ -75,7 +75,7 @@ buffer_write:
 	; Appends param1 to the circular buffer. If full, deletes the earliest.
 	;
 	; Variables modified: tmpwd0, tmpwd1
-	; Variables read: buffer_start, buffer_length
+	; Variables read: param1, buffer_start, buffer_length
 
 	; Write the value to save
 	; sertxd("buffer_start: ", #buffer_start, "  buffer_length: ", #buffer_length, "  BUFFER_SIZE: ", #BUFFER_SIZE, cr, lf)
@@ -97,18 +97,19 @@ buffer_write:
 	else
 		inc buffer_length
 	endif
+	sertxd("Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
 	return
 
 #IFDEF INCLUDE_BUFFER_ALARM_CHECK
 buffer_alarm_check:
 	; Checks if the previous x elements are above the allowed threshold. If so, alarm = 1, else alarm = 0
     ; rtrn is the average from buffer_average
-    ; Variables modified: rtrn, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+    ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4
 	; Variables read: buffer_start, buffer_length
 	; TODO: Update variables
 	
 	; Read the number of blocks to check
-	read EEPROM_ALARM_CONSECUTIVE_BLOCKS, param1
+	read EEPROM_ALARM_CONSECUTIVE_BLOCKS, tmpwd0
 
 	; Calculate the starting location
 	tmpwd4 = 2 * buffer_length ; Start location
@@ -121,7 +122,7 @@ buffer_alarm_check:
 	rtrn = rtrn * tmpwd3l / tmpwd3h ; Multiply to get the threshold
 
 	; Iterate over the last X blocks
-    for tmpwd1 = 1 to param1
+    for tmpwd1 = 1 to tmpwd0
         EEPROM_SETUP(tmpwd4, tmpwd2l)
         hi2cin tmpwd4l, (tmpwd2h, tmpwd2l)
         

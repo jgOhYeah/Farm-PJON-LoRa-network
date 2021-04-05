@@ -6,11 +6,12 @@
 ; NOTE: Need to swap pins C.2 and B.3 from V1 as the current shunt needs to be connected to an interrupt
 ; capable pin (schematic should be updated to match)
 ; TODO: Make smaller
+; TODO: Alarm reset button
 #PICAXE 18M2
 #SLOT 1
 #NO_DATA
 
-#DEFINE INCLUDE_BUFFER_ALARM_CHECK
+; #DEFINE INCLUDE_BUFFER_ALARM_CHECK
 #INCLUDE "include/PumpMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
 
@@ -18,7 +19,7 @@ init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
     ;#sertxd("Pump Monitor ", VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
-    sertxd(#buffer_length, ", ", #buffer_start, cr, lf)
+    ; TODO: Move LoRa init to slot 0
     ; Assuming that the program in slot 0 has initialised the eeprom circular buffer for us.
     gosub begin_lora
 	if rtrn = 0 then
@@ -34,8 +35,10 @@ init:
 
     ; Setup monitoring
 	interval_start_time = time ; Counter for when to end each 30 minute block
+    block_on_time = 0
+    pump_start_time = time
     ; Setup the pump and led for the current state
-    if PIN_PUMP = 1 then
+    if PIN_PUMP = 0 then
         high PIN_LED_ON
     else
         low PIN_LED_ON
@@ -59,7 +62,9 @@ main:
         gosub buffer_restore
         gosub buffer_write
         gosub buffer_backup ; buffer_write changes the values
-        gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this
+#IFDEF INCLUDE_BUFFER_ALARM_CHECK
+        gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this. Also actually make this cause an alarm.
+#ENDIF
         gosub send_status
 
         ; Restore interval_start_time to reset it after it was used for other things.
@@ -135,7 +140,7 @@ send_status:
         gosub set_spreading_factor
         high PIN_LED_ALARM
     endif
-    ;#sertxd("Done sending")
+    ;#sertxd("Done sending", cr, lf)
 	return
 
 add_word:
@@ -148,8 +153,14 @@ add_word:
 
 user_interface:
     ; Print help and ask for input
+    ;#sertxd("Uptime: ")
     sertxd(#time)
-    ;#sertxd(cr, lf, "u=Upload, p=Prog: ")
+    ;#sertxd(cr, lf, "Block time: ")
+    tmpwd0 = time - interval_start_time
+    sertxd(#tmpwd0)
+    ;#sertxd(cr, lf, "On Time (not including current start): ")
+    sertxd(#block_on_time)
+    ;#sertxd(cr, lf, "Options:", cr, lf, " u Upload data in buffer as csv", cr, lf, " p Programming mode", cr, lf, ">>> ")
     serrxd [32000, user_interface_end], tmpwd0
     sertxd(tmpwd0, cr, lf) ; Print what the user just wrote in case using a terminal that does not show it.
 
@@ -160,15 +171,15 @@ user_interface:
             gosub buffer_restore
             gosub buffer_upload
         case "p"
-            ;#sertxd("Programming mode. Anything sent resets", cr, lf)
+            ;#sertxd("Programming mode. NOT MONITORING! Anything sent resets", cr, lf)
             reconnect
-            stop ; Keep the clocks running
+            stop ; Keep the clocks running so the chip will listen for a new download
         else
-            ;#sertxd("Unknown", cr, lf)
+            ;#sertxd("Unknown command", cr, lf)
     end select
 
 user_interface_end:
-    ;#sertxd(cr, lf, "Returning", cr, lf)
+    ;#sertxd(cr, lf, "Returning to monitoring", cr, lf)
     return
 
 

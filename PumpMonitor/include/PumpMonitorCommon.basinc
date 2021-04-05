@@ -4,7 +4,7 @@
 ; Created 15/03/2021
 ; Modified 21/03/2021
 
-#DEFINE VERSION "v2.0.2"
+#DEFINE VERSION "v2.0.3"
 
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -98,7 +98,7 @@ symbol rtrnh = b27
 
 ; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
 #DEFINE INTERVAL_START_BACKUP_LOC_L 121
-#DEFINE INTERVAL_START_BACKUP_LOC_H 123
+#DEFINE INTERVAL_START_BACKUP_LOC_H 122
 
 #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)

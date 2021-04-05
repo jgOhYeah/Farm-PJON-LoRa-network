@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 04:15PM, March 21, 2021----
+'----UPDATED AT 07:35PM, April 05, 2021----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -13,6 +13,7 @@
 #PICAXE 18M2      'CHIP VERSION PARSED
 #SLOT 0
 #NO_DATA
+
 ; #COM /dev/ttyUSB0
 ; #DEFINE INCLUDE_BUFFER_INIT
 '---BEGIN include/PumpMonitorCommon.basinc ---
@@ -21,6 +22,9 @@
 ; Written by Jotham Gates
 ; Created 15/03/2021
 ; Modified 21/03/2021
+
+; #DEFINE VERSION "v2.0.3"
+
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
 ; #DEFINE TABLE_SERTXD_ADDRESS_VAR param1
@@ -64,7 +68,8 @@ symbol DIO0 = pinC.5 ; High when a packet has been received
 ; #DEFINE BUFFER_MAXLENGTH 2047
 ; #DEFINE BUFFER_SIZE 2048
 
-; USING PIN_symbol pump_on = bit0 ; Using a bit in case pin state changes between lines of code
+symbol alarm = bit0
+symbol lora_fail = bit1
 symbol buffer_start = w1
 symbol buffer_startl = b2
 symbol buffer_starth = b3
@@ -89,10 +94,10 @@ symbol tmpwd4h = b15
 symbol interval_start_time = w8
 symbol interval_start_timel = b16
 symbol interval_start_timeh = b17
-symbol pump_start_time = w9
+symbol pump_start_time = w9 ; Used by interrupts. Use only for timing when the pump was switched on.
 symbol pump_start_timel = b18
 symbol pump_start_timeh = b19
-symbol block_on_time = w10
+symbol block_on_time = w10 ; Used by interrupts. Use only for counting the number of seconds the pump is on in each block.
 symbol block_on_timel = b20
 symbol block_on_timeh = b21
 symbol param1 = w11
@@ -104,11 +109,21 @@ symbol rtrn = w13
 symbol rtrnl = b26
 symbol rtrnh = b27
 
+; To save and restore the words used by the buffer
 ; #DEFINE BUFFER_START_BACKUP_LOC_L 123
 ; #DEFINE BUFFER_START_BACKUP_LOC_H 124
 ; #DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
 ; #DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
 
+; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
+; #DEFINE INTERVAL_START_BACKUP_LOC_L 121
+; #DEFINE INTERVAL_START_BACKUP_LOC_H 122
+
+; #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
+; #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
+; #DEFINE EEPROM_ALARM_MULT_DEN 2 ; Multiplier for the average (denominator)
+; A block is counted as > baseline if (on_time > (average * multiplier) / deniminator)
+; If consecutive block count is over, raise alarm.
 
 'PARSED MACRO EEPROM_SETUP
 '---END include/PumpMonitorCommon.basinc---
@@ -168,35 +183,38 @@ symbol counter3 = tmpbt0
 symbol start_time = interval_start_time
 symbol start_time_h = interval_start_timeh
 symbol start_time_l = interval_start_timel
-symbol tmpwd = pump_start_time
+symbol tmpwd = buffer_length
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13
 '---END include/symbols.basinc---
 
 init:
+    disconnect
 	setfreq m32
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor v2.0 BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", "21-03-2021", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.0.3" , " BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", "05-04-2021", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
-rtrn = 64
+rtrn = 66
 gosub print_table_sertxd
     gosub buffer_index
     gosub buffer_backup
-    
-;#sertxd("Press 't' for EEPROM tools.", cr, lf) 'Evaluated below
+
+;#sertxd("Press 't' for EEPROM tools or '`' for computers", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 65
-rtrn = 93
+param1 = 67
+rtrn = 115
 gosub print_table_sertxd
     low B.3
 	serrxd[16000, start_slot_1], tmpwd0l
 	if tmpwd0l = "t" then
         gosub print_help
 		goto eeprom_main
+    else
+        goto computer_mode
 	endif
     ; Fall throught to start slot 1 if the received char wasn't "t".
 
@@ -204,22 +222,24 @@ start_slot_1:
     ; Go to 
 ;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 94
-rtrn = 120
+param1 = 116
+rtrn = 142
 gosub print_table_sertxd
     low B.6
     run 1
 
 eeprom_main:
-    toggle B.3
-    toggle B.6
-    serrxd [32000, eeprom_main], tmpwd4l
+    ; Debugging interface
+    ; Variables modified: param1, rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4
+    high B.6
+    low B.3
+    serrxd tmpwd4l
     select case tmpwd4l
         case "a"
 ;#sertxd(cr, lf, "Printing all", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 121
-rtrn = 136
+param1 = 143
+rtrn = 158
 gosub print_table_sertxd
             for tmpwd3 = 0 to 2047 step 8
                 param1 = tmpwd3
@@ -228,8 +248,8 @@ gosub print_table_sertxd
 		case "b"
 ;#sertxd(cr, lf, "Printing 1st 255B", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 137
-rtrn = 157
+param1 = 159
+rtrn = 179
 gosub print_table_sertxd
             for tmpwd3 = 0 to 255 step 8
                 param1 = tmpwd3
@@ -238,28 +258,31 @@ gosub print_table_sertxd
 		case "u"
 ;#sertxd("From 1st to last:", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 158
-rtrn = 176
+param1 = 180
+rtrn = 198
 gosub print_table_sertxd
 			gosub buffer_upload
         case "w"
 ;#sertxd("ADDRESS: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 177
-rtrn = 185
+param1 = 199
+rtrn = 207
 gosub print_table_sertxd
             serrxd #tmpwd0
             '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd4l = tmpwd0 / 128 & %00001110
 	tmpwd4l = tmpwd4l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
 	hi2csetup i2cmaster, tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd4l)
-;#sertxd(#tmpwd0, cr, lf, "VALUE: ") 'Evaluated below
+            sertxd(#tmpwd0)
+;#sertxd(cr, lf, "VALUE: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 186
-rtrn = 195
+param1 = 208
+rtrn = 216
 gosub print_table_sertxd
             serrxd #tmpwd4l
             hi2cout tmpwd0l, (tmpwd4l)
@@ -267,8 +290,8 @@ gosub print_table_sertxd
 		case "z"
 ;#sertxd("VAL: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 196
-rtrn = 200
+param1 = 217
+rtrn = 221
 gosub print_table_sertxd
             serrxd #param1
 			gosub buffer_write
@@ -276,57 +299,57 @@ gosub print_table_sertxd
 		case "i"
 ;#sertxd("# records to ave: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 201
-rtrn = 218
+param1 = 222
+rtrn = 239
 gosub print_table_sertxd
             serrxd #param1
 			sertxd(#param1, cr, lf)
 			gosub buffer_average
 ;#sertxd("Ave. of ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 219
-rtrn = 226
+param1 = 240
+rtrn = 247
 gosub print_table_sertxd
             sertxd(#rtrn)
 ;#sertxd(" in last ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 227
-rtrn = 235
+param1 = 248
+rtrn = 256
 gosub print_table_sertxd
             sertxd(#param1)
 ;#sertxd(" records", cr, lf, "Total length: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 236
-rtrn = 259
+param1 = 257
+rtrn = 280
 gosub print_table_sertxd
             sertxd(#buffer_length)
 ;#sertxd(" Start: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 260
-rtrn = 267
+param1 = 281
+rtrn = 288
 gosub print_table_sertxd
             sertxd(#buffer_start)
 gosub print_newline_sertxd
         case "e"
 ;#sertxd("Resetting to 255", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 268
-rtrn = 285
+param1 = 289
+rtrn = 306
 gosub print_table_sertxd
             gosub erase
         case "p"
 ;#sertxd("Programming mode. Anything sent will reset.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 286
-rtrn = 330
+param1 = 307
+rtrn = 351
 gosub print_table_sertxd
             reconnect
             stop
 		case "q"
 ;#sertxd("Resetting",cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 331
-rtrn = 341
+param1 = 352
+rtrn = 362
 gosub print_table_sertxd
 			reset
         case "h", " ", cr, lf
@@ -334,16 +357,21 @@ gosub print_table_sertxd
         else
 ;#sertxd(cr, lf, "Unknown. Please retry.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 342
-rtrn = 367
+param1 = 363
+rtrn = 388
 gosub print_table_sertxd
     end select
 	gosub print_help
     goto eeprom_main
 
 erase:
+    ; Wipes the eeprom chip
+    ; Variables modified: tmpwd1, tmpwd4l
     for tmpwd1 = 0 to 2047
+        toggle B.3
         '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd4l = tmpwd1 / 128 & %00001110
 	tmpwd4l = tmpwd4l | %10100000
@@ -356,49 +384,44 @@ erase:
     return
 
 print_help:
+    ; Prints a help message with a list of available options
+    ; Variables modified: none
+
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
 ;#sertxd(cr, lf, "EEPROM Tools", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 368
-rtrn = 383
+param1 = 389
+rtrn = 404
 gosub print_table_sertxd
 ;#sertxd("Commands:", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 384
-rtrn = 394
+param1 = 405
+rtrn = 415
 gosub print_table_sertxd
 ;#sertxd(" a Read all", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 395
-rtrn = 407
+param1 = 416
+rtrn = 428
 gosub print_table_sertxd
 ;#sertxd(" b Read 1st block", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 408
-rtrn = 426
+param1 = 429
+rtrn = 447
 gosub print_table_sertxd
 ;#sertxd(" u Read buffer old to new", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 427
-rtrn = 453
+param1 = 448
+rtrn = 474
 gosub print_table_sertxd
 ;#sertxd(" z Add value to buffer", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 454
-rtrn = 477
+param1 = 475
+rtrn = 498
 gosub print_table_sertxd
     sertxd(" w Write at address", cr, lf)
-;#sertxd(" i Buffer info", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 478
-rtrn = 493
-gosub print_table_sertxd
-;#sertxd(" e Erase all", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 494
-rtrn = 507
-gosub print_table_sertxd
+	sertxd(" i Buffer info", cr, lf)
+    sertxd(" e Erase all", cr, lf)
     sertxd(" p Enter programming mode", cr, lf)
 	sertxd(" q Reset", cr, lf)
     sertxd(" h Show this help", cr, lf)
@@ -409,7 +432,7 @@ gosub print_table_sertxd
 print_block:
     ; Read the 8 bytes and display them as hex
     ;
-    ; Variables modified: tmpwd0, param1, tmpwd1, tmpwd2, 
+    ; Variables modified: tmpwd0, param1, tmpwd1, tmpwd2
     tmpwd0 = param1
     param1 = param1h
     gosub print_byte
@@ -421,12 +444,14 @@ print_block:
     tmpwd1 = param1
     for tmpwd2 = tmpwd1 to tmpwd0
         '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
-	param1 = tmpwd2 / 128 & %00001110
-	param1 = param1 | %10100000
+	param1l = tmpwd2 / 128 & %00001110
+	param1l = param1l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, param1, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
-'--END OF MACRO: EEPROM_SETUP(tmpwd2, param1)
+	hi2csetup i2cmaster, param1l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+'--END OF MACRO: EEPROM_SETUP(tmpwd2, param1l)
         hi2cin tmpwd2l, (param1)
         gosub print_byte
         sertxd(" ")
@@ -459,6 +484,72 @@ print_digit:
     sertxd(param1)
     return
 
+computer_mode:
+    ; Mode for interacting with a program on a computer that is not nice to look at
+    ; TODO
+    ; NOTE: Possibly use firmata if appropriate???
+    sertxd(1)
+    low B.6
+    high B.3
+
+computer_mode_loop:
+    serrxd tmpwd0l
+    select case tmpwd0l
+        case "r" ; Read bytes
+            low B.3
+            serrxd tmpwd1l, tmpwd1h, tmpwd2l, tmpwd2h ; Start and end address (inclusive) in little endian
+            ; Upload everything
+            high B.3
+            high B.6
+            for tmpwd0 = tmpwd1 to tmpwd2
+                '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
+	; I2C address
+	tmpwd3l = tmpwd0 / 128 & %00001110
+	tmpwd3l = tmpwd3l | %10100000
+    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+	hi2csetup i2cmaster, tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+'--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd3l)
+                hi2cin tmpwd0l, (tmpwd3l)
+                sertxd(tmpwd3l)
+            next tmpwd0
+            low B.6
+        case "w" ; Write bytes
+            low B.3
+            serrxd tmpwd1l, tmpwd1h, tmpwd2l, tmpwd2h ; Start and end address (inclusive) in little endian
+            ; Read everything
+            high B.3
+            high B.6
+            for tmpwd0 = tmpwd1 to tmpwd2
+                sertxd(1) ; Acknowledge
+                '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
+	; I2C address
+	tmpwd3l = tmpwd0 / 128 & %00001110
+	tmpwd3l = tmpwd3l | %10100000
+    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+	hi2csetup i2cmaster, tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+'--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd3l)
+                serrxd tmpwd3l
+                hi2cout tmpwd0l, (tmpwd3l)
+                toggle B.6
+                pause 80
+            next tmpwd0
+            low B.6
+            ; Done
+        ; TODO: Other cases
+        case "q" ; Reset
+            reset
+        case "p" ; Programming mode
+            reconnect
+            stop
+        case "?" ; Query if this program is running correctly
+            sertxd(1)
+    end select
+    goto computer_mode_loop
+
 '---BEGIN include/CircularBuffer.basinc ---
 ; Pump duty cycle monitor circular buffer
 ; Handles reading and writing to and from a circular buffer in eeprom
@@ -482,12 +573,16 @@ buffer_restore:
 	return
 
 buffer_upload:
-	; Prints all stored data in the buffer to the serial console
+	; Prints all stored data in the buffer to the serial console as csv in the form
+	; position, data
 	;
 	; Variables modified: tmpwd0, tmpwd1, tmpwd2
+	; Variables read: buffer_start, buffer_length
 	tmpwd1 = buffer_start
 	for tmpwd0 = 1 to buffer_length
 		'--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd2l = tmpwd1 / 128 & %00001110
 	tmpwd2l = tmpwd2l | %10100000
@@ -499,7 +594,6 @@ buffer_upload:
 		tmpwd1 = tmpwd1 + 2 % 2048
 	next tmpwd0
 	return
-    
 
 buffer_average: ; TODO: Exclude everthing above base
 	; Returns the average of the contents of the buffer
@@ -507,6 +601,8 @@ buffer_average: ; TODO: Exclude everthing above base
 	; Param1 is the last number of records to average. If there are less records than this, the average of those present is returned.
     ;
     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+	; Variables read: buffer_start, buffer_length
+	
 	; Limit the amount read out if there is not much stored
 	if param1 > buffer_length then
 		param1 = buffer_length
@@ -521,6 +617,8 @@ buffer_average: ; TODO: Exclude everthing above base
     tmpwd0 = 0 ; Numerator
     for tmpwd1 = 1 to param1
         '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd2l = tmpwd4 / 128 & %00001110
 	tmpwd2l = tmpwd2l | %10100000
@@ -546,11 +644,15 @@ buffer_write:
 	; Appends param1 to the circular buffer. If full, deletes the earliest.
 	;
 	; Variables modified: tmpwd0, tmpwd1
+	; Variables read: param1, buffer_start, buffer_length
+
 	; Write the value to save
 	; sertxd("buffer_start: ", #buffer_start, "  buffer_length: ", #buffer_length, "  BUFFER_SIZE: ", #BUFFER_SIZE, cr, lf)
 	tmpwd0 = 2 * buffer_length + buffer_start % 2048 ; Where to write the data.
 	; sertxd("Location is: ", #tmpwd0, cr, lf)
 	'--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd1h = tmpwd0 / 128 & %00001110
 	tmpwd1h = tmpwd1h | %10100000
@@ -563,6 +665,8 @@ buffer_write:
 	tmpwd0 = tmpwd0 + 2 % 2048
 	; sertxd("After address is: ", #tmpwd0, cr, lf)
 	'--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd1h = tmpwd0 / 128 & %00001110
 	tmpwd1h = tmpwd1h | %10100000
@@ -578,7 +682,57 @@ buffer_write:
 	else
 		inc buffer_length
 	endif
+	sertxd("Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
 	return
+
+; ; #IFDEF INCLUDE_BUFFER_ALARM_CHECK [#IF CODE REMOVED]
+; buffer_alarm_check: [#IF CODE REMOVED]
+; 	; Checks if the previous x elements are above the allowed threshold. If so, alarm = 1, else alarm = 0 [#IF CODE REMOVED]
+;     ; rtrn is the average from buffer_average [#IF CODE REMOVED]
+;     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4 [#IF CODE REMOVED]
+; 	; Variables read: buffer_start, buffer_length [#IF CODE REMOVED]
+; 	; TODO: Update variables [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Read the number of blocks to check [#IF CODE REMOVED]
+; 	read 0, tmpwd0 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Calculate the starting location [#IF CODE REMOVED]
+; 	tmpwd4 = 2 * buffer_length ; Start location [#IF CODE REMOVED]
+; 	tmpwd3 = 2 * param1 ; Attempt to get bodmas to work [#IF CODE REMOVED]
+; 	tmpwd4 = tmpwd4 - tmpwd3 + buffer_start % 2048 ; Adding BUFFER_SIZE so hopefully no overflow [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Get the multiplier for being above the threshold [#IF CODE REMOVED]
+; 	read 1, tmpwd3l [#IF CODE REMOVED]
+; 	read 2, tmpwd3h [#IF CODE REMOVED]
+; 	rtrn = rtrn * tmpwd3l / tmpwd3h ; Multiply to get the threshold [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Iterate over the last X blocks [#IF CODE REMOVED]
+;     for tmpwd1 = 1 to tmpwd0 [#IF CODE REMOVED]
+;         '--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
+	; I2C address
+	tmpwd2l = tmpwd4 / 128 & %00001110
+	tmpwd2l = tmpwd2l | %10100000
+    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+'--END OF MACRO: EEPROM_SETUP(tmpwd4, tmpwd2l) [#IF CODE REMOVED]
+;         hi2cin tmpwd4l, (tmpwd2h, tmpwd2l) [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		; If tmpwd2 is not out of bounds, there is no alarm, return [#IF CODE REMOVED]
+; 		if tmpwd2 <= rtrn then [#IF CODE REMOVED]
+; 			; A least one of the last X blocks was below the threshold. Therefore no alarm. [#IF CODE REMOVED]
+; 			alarm = 0 [#IF CODE REMOVED]
+; 			return [#IF CODE REMOVED]
+; 		endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		tmpwd4 = tmpwd4 + 2 % 2048 [#IF CODE REMOVED]
+;     next tmpwd1 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; If we got to this point, all of the last X blocks were over the threshold, so raise the alarm [#IF CODE REMOVED]
+; 	alarm = 1 [#IF CODE REMOVED]
+;     return [#IF CODE REMOVED]
+; #ENDIF
 
 ; Thinking about having a bootloader that does initialisation so indexing does not have to be done later.
 ; #IFDEF INCLUDE_BUFFER_INIT
@@ -594,6 +748,8 @@ buffer_index:
 	for tmpwd0 = 0 to 2047 step 2
 		; Read the value at this address
 		'--START OF MACRO: EEPROM_SETUP
+	; ADDR is a word
+	; TMPVAR is a byte
 	; I2C address
 	tmpwd2l = tmpwd0 / 128 & %00001110
 	tmpwd2l = tmpwd2l | %10100000
@@ -642,32 +798,30 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor v2.0 BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","21-03-2021",cr,lf) ;#sertxd
-table 65, ("Press 't' for EEPROM tools.",cr,lf) ;#sertxd
-table 94, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
-table 121, (cr,lf,"Printing all",cr,lf) ;#sertxd
-table 137, (cr,lf,"Printing 1st 255B",cr,lf) ;#sertxd
-table 158, ("From 1st to last:",cr,lf) ;#sertxd
-table 177, ("ADDRESS: ") ;#sertxd
-table 186, ("?",cr,lf,"VALUE: ") ;#sertxd
-table 196, ("VAL: ") ;#sertxd
-table 201, ("# records to ave: ") ;#sertxd
-table 219, ("Ave. of ") ;#sertxd
-table 227, (" in last ") ;#sertxd
-table 236, (" records",cr,lf,"Total length: ") ;#sertxd
-table 260, (" Start: ") ;#sertxd
-table 268, ("Resetting to 255",cr,lf) ;#sertxd
-table 286, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
-table 331, ("Resetting",cr,lf) ;#sertxd
-table 342, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
-table 368, (cr,lf,"EEPROM Tools",cr,lf) ;#sertxd
-table 384, ("Commands:",cr,lf) ;#sertxd
-table 395, (" a Read all",cr,lf) ;#sertxd
-table 408, (" b Read 1st block",cr,lf) ;#sertxd
-table 427, (" u Read buffer old to new",cr,lf) ;#sertxd
-table 454, (" z Add value to buffer",cr,lf) ;#sertxd
-table 478, (" i Buffer info",cr,lf) ;#sertxd
-table 494, (" e Erase all",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.0.3"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","05-04-2021",cr,lf) ;#sertxd
+table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
+table 116, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
+table 143, (cr,lf,"Printing all",cr,lf) ;#sertxd
+table 159, (cr,lf,"Printing 1st 255B",cr,lf) ;#sertxd
+table 180, ("From 1st to last:",cr,lf) ;#sertxd
+table 199, ("ADDRESS: ") ;#sertxd
+table 208, (cr,lf,"VALUE: ") ;#sertxd
+table 217, ("VAL: ") ;#sertxd
+table 222, ("# records to ave: ") ;#sertxd
+table 240, ("Ave. of ") ;#sertxd
+table 248, (" in last ") ;#sertxd
+table 257, (" records",cr,lf,"Total length: ") ;#sertxd
+table 281, (" Start: ") ;#sertxd
+table 289, ("Resetting to 255",cr,lf) ;#sertxd
+table 307, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
+table 352, ("Resetting",cr,lf) ;#sertxd
+table 363, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
+table 389, (cr,lf,"EEPROM Tools",cr,lf) ;#sertxd
+table 405, ("Commands:",cr,lf) ;#sertxd
+table 416, (" a Read all",cr,lf) ;#sertxd
+table 429, (" b Read 1st block",cr,lf) ;#sertxd
+table 448, (" u Read buffer old to new",cr,lf) ;#sertxd
+table 475, (" z Add value to buffer",cr,lf) ;#sertxd
 print_newline_sertxd:
     sertxd(cr, lf)
     return
