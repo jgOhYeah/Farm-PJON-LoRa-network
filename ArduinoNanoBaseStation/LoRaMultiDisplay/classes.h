@@ -467,6 +467,16 @@ class Fence : public Device {
             _bus->send(id, msg, 2);
         }
 
+        /** Sets the transmit interval
+         * @param interval is the number of ~3 minute blocks.
+        */
+        void setTXInterval(uint8_t interval) {
+            char msg[2];
+            msg[0] = 'I' | 0x80;
+            msg[1] = interval;
+            _bus->send(id, msg, 2);
+        }
+
         /** Checks and updates the state based off the last time a packet was received and battery voltage
          * @returns true if the state has changed, false otherwise.
          */
