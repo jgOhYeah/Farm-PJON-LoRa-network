@@ -68,7 +68,7 @@ init:
 	transmit_enable = 1
 	tx_intervals = TX_INTERVALS_DEFAULT
 
-	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jan 2021", cr, lf)
+	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jun 2021", cr, lf)
 	; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
@@ -97,8 +97,8 @@ main:
 
 	; Alternate between sleeping and receiving for a while
 	for tx_interval_count = 1 to tx_intervals
-		gosub receive_mode ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
-		gosub sleep_mode ; Sleep for 30s
+		gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
+		gosub sleep_mode ; Sleep for 2.5m
 	next tx_interval_count
 	goto main
 
@@ -108,17 +108,16 @@ receive_mode:
 	; Maximum stack depth used: 7
 
 	pulsout LED_PIN, 10000
-	; sertxd("Entering receive mode", cr, lf)
+	;#sertxd("Entering receive mode", cr, lf)
 	gosub setup_lora_receive ; Stack depth 4
 	start_time = time
 	rtrn = time ; Start time for led flashing
 	do
 		; Handle packets arriving
 		if LORA_RECEIVED then
-			; sertxd("DI0 high", cr, lf)
 			gosub read_pjon_packet ; Stack depth 4
 			if rtrn != PJON_INVALID_PACKET then
-				;#sertxd("Valid", cr, lf)
+				;#sertxd("Valid packet received", cr, lf)
 				; Valid packet
 				high LED_PIN
 				; Processing and actions
@@ -157,13 +156,18 @@ receive_mode:
 								dec rtrn
 							endif
 							level = 1
-						case 0x49 ; "I" | 0x80 ; Interval between transmissions
+						case 201 ; "I" | 0x80 ; Interval between transmissions
 							; 1 byte, number of 5 minute blocks to .
 							;#sertxd("Transmit interval is ")
 							if rtrn > 0 then
-								tx_intervals = @bptrinc
-								sertxd(#tx_intervals)
-								;#sertxd(" *3 minutes", cr, lf)
+								if @bptr > 0 then
+									tx_intervals = @bptrinc
+									sertxd(#tx_intervals)
+									;#sertxd(" *3 minutes", cr, lf)
+								else
+									inc bptr
+									;#sertxd("invalid. Ignoring", cr, lf)
+								endif
 								dec rtrn
 							endif
 							level = 1
@@ -180,19 +184,21 @@ receive_mode:
 					endselect
 				loop
 				if level = 1 then
+					;#sertxd("Replying with status", cr, lf)
+					nap 5 ; Wait for things to settle (576ms)
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
 					; Reset interval counter as we just send a packet back
 					tx_interval_count = 1
 
 				endif
-				;#sertxd("Finished", cr, lf)
+				;#sertxd("Finished", cr, lf, cr, lf)
 
 				low LED_PIN
-				start_time = time ; Reset the time. Possible security risk of being able to keep the box in high power state?
+				start_time = time ; Reset the time. ; NOTE Possible security risk of being able to keep the box in high power state?
 				rtrn = time
 			else
-				;#sertxd("Invalid", cr, lf)
+				;#sertxd("Invalid packet recieved. Ignoring", cr, lf)
 			endif
 		endif
 
@@ -222,16 +228,15 @@ send_status:
 	; Maximum stack depth used: 6
 	high LED_PIN
 	;#sertxd("Sending state", cr, lf)
-	
 	gosub begin_pjon_packet
 
 	; Battery voltage
 	@bptrinc = "V"
 	gosub get_voltage
-	gosub add_word
-	;#sertxd("Batt is: (")
+	;#sertxd("Batt is: ")
 	sertxd(#rtrn)
-	;#sertxd("*0.1) V", cr, lf)
+	;#sertxd(" (*0.1) V", cr, lf)
+	gosub add_word
 
 	; Temperature
 #IFDEF ENABLE_TEMP
@@ -257,10 +262,9 @@ send_status:
 	@bptrinc = "r"
 	@bptrinc = transmit_enable
 	param1 = UPRSTEAM_ADDRESS
-	;#sertxdnl
 
 	; TX interval
-	;sertxd("TX Interval: ")
+	;#sertxd("TX Interval: ")
 	sertxd(#tx_intervals)
 	;#sertxdnl
 	@bptrinc = "I"
