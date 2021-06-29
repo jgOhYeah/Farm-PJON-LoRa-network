@@ -87,6 +87,12 @@ void loop() {
                 Serial.println("Requesting status with extra byte");
                 fence.getStatus();
                 break;
+            case 'I':
+                Serial.print("Setting transmit interval to ");
+                uint8_t interval = Serial.parseInt();
+                Serial.println(interval);
+                fence.setTXInterval(interval);
+                break;
         }
         while(Serial.available()) Serial.read();
     }

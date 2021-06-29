@@ -1,8 +1,8 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 11:47PM, February 10, 2021----
+'----UPDATED AT 05:04PM, June 29, 2021----
 '----SAVING AS compiled.bas ----
 
-'---BEGIN ./BatteryVoltsMonitor.bas ---
+'---BEGIN BatteryVoltsMonitor.bas ---
 ; BatteryVoltsMonitor.bas
 ; A remote LoRa battery monitor and electric fence energiser switch.
 ; Jotham Gates, Jan 2021
@@ -45,7 +45,7 @@ symbol crc1 = b8
 symbol crc2 = b9
 symbol crc3 = b10
 symbol counter3 = b11
-; b12, b13, b1, b15, b16, b17, b18, b19 are free
+; b12, b13, b14, b15, b16, b17, b18, b19 are free
 symbol start_time = w10
 symbol start_time_h = b21
 symbol start_time_l = b20
@@ -63,7 +63,7 @@ symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the modul
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by setup_lora_read
 symbol PJON_INVALID_PACKET = 65534 ; Says the packet is invalid, not a PJON packet, or not addressed to us
 
-symbol MY_ID = 0x3B ; PJON id of this device
+symbol MY_ID = 0x4A ; PJON id of this device
 symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 
 ; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
@@ -107,10 +107,20 @@ symbol LED_PIN = B.3
 ; Variables unique to this - see symbols.basinc for the rest
 symbol fence_enable = bit0
 symbol transmit_enable = bit1
+symbol tx_intervals = b17
+symbol tx_interval_count = b18
+
+; TableSertxd extension settings
+; Before conversion to tablesertxd: 2005
+; After conversion to tablesertxd: 1765
+; #DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
+; #DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
+; #DEFINE TABLE_SERTXD_TMP_BYTE b16
 
 ; Constants
-symbol LISTEN_TIME = 120 ; Listen for 60s (number of 0.5s counts) after each transmission
-symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
+symbol LISTEN_TIME = 60 ; Listen for 30s (number of 0.5s counts) after each transmission and every 3 minutes
+symbol SLEEP_TIME = 65 ; Roughly 2.5 mins at 26*2.3s each
+symbol TX_INTERVALS_DEFAULT = 10 ; Default to 1 transmission every 10 receive / sleep cycles (roughly once every 30 min).
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 
 ; Temperature and battery voltage calibration
@@ -123,20 +133,30 @@ symbol CAL_BATT_DENOMINATOR = 85
 
 init:
 	; Initial setup
+	setfreq m32
 	high FENCE_PIN ; Fence is fail deadly to keep cattle in at all costs :)
+	high LED_PIN
 	fence_enable = 1
 	transmit_enable = 1
+	tx_intervals = TX_INTERVALS_DEFAULT
 
-	setfreq m32
-	high LED_PIN
-	sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jan 2021", cr, lf)
+;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jun 2021", cr, lf) 'Evaluated below
+w6 = 0
+w7 = 50
+gosub print_table_sertxd
 	; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
-		sertxd("Failed to start LoRa",cr,lf)
+;#sertxd("Failed to start LoRa",cr,lf) 'Evaluated below
+w6 = 51
+w7 = 72
+gosub print_table_sertxd
 		goto failed
 	else
-		sertxd("LoRa Started",cr,lf)
+;#sertxd("LoRa Started",cr,lf) 'Evaluated below
+w6 = 73
+w7 = 86
+gosub print_table_sertxd
 	endif
 
 	; Set the spreading factor
@@ -154,22 +174,40 @@ main:
 	if transmit_enable = 1 then
 		gosub send_status
 	endif
-	Sertxd("Sent packet", cr, lf)
+;#sertxd("Sent packet", cr, lf) 'Evaluated below
+w6 = 87
+w7 = 99
+gosub print_table_sertxd
 
+	; Alternate between sleeping and receiving for a while
+	for tx_interval_count = 1 to tx_intervals
+		gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
+		gosub sleep_mode ; Sleep for 2.5m
+	next tx_interval_count
+	goto main
+
+receive_mode:
 	; Go into listen mode
 	; Listens for the designated time and handles incoming packets
+	; Maximum stack depth used: 7
+
 	pulsout LED_PIN, 10000
-	; sertxd("Entering receive mode", cr, lf)
-	gosub setup_lora_receive
+;#sertxd("Entering receive mode", cr, lf) 'Evaluated below
+w6 = 100
+w7 = 122
+gosub print_table_sertxd
+	gosub setup_lora_receive ; Stack depth 4
 	start_time = time
 	rtrn = time ; Start time for led flashing
 	do
 		; Handle packets arriving
 		if DIO0 = 1 then
-			; sertxd("DI0 high", cr, lf)
-			gosub read_pjon_packet
+			gosub read_pjon_packet ; Stack depth 4
 			if rtrn != PJON_INVALID_PACKET then
-				sertxd("Valid", cr, lf)
+;#sertxd("Valid packet received", cr, lf) 'Evaluated below
+w6 = 123
+w7 = 145
+gosub print_table_sertxd
 				; Valid packet
 				high LED_PIN
 				; Processing and actions
@@ -180,14 +218,23 @@ main:
 					select mask
 						case 0xC6 ; "F" | 0x80 ; Fence on and off
 							; 1 byte, 0 for off, anything else for on.
-							sertxd("Fence ")
+;#sertxd("Fence ") 'Evaluated below
+w6 = 146
+w7 = 151
+gosub print_table_sertxd
 							if rtrn > 0 then
 								if @bptrinc = 0 then
-									sertxd("Off", cr, lf)
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 152
+w7 = 156
+gosub print_table_sertxd
 									fence_enable = 0
 									low FENCE_PIN
 								else
-									sertxd("On", cr, lf)
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 157
+w7 = 160
+gosub print_table_sertxd
 									fence_enable = 1
 									high FENCE_PIN
 								endif
@@ -196,39 +243,97 @@ main:
 							level = 1
 						case 0xF2 ; "r" | 0x80 ; Radio transmissions on and off
 							; 1 byte, 0 for off, anything else for on.
-							sertxd("Transmit ")
+;#sertxd("Transmit ") 'Evaluated below
+w6 = 161
+w7 = 169
+gosub print_table_sertxd
 							if rtrn > 0 then
 								if @bptrinc = 0 then
-									sertxd("Off", cr, lf)
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 170
+w7 = 174
+gosub print_table_sertxd
 									transmit_enable = 0
 								else
-									sertxd("On", cr, lf)
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 175
+w7 = 178
+gosub print_table_sertxd
 									transmit_enable = 1
+								endif
+								dec rtrn
+							endif
+							level = 1
+						case 201 ; "I" | 0x80 ; Interval between transmissions
+							; 1 byte, number of 5 minute blocks to .
+;#sertxd("Transmit interval is ") 'Evaluated below
+w6 = 179
+w7 = 199
+gosub print_table_sertxd
+							if rtrn > 0 then
+								if @bptr > 0 then
+									tx_intervals = @bptrinc
+									sertxd(#tx_intervals)
+;#sertxd(" *3 minutes", cr, lf) 'Evaluated below
+w6 = 200
+w7 = 212
+gosub print_table_sertxd
+								else
+									inc bptr
+;#sertxd("invalid. Ignoring", cr, lf) 'Evaluated below
+w6 = 213
+w7 = 231
+gosub print_table_sertxd
 								endif
 								dec rtrn
 							endif
 							level = 1
 						case 0xF3 ; "s" | 0x80 ; Request status, msb is high as it is an instruction
 							; No payload.
-							sertxd("Status", cr, lf)
+;#sertxd("Status", cr, lf) 'Evaluated below
+w6 = 232
+w7 = 239
+gosub print_table_sertxd
 							level = 1
 						else
 							; Something not recognised or implemented
 							; NOTE: Should the rest of the packet be discarded to ensure any possible data of unkown length is not treated as a field?
-							sertxd("Field ", #mask, " unkown", cr, lf)
+;#sertxd("Field ") 'Evaluated below
+w6 = 240
+w7 = 245
+gosub print_table_sertxd
+							sertxd(#mask)
+;#sertxd(" unkown", cr, lf) 'Evaluated below
+w6 = 246
+w7 = 254
+gosub print_table_sertxd
 					endselect
 				loop
 				if level = 1 then
+;#sertxd("Replying with status", cr, lf) 'Evaluated below
+w6 = 255
+w7 = 276
+gosub print_table_sertxd
+					nap 5 ; Wait for things to settle (576ms)
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
+					; Reset interval counter as we just send a packet back
+					tx_interval_count = 1
+
 				endif
-				sertxd("Finished", cr, lf)
+;#sertxd("Finished", cr, lf, cr, lf) 'Evaluated below
+w6 = 277
+w7 = 288
+gosub print_table_sertxd
 
 				low LED_PIN
-				start_time = time ; Reset the time. Possible security risk of being able to keep the box in high power state?
+				start_time = time ; Reset the time. ; NOTE Possible security risk of being able to keep the box in high power state?
 				rtrn = time
 			else
-				sertxd("Invalid", cr, lf)
+;#sertxd("Invalid packet recieved. Ignoring", cr, lf) 'Evaluated below
+w6 = 289
+w7 = 323
+gosub print_table_sertxd
 			endif
 		endif
 
@@ -240,68 +345,111 @@ main:
 		endif
 		tmpwd = time - start_time
 	loop while tmpwd < LISTEN_TIME
+	return
 
+sleep_mode:
 	; Go into power saving mode
-	; TODO: Flash led once per minute
-	sertxd("Entering sleep mode", cr, lf)
+;#sertxd("Entering sleep mode", cr, lf) 'Evaluated below
+w6 = 324
+w7 = 344
+gosub print_table_sertxd
 	gosub sleep_lora
 	low LED_PIN
 	
 	disablebod
-	for counter = 1 to SLEEP_TIME
-		sleep 26 ; About 1 minute
-		pulsout LED_PIN, 10000
-	next counter
+	sleep SLEEP_TIME
 	enablebod
-	goto main
+	return
 
 send_status:
 	; Sends the monitor's status
+	; Maximum stack depth used: 6
 	high LED_PIN
-	sertxd("Sending state", cr, lf)
-	
+;#sertxd("Sending state", cr, lf) 'Evaluated below
+w6 = 345
+w7 = 359
+gosub print_table_sertxd
 	gosub begin_pjon_packet
 
 	; Battery voltage
 	@bptrinc = "V"
 	gosub get_voltage
+;#sertxd("Batt is: ") 'Evaluated below
+w6 = 360
+w7 = 368
+gosub print_table_sertxd
+	sertxd(#rtrn)
+;#sertxd(" (*0.1) V", cr, lf) 'Evaluated below
+w6 = 369
+w7 = 379
+gosub print_table_sertxd
 	gosub add_word
-	sertxd("Batt is: (", #rtrn, "*0.1) V", cr, lf)
 
 	; Temperature
 ; ; #IFDEF ENABLE_TEMP [#IF CODE REMOVED]
 ; 	@bptrinc = "T" [#IF CODE REMOVED]
 ; 	gosub get_temperature [#IF CODE REMOVED]
 ; 	gosub add_word [#IF CODE REMOVED]
-; 	sertxd("Temp is: (", #rtrn, "*0.1 C", cr, lf) [#IF CODE REMOVED]
+; 	;#sertxd("Temp is: (") [#IF CODE REMOVED]
+; 	sertxd(#rtrn) [#IF CODE REMOVED]
+; 	;#sertxd("*0.1 C", cr, lf) [#IF CODE REMOVED]
 ; #ENDIF
 
 	; Fence enable
-	sertxd("Fence: ", #fence_enable, cr, lf)
+;#sertxd("Fence: ") 'Evaluated below
+w6 = 380
+w7 = 386
+gosub print_table_sertxd
+	sertxd(#fence_enable)
+gosub print_newline_sertxd
 	@bptrinc = "F"
 	@bptrinc = fence_enable
 
 	; Transmit enable
-	sertxd("Transmit: ", #transmit_enable, cr, lf)
+;#sertxd("Transmit: ") 'Evaluated below
+w6 = 387
+w7 = 396
+gosub print_table_sertxd
+	sertxd(#transmit_enable)
+gosub print_newline_sertxd
 	@bptrinc = "r"
 	@bptrinc = transmit_enable
 	param1 = UPRSTEAM_ADDRESS
-	sertxd(cr, lf)
-	gosub end_pjon_packet
+
+	; TX interval
+;#sertxd("TX Interval: ") 'Evaluated below
+w6 = 397
+w7 = 409
+gosub print_table_sertxd
+	sertxd(#tx_intervals)
+gosub print_newline_sertxd
+	@bptrinc = "I"
+	@bptrinc = tx_intervals
+
+	gosub end_pjon_packet ; Stack is 6
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
-		sertxd("LoRa dropped out.")
+;#sertxd("LoRa dropped out.") 'Evaluated below
+w6 = 410
+w7 = 426
+gosub print_table_sertxd
 		for tmpwd = 0 to 15
 			toggle LED_PIN
 			pause 4000
 		next tmpwd
 
-		gosub begin_lora
+		gosub begin_lora ; Stack is 6
 		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
-			sertxd("Reconnected ok")
+;#sertxd("Reconnected ok") 'Evaluated below
+w6 = 427
+w7 = 440
+gosub print_table_sertxd
 			param1 = 9
 			gosub set_spreading_factor
 		else
-			sertxd("Could not reconnect")
+;#sertxd("Could not reconnect") 'Evaluated below
+w6 = 441
+w7 = 459
+gosub print_table_sertxd
 		endif
 	endif
 	low LED_PIN
@@ -346,10 +494,6 @@ add_word:
 	tmpwd = rtrn / 0xff
 	@bptrinc = tmpwd
 	return
-
-; println:
-	; param1 is the address in the table
-	; TODO: Print from table, allows more debugging prints without filling instructions
 
 ; Libraries that will not be run first thing.
 '---BEGIN include/LoRa.basinc ---
@@ -433,6 +577,7 @@ begin_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 5
 
 	high SS
 	
@@ -506,6 +651,7 @@ begin_lora_packet:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 	; Check if the radio is busy and return 0 if so.
 	; As we are always waiting until the packet has been transmitted, we can not do this and save
@@ -548,6 +694,7 @@ end_lora_packet:
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2,
 	;                     start_time,
+	; Maximum stack depth used: 3
 
 	; put in TX mode
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
@@ -660,6 +807,7 @@ setup_lora_receive:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
 
 	; writeRegister(REG_DIO_MAPPING_1, 0x00); // DIO0 => RXDONE
 	param1 = REG_DIO_MAPPING_1
@@ -694,6 +842,8 @@ setup_lora_read:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 3
+
 	; int irqFlags = readRegister(REG_IRQ_FLAGS);
 	; writeRegister(REG_IRQ_FLAGS, irqFlags); // clear IRQ's
 	param1 = REG_IRQ_FLAGS
@@ -734,6 +884,8 @@ read_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_FIFO
 	gosub read_register
 	; sertxd("Reading: ", #rtrn, cr, lf)
@@ -775,6 +927,7 @@ set_spreading_factor:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 ; ; #IF 9 < 7 [#IF CODE REMOVED]
 ; 	#ERROR "Spread factors less than 7 are not currently supported" [#IF CODE REMOVED]
@@ -818,6 +971,8 @@ set_ldo_flag:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_MODEM_CONFIG_3
 	gosub read_register
 	
@@ -945,7 +1100,8 @@ idle_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	;
+	; Maximum stack depth used: 3
+
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 	param1 = REG_OP_MODE
 	param2 = MODE_LONG_RANGE_MODE | MODE_STDBY
@@ -957,6 +1113,8 @@ read_register:
 	;
 	; Variables read: param1
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 2
+
 	param1 = param1 & 0x7f
 	param2 = 0
 	gosub single_transfer
@@ -968,6 +1126,7 @@ write_register:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1
+	; Maximum stack depth used: 2
 
 	; singleTransfer(address | 0x80, value);
 	param1 = param1 | 0x80
@@ -983,6 +1142,7 @@ single_transfer:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage
+	; Maximum stack depth used: 1
 	low SS
 	; param1 is already set
 	s_transfer_storage = param1 ; so param1can be restored later
@@ -1094,12 +1254,16 @@ symbol HEADER_MODE = %00000001
 ; #IFDEF ENABLE_PJON_TRANSMIT
 begin_pjon_packet:
 	; Sets bptr to the correct location to start writing data
+	; Maximum stack depth used: 0
+
 	bptr = PACKET_TX_START + PACKET_HEAD_LENGTH
 	return
 
 end_pjon_packet:
 	; Finalises the packet, writes the header and sends it using LoRa radio
 	; param1 contains the id
+	; Maximum stack depth used: 5
+	
 	level = bptr
 	param2 = bptr - PACKET_TX_START + 4 ; Length of packet with the crc bytes
 	gosub write_pjon_header
@@ -1114,7 +1278,7 @@ end_pjon_packet:
 	@bptrinc = crc0
 	
 	; Send the packet
-	gosub begin_lora_packet
+	gosub begin_lora_packet ; Stack is 5
 	param1 = bptr - PACKET_TX_START
 	bptr = PACKET_TX_START
 	gosub write_lora
@@ -1125,6 +1289,8 @@ write_pjon_header:
 	; param1 contains the id
 	; param2 contains the length
 	; Afterwards, bptr is at the correct location to begin writing the packet contents.
+	; Maximum stack depth used: 2
+
 	bptr = PACKET_TX_START
 	@bptrinc = param1
 	@bptrinc = PACKET_HEADER
@@ -1154,7 +1320,7 @@ read_pjon_packet:
 	;                     level, rtrn, s_transfer_Storage, bptr, total_length, start_time,
 	;                     start_time_h, start_time_l, counter3 (in other words, everything defined
 	;                     as of when this was written)
-
+	; Maximum stack depth used: 3
 	gosub setup_lora_read
 	if rtrn != LORA_RECEIVED_CRC_ERROR then
 		total_length = rtrn
@@ -1391,6 +1557,8 @@ crc8_compute:
 	; bptr points to the byte after.
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1, mask, counter, bptr
+	; Maximum stack depth used: 1
+
 	rtrn = 0
 	mask = param1
 	for counter = 1 to mask
@@ -1407,6 +1575,8 @@ crc8_roll:
 	;
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1
+	; Maximum stack depth used: 0
+
 	for counter2 = 8 to 1 step -1
 		tmpwd = rtrn ^ param1
 		tmpwd = tmpwd & 0x01
@@ -1428,6 +1598,8 @@ crc32_compute:
 	; Variables read: none
 	; Variables modified: crc0, crc1, crc2, crc3, counter, param1, counter2, tmpwd, mask, level,
 	;                     bptr
+	; Maximum stack depth used: 0
+
 	crc0 = 0xFF ; Lowest byte
 	crc1 = 0xFF
 	crc2 = 0xFF
@@ -1479,3 +1651,48 @@ crc32_compute:
 '---END include/PJON.basinc---
 
 '---END BatteryVoltsMonitor.bas---
+
+
+'---Extras added by the preprocessor---
+print_table_sertxd:
+    for w6 = w6 to w7
+    readtable w6, b16
+    sertxd(b16)
+next w6
+
+    return
+
+table 0, ("Electric Fence Controller",cr,lf,"Jotham Gates, Jun 2021",cr,lf) ;#sertxd
+table 51, ("Failed to start LoRa",cr,lf) ;#sertxd
+table 73, ("LoRa Started",cr,lf) ;#sertxd
+table 87, ("Sent packet",cr,lf) ;#sertxd
+table 100, ("Entering receive mode",cr,lf) ;#sertxd
+table 123, ("Valid packet received",cr,lf) ;#sertxd
+table 146, ("Fence ") ;#sertxd
+table 152, ("Off",cr,lf) ;#sertxd
+table 157, ("On",cr,lf) ;#sertxd
+table 161, ("Transmit ") ;#sertxd
+table 170, ("Off",cr,lf) ;#sertxd
+table 175, ("On",cr,lf) ;#sertxd
+table 179, ("Transmit interval is ") ;#sertxd
+table 200, (" *3 minutes",cr,lf) ;#sertxd
+table 213, ("invalid. Ignoring",cr,lf) ;#sertxd
+table 232, ("Status",cr,lf) ;#sertxd
+table 240, ("Field ") ;#sertxd
+table 246, (" unkown",cr,lf) ;#sertxd
+table 255, ("Replying with status",cr,lf) ;#sertxd
+table 277, ("Finished",cr,lf,cr,lf) ;#sertxd
+table 289, ("Invalid packet recieved. Ignoring",cr,lf) ;#sertxd
+table 324, ("Entering sleep mode",cr,lf) ;#sertxd
+table 345, ("Sending state",cr,lf) ;#sertxd
+table 360, ("Batt is: ") ;#sertxd
+table 369, (" (*0.1) V",cr,lf) ;#sertxd
+table 380, ("Fence: ") ;#sertxd
+table 387, ("Transmit: ") ;#sertxd
+table 397, ("TX Interval: ") ;#sertxd
+table 410, ("LoRa dropped out.") ;#sertxd
+table 427, ("Reconnected ok") ;#sertxd
+table 441, ("Could not reconnect") ;#sertxd
+print_newline_sertxd:
+    sertxd(cr, lf)
+    return
