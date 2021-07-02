@@ -50,10 +50,10 @@ symbol crc2 = tmpwd4l
 symbol crc3 = tmpwd4h
 symbol counter3 = tmpbt0
 ; b11, b12, b13, b1, b15, b16, b17, b18, b19 are free
-symbol start_time = store_start_time
-symbol start_time_h = store_start_timeh
-symbol start_time_l = store_start_timel
-symbol tmpwd = update_start_time
+symbol start_time = interval_start_time
+symbol start_time_h = interval_start_timeh
+symbol start_time_l = interval_start_timel
+symbol tmpwd = buffer_length
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13

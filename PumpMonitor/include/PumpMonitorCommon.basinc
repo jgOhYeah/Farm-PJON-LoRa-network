@@ -1,0 +1,117 @@
+; Pump duty cycle monitor common code
+; Defines and symbols shared between each slot
+; Written by Jotham Gates
+; Created 15/03/2021
+; Modified 21/03/2021
+
+#DEFINE VERSION "v2.0.3"
+
+#DEFINE TABLE_SERTXD_BACKUP_VARS
+#DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
+#DEFINE TABLE_SERTXD_ADDRESS_VAR param1
+#DEFINE TABLE_SERTXD_ADDRESS_VAR_L param1l
+#DEFINE TABLE_SERTXD_ADDRESS_VAR_H param1h
+#DEFINE TABLE_SERTXD_ADDRESS_END_VAR rtrn
+#DEFINE TABLE_SERTXD_ADDRESS_END_VAR_L rtrnl
+#DEFINE TABLE_SERTXD_ADDRESS_END_VAR_H rtrnh
+#DEFINE TABLE_SERTXD_TMP_BYTE param2
+
+#DEFINE ENABLE_LORA_RECEIVE
+#DEFINE ENABLE_PJON_RECEIVE
+#DEFINE ENABLE_LORA_TRANSMIT
+#DEFINE ENABLE_PJON_TRANSMIT
+
+#DEFINE PIN_PUMP pinC.2 ; Must be interrupt capable and PIN_PUMP_BIN must be updated to match
+#DEFINE PIN_PUMP_BIN %00000100
+#DEFINE PIN_LED_ALARM B.3 ; Swapped with PIN_PUMP for V2 due to interrupt requirements
+#DEFINE PIN_LED_ON B.6
+#DEFINE LED_ON_STATE pinB.6 ; Used to keep track of pump status
+#DEFINE PIN_BUTTON B.7
+#DEFINE PIN_I2C_SDA B.1
+#DEFINE PIN_I2C_SCL B.4
+#DEFINE PIN_RX pinC.4
+#DEFINE PIN_TX C.3
+
+; LoRa module
+symbol SS = C.6
+symbol SCK = C.0
+symbol MOSI = C.7
+symbol MISO = pinB.0
+symbol RST = C.1
+symbol DIO0 = pinC.5 ; High when a packet has been received
+
+; 2*30*60 = 3600 - time increments once every half seconds
+#DEFINE STORE_INTERVAL 3600 ; Once every 10s.
+
+#DEFINE BUFFER_BLANK_CHAR 0xFFFF
+#DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
+; 2 KiB EEPROM and always have at least one space free for the start / end marker.
+#DEFINE BUFFER_MAXLENGTH 2047
+#DEFINE BUFFER_SIZE 2048
+
+symbol alarm = bit0
+symbol lora_fail = bit1
+symbol buffer_start = w1
+symbol buffer_startl = b2
+symbol buffer_starth = b3
+symbol buffer_length = w2
+symbol buffer_lengthl = b4
+symbol buffer_lengthh = b5
+symbol tmpwd0 = w3
+symbol tmpwd0l = b6
+symbol tmpwd0h = b7
+symbol tmpwd1 = w4
+symbol tmpwd1l = b8
+symbol tmpwd1h = b9
+symbol tmpwd2 = w5
+symbol tmpwd2l = b10
+symbol tmpwd2h = b11
+symbol tmpwd3 = w6
+symbol tmpwd3l = b12
+symbol tmpwd3h = b13
+symbol tmpwd4 = w7
+symbol tmpwd4l = b14
+symbol tmpwd4h = b15
+symbol interval_start_time = w8
+symbol interval_start_timel = b16
+symbol interval_start_timeh = b17
+symbol pump_start_time = w9 ; Used by interrupts. Use only for timing when the pump was switched on.
+symbol pump_start_timel = b18
+symbol pump_start_timeh = b19
+symbol block_on_time = w10 ; Used by interrupts. Use only for counting the number of seconds the pump is on in each block.
+symbol block_on_timel = b20
+symbol block_on_timeh = b21
+symbol param1 = w11
+symbol param1l = b22
+symbol param1h = b23
+symbol param2 = b24
+symbol tmpbt0 = b25
+symbol rtrn = w13
+symbol rtrnl = b26
+symbol rtrnh = b27
+
+; To save and restore the words used by the buffer
+#DEFINE BUFFER_START_BACKUP_LOC_L 123
+#DEFINE BUFFER_START_BACKUP_LOC_H 124
+#DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
+#DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
+
+; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
+#DEFINE INTERVAL_START_BACKUP_LOC_L 121
+#DEFINE INTERVAL_START_BACKUP_LOC_H 122
+
+#DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
+#DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
+#DEFINE EEPROM_ALARM_MULT_DEN 2 ; Multiplier for the average (denominator)
+; A block is counted as > baseline if (on_time > (average * multiplier) / deniminator)
+; If consecutive block count is over, raise alarm.
+
+#MACRO EEPROM_SETUP(ADDR, TMPVAR)
+	; ADDR is a word
+	; TMPVAR is a byte
+	; I2C address
+	TMPVAR = ADDR / 128 & %00001110
+	TMPVAR = TMPVAR | %10100000
+    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+	hi2csetup i2cmaster, TMPVAR, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+#ENDMACRO
