@@ -1,12 +1,11 @@
 #!/usr/bin/python3
-import PyLora
 # from baseutils import *
 # Clone PyLoRa for Python 3 from https://github.com/hnlichong/PyLora/tree/py35
 
 class PJONPacketError(Exception):
-    def __init__(self, message):
+    def __init__(self, message, packet = None):
         self.message = message
-
+        self.packet = packet
 class CRC:
     def crc32(self, data, length):
         bits = None
@@ -47,10 +46,14 @@ class CRC:
         return crc
 
 class PJON:
-    def __init__(self, id = 255):
+    def __init__(self, id = 255, sender_id = True):
         self.id = id
+        self.sender_id = sender_id
 
-    def parse(self, packet): # tODO: FIX CHECKSUM INVALID
+    def parse(self, packet): # TODO: FIX CHECKSUM INVALID
+        """ Parses a bytearray packet into a tuple containing a list with the
+        payload and the sender id. Raises a PJONPacketError if not a valid
+        packet or addressed to us. """
         sender_id = None
         header = None
         length = None
@@ -66,7 +69,7 @@ class PJON:
                 calculated = crc.crc8(packet, 3)
                 if header_checksum == calculated:
                     # Checksums match
-                    if header & 0x02 and len(packet) >= 5:
+                    if header & 0x02 and len(packet) >= 5: # TODO: Fix for if no sender id.
                         # Sender info is included and the packet is long enough
                         sender_id = packet[4]
                         cumulative_length += 1
@@ -90,16 +93,61 @@ class PJON:
                             calculated = crc.crc8(packet, length - 1)
                             crc = packet[length - 1]
                         if calculated != crc:
-                            raise PJONPacketError("Failed end checksum")
+                            raise PJONPacketError("Failed end checksum", packet)
                         return (payload, sender_id)
                     else:
-                        raise PJONPacketError("Too short for sender id")
+                        raise PJONPacketError("Too short for sender id", packet)
                 else:
-                    raise PJONPacketError("Failed header checksum")
+                    raise PJONPacketError("Failed header checksum", packet)
             else:
-                raise PJONPacketError("Not to us")
+                raise PJONPacketError("Not to us", packet)
         else:
-            raise PJONPacketError("Too short to be a packet")
+            raise PJONPacketError("Too short to be a packet", packet)
+    
+    def generate(self, to, payload, force_crc32 = False):
+        """ Generates a bytes object with the processed packet. """
+        # Calculate how long the packet would be if using crc8 or crc32 otherwise
+        total_length = len(payload) + 5
+        if self.sender_id:
+            total_length += 1
+        use_crc8 = True
+        if force_crc32 or total_length > 15:
+            use_crc8 = False
+            total_length += 3 # for the 3 bytes crc32 is longer than crc8
+
+        # Build the header
+        header = 0 # 0b00100110 # CRC32, ACK, TX info
+        if self.sender_id:
+            header |= 0b00000010
+        if not use_crc8:
+            header |= 0b00100000
+        
+        # Add the header crc8
+        crc = CRC()
+        packet = [to, header, total_length]
+        packet.append(crc.crc8(packet, len(packet)))
+
+        # Add the sender id if requested
+        if self.sender_id:
+            packet.append(self.id)
+        
+        # Add the payload
+        for i in payload:
+            packet.append(i)
+        
+        # Add the crc at the end
+        if use_crc8:
+            packet.append(crc.crc8(packet, len(packet)))
+        else:
+            crc32 = crc.crc32(packet, len(packet))
+            packet.append((crc32 >> 24) & 0xFF)
+            packet.append((crc32 >> 16) & 0xFF)
+            packet.append((crc32 >> 8) & 0xFF)
+            packet.append(crc32 & 0xFF)
+        
+        # Done
+        return bytes(packet)
+
 
 if __name__ == "__main__":
     pjon = PJON()
