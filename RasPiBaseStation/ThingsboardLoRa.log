@@ -1,0 +1,876 @@
+2021-07-02 11:14:24.374277:	Starting LoRa
+2021-07-02 11:14:24.389149:	Init: 1
+2021-07-02 11:14:24.389966:	Is connected: True
+2021-07-02 11:14:24.405096:	MQTT connected successfully
+2021-07-02 11:14:24.406685:	Started
+2021-07-02 11:14:24.407176:	Waiting for packet
+2021-07-02 11:14:24.463603:	MQTT connected
+2021-07-02 11:14:24.464342:	Adding device Solar Electric Fence
+2021-07-02 11:14:24.465265:	Adding device Main Pressure Pump
+2021-07-02 11:14:45.547541:	Got MQTT message
+2021-07-02 11:14:45.548488:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":609,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:14:45.549349:	Request to turn fence on or off
+2021-07-02 11:14:45.549946:	Setting fence to: True
+2021-07-02 11:14:48.911314:	Got MQTT message
+2021-07-02 11:14:48.912085:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":610,"method":"setFenceStatus","params":false}}'
+2021-07-02 11:14:48.913054:	Request to turn fence on or off
+2021-07-02 11:14:48.913819:	Setting fence to: False
+2021-07-02 11:14:54.423584:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:15:04.956155:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:15:33.462065:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:15:40.955070:	Got a packet. Will try to process it
+2021-07-02 11:15:40.956580:	Got a valid packet
+
+2021-07-02 11:15:40.959169:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.0, "SNR": 12.5, "RSSI": -93}]}
+2021-07-02 11:15:40.961109:	Done
+2021-07-02 11:15:40.961953:	Waiting for packet
+2021-07-02 11:15:45.709566:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:15:55.853190:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:15:57.915152:	Got a packet. Will try to process it
+2021-07-02 11:15:57.916738:	Got a valid packet
+
+2021-07-02 11:15:57.919304:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.5, "RSSI": -113}]}
+2021-07-02 11:15:57.921096:	Done
+2021-07-02 11:15:57.922505:	Waiting for packet
+2021-07-02 11:18:56.793984:	Keyboard interrupt stopping.
+
+
+2021-07-02 11:18:59.923909:	Starting LoRa
+2021-07-02 11:18:59.938411:	Init: 1
+2021-07-02 11:18:59.939201:	Is connected: True
+2021-07-02 11:18:59.954038:	MQTT connected successfully
+2021-07-02 11:18:59.955641:	Started
+2021-07-02 11:18:59.956313:	Waiting for packet
+2021-07-02 11:18:59.996370:	MQTT connected
+2021-07-02 11:18:59.996747:	Adding device Solar Electric Fence
+2021-07-02 11:18:59.997371:	Adding device Main Pressure Pump
+2021-07-02 11:19:09.995779:	Got MQTT message
+2021-07-02 11:19:09.996489:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":611,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:19:09.997314:	Request to turn fence on or off
+2021-07-02 11:19:09.997894:	Setting fence to: True
+2021-07-02 11:19:12.105529:	Got MQTT message
+2021-07-02 11:19:12.106243:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":612,"method":"setFenceStatus","params":false}}'
+2021-07-02 11:19:12.106987:	Request to turn fence on or off
+2021-07-02 11:19:12.107570:	Setting fence to: False
+2021-07-02 11:19:19.959314:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:19:30.103176:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:19:40.244317:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:19:50.389118:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:20:00.531850:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:20:02.857863:	Keyboard interrupt stopping.
+
+
+2021-07-02 11:20:12.788539:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:20:35.157649:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:20:45.301748:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:20:55.440095:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:21:05.582933:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:21:15.717018:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:21:29.983182:	Starting LoRa
+2021-07-02 11:21:29.997550:	Init: 1
+2021-07-02 11:21:29.998263:	Is connected: True
+2021-07-02 11:21:30.013679:	MQTT connected successfully
+2021-07-02 11:21:30.015156:	Started
+2021-07-02 11:21:30.015534:	Waiting for packet
+2021-07-02 11:21:30.043820:	MQTT connected
+2021-07-02 11:21:30.044141:	Adding device Solar Electric Fence
+2021-07-02 11:21:30.044723:	Adding device Main Pressure Pump
+2021-07-02 11:22:10.640649:	Got MQTT message
+2021-07-02 11:22:10.641438:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":613,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:22:10.642470:	Request to turn fence on or off
+2021-07-02 11:22:10.643177:	Setting fence to: True
+2021-07-02 11:22:20.048659:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:22:30.193312:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:22:40.337945:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:22:49.335860:	Starting LoRa
+2021-07-02 11:22:49.350714:	Init: 1
+2021-07-02 11:22:49.351761:	Is connected: True
+2021-07-02 11:22:49.367872:	MQTT connected successfully
+2021-07-02 11:22:49.369625:	Started
+2021-07-02 11:22:49.370489:	Waiting for packet
+2021-07-02 11:22:49.402880:	MQTT connected
+2021-07-02 11:22:49.403334:	Adding device Solar Electric Fence
+2021-07-02 11:22:49.404105:	Adding device Main Pressure Pump
+2021-07-02 11:22:58.340333:	Got MQTT message
+2021-07-02 11:22:58.341251:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":616,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:22:58.342336:	Request to turn fence on or off
+2021-07-02 11:22:58.343155:	Setting fence to: True
+2021-07-02 11:22:59.366579:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:22:59.822048:	Got MQTT message
+2021-07-02 11:22:59.822865:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":617,"method":"setFenceStatus","params":false}}'
+2021-07-02 11:22:59.823937:	Request to turn fence on or off
+2021-07-02 11:22:59.824680:	Setting fence to: False
+2021-07-02 11:23:09.506643:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:23:19.646661:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:23:29.791385:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:23:39.935879:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:23:50.078763:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:24:00.212438:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:24:10.357121:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:24:20.496406:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:24:30.640853:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:24:32.703249:	Got a packet. Will try to process it
+2021-07-02 11:24:32.704701:	Got a valid packet
+
+2021-07-02 11:24:32.707112:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.75, "RSSI": -113}]}
+2021-07-02 11:24:32.710237:	Done
+2021-07-02 11:24:32.711049:	Waiting for packet
+2021-07-02 11:34:10.701686:	Got MQTT message
+2021-07-02 11:34:10.702569:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":618,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:34:10.703558:	Request to turn fence on or off
+2021-07-02 11:34:10.704310:	Setting fence to: True
+2021-07-02 11:34:11.199537:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:34:12.684871:	Got MQTT message
+2021-07-02 11:34:12.685487:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":619,"method":"setFenceStatus","params":false}}'
+2021-07-02 11:34:12.686122:	Request to turn fence on or off
+2021-07-02 11:34:12.686678:	Setting fence to: False
+2021-07-02 11:34:21.344154:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:34:31.488931:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:34:41.633745:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:34:51.776292:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:01.917831:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:12.058425:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:22.201608:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:34.190445:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:44.331745:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:54.476242:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:35:56.538576:	Got a packet. Will try to process it
+2021-07-02 11:35:56.540004:	Got a valid packet
+
+2021-07-02 11:35:56.542298:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.75, "RSSI": -117}]}
+2021-07-02 11:35:56.545743:	Done
+2021-07-02 11:35:56.546554:	Waiting for packet
+2021-07-02 11:45:43.256138:	Got a packet. Will try to process it
+2021-07-02 11:45:43.257543:	Got a valid packet
+
+2021-07-02 11:45:43.260036:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.0, "SNR": 10.5, "RSSI": -89}]}
+2021-07-02 11:45:43.262157:	Done
+2021-07-02 11:45:43.263012:	Waiting for packet
+2021-07-02 11:51:30.035888:	Got MQTT message
+2021-07-02 11:51:30.036816:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":620,"method":"setFenceStatus","params":true}}'
+2021-07-02 11:51:30.037799:	Request to turn fence on or off
+2021-07-02 11:51:30.038614:	Setting fence to: True
+2021-07-02 11:51:35.291368:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 11:51:39.408103:	Got MQTT message
+2021-07-02 11:51:39.408767:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":621,"method":"setFenceStatus","params":false}}'
+2021-07-02 11:51:39.410294:	Request to turn fence on or off
+2021-07-02 11:51:39.410875:	Setting fence to: False
+2021-07-02 11:51:45.433692:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:51:55.577771:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:05.713082:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:15.854767:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:25.989628:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:36.134184:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:46.272240:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:52:56.415600:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:53:06.557397:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 11:53:08.621619:	Got a packet. Will try to process it
+2021-07-02 11:53:08.623027:	Got a valid packet
+
+2021-07-02 11:53:08.625269:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -3.25, "RSSI": -114}]}
+2021-07-02 11:53:08.628098:	Done
+2021-07-02 11:53:08.628847:	Waiting for packet
+2021-07-02 12:09:49.163089:	Keyboard interrupt stopping.
+
+
+2021-07-02 12:12:24.682475:	Starting LoRa
+2021-07-02 12:12:24.696840:	Init: 1
+2021-07-02 12:12:24.697499:	Is connected: True
+2021-07-02 12:12:24.712730:	MQTT connected successfully
+2021-07-02 12:12:24.714261:	Started
+2021-07-02 12:12:24.714633:	Waiting for packet
+2021-07-02 12:12:24.766455:	MQTT connected
+2021-07-02 12:12:24.766766:	Adding device Solar Electric Fence
+2021-07-02 12:12:24.767361:	Adding device Main Pressure Pump
+2021-07-02 12:12:41.043309:	Got MQTT message
+2021-07-02 12:12:41.043877:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":622,"method":"setFenceStatus","params":true}}'
+2021-07-02 12:12:41.044401:	Request to turn fence on or off
+2021-07-02 12:12:41.044786:	Setting fence to: True
+2021-07-02 12:12:43.228877:	Got MQTT message
+2021-07-02 12:12:43.229639:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":623,"method":"setFenceStatus","params":false}}'
+2021-07-02 12:12:43.230623:	Request to turn fence on or off
+2021-07-02 12:12:43.231283:	Setting fence to: False
+2021-07-02 12:12:44.722221:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 12:12:54.861253:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 12:13:05.006088:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 12:13:07.068360:	Got a packet. Will try to process it
+2021-07-02 12:13:07.070424:	Got a valid packet
+
+2021-07-02 12:13:07.073116:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.4, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.5, "RSSI": -114}]}
+2021-07-02 12:13:07.076320:	Done
+2021-07-02 12:13:07.078351:	Waiting for packet
+2021-07-02 12:13:40.485639:	Got MQTT message
+2021-07-02 12:13:40.486478:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":624,"method":"setFenceStatus","params":true}}'
+2021-07-02 12:13:40.487427:	Request to turn fence on or off
+2021-07-02 12:13:40.488427:	Setting fence to: True
+2021-07-02 12:13:45.169138:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:13:55.309937:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:05.451106:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:15.586849:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:25.731041:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:35.873119:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:46.013543:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:14:56.148398:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:15:06.289056:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:15:34.395167:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:15:44.539744:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:15:45.491142:	Got a packet. Will try to process it
+2021-07-02 12:15:45.492457:	Got a valid packet
+
+2021-07-02 12:15:45.496747:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.0, "SNR": 13.0, "RSSI": -89}]}
+2021-07-02 12:15:45.499032:	Done
+2021-07-02 12:15:45.500454:	Waiting for packet
+2021-07-02 12:15:54.681415:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:16:04.823048:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 12:16:06.885118:	Got a packet. Will try to process it
+2021-07-02 12:16:06.886987:	Got a valid packet
+
+2021-07-02 12:16:06.889494:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -2.5, "RSSI": -113}]}
+2021-07-02 12:16:06.892191:	Done
+2021-07-02 12:16:06.893727:	Waiting for packet
+2021-07-02 12:16:11.217458:	Got MQTT message
+2021-07-02 12:16:11.218436:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":625,"method":"setFenceStatus","params":false}}'
+2021-07-02 12:16:11.219255:	Request to turn fence on or off
+2021-07-02 12:16:11.219904:	Setting fence to: False
+2021-07-02 12:16:14.958483:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 12:16:17.020256:	Got a packet. Will try to process it
+2021-07-02 12:16:17.021677:	Got a valid packet
+
+2021-07-02 12:16:17.023834:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.4, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.5, "RSSI": -114}]}
+2021-07-02 12:16:17.026171:	Done
+2021-07-02 12:16:17.027492:	Waiting for packet
+2021-07-02 12:38:56.598327:	Got a packet. Will try to process it
+2021-07-02 12:38:56.599168:	Got a valid packet
+
+2021-07-02 12:38:56.600526:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.5, "RSSI": -116}]}
+2021-07-02 12:38:56.601967:	Done
+2021-07-02 12:38:56.602796:	Waiting for packet
+2021-07-02 12:45:47.957056:	Got a packet. Will try to process it
+2021-07-02 12:45:47.958654:	Got a valid packet
+
+2021-07-02 12:45:47.960777:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.0, "SNR": 13.5, "RSSI": -92}]}
+2021-07-02 12:45:47.963345:	Done
+2021-07-02 12:45:47.963995:	Waiting for packet
+2021-07-02 13:01:36.743650:	Got a packet. Will try to process it
+2021-07-02 13:01:36.745145:	Got a valid packet
+
+2021-07-02 13:01:36.747432:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -2.5, "RSSI": -116}]}
+2021-07-02 13:01:36.750365:	Done
+2021-07-02 13:01:36.751155:	Waiting for packet
+2021-07-02 13:15:50.410191:	Got a packet. Will try to process it
+2021-07-02 13:15:50.411533:	Got a valid packet
+
+2021-07-02 13:15:50.413550:	Data: {"Main Pressure Pump":[{"Pump on time": 67.0, "Average pump on time": 11.0, "SNR": 12.25, "RSSI": -94}]}
+2021-07-02 13:15:50.415348:	Done
+2021-07-02 13:15:50.416253:	Waiting for packet
+2021-07-02 13:23:57.423136:	Got a packet. Will try to process it
+2021-07-02 13:23:57.424779:	Got a valid packet
+
+2021-07-02 13:23:57.426970:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.7, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.75, "RSSI": -113}]}
+2021-07-02 13:23:57.430526:	Done
+2021-07-02 13:23:57.431329:	Waiting for packet
+2021-07-02 13:45:52.726369:	Got a packet. Will try to process it
+2021-07-02 13:45:52.727710:	Got a valid packet
+
+2021-07-02 13:45:52.729925:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.0, "SNR": 12.75, "RSSI": -93}]}
+2021-07-02 13:45:52.731781:	Done
+2021-07-02 13:45:52.732423:	Waiting for packet
+2021-07-02 13:46:37.494134:	Got a packet. Will try to process it
+2021-07-02 13:46:37.495669:	Got a valid packet
+
+2021-07-02 13:46:37.497866:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.5, "RSSI": -113}]}
+2021-07-02 13:46:37.501002:	Done
+2021-07-02 13:46:37.501699:	Waiting for packet
+2021-07-02 14:09:17.435404:	Got a packet. Will try to process it
+2021-07-02 14:09:17.437172:	Got a valid packet
+
+2021-07-02 14:09:17.439487:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.25, "RSSI": -114}]}
+2021-07-02 14:09:17.444640:	Done
+2021-07-02 14:09:17.445327:	Waiting for packet
+2021-07-02 14:15:55.067941:	Got a packet. Will try to process it
+2021-07-02 14:15:55.069382:	Got a valid packet
+
+2021-07-02 14:15:55.071727:	Data: {"Main Pressure Pump":[{"Pump on time": 16.0, "Average pump on time": 11.5, "SNR": 12.0, "RSSI": -94}]}
+2021-07-02 14:15:55.073379:	Done
+2021-07-02 14:15:55.074571:	Waiting for packet
+2021-07-02 14:31:57.119405:	Got a packet. Will try to process it
+2021-07-02 14:31:57.121311:	Got a valid packet
+
+2021-07-02 14:31:57.124029:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.5, "RSSI": -112}]}
+2021-07-02 14:31:57.127349:	Done
+2021-07-02 14:31:57.128467:	Waiting for packet
+2021-07-02 14:45:57.601655:	Got a packet. Will try to process it
+2021-07-02 14:45:57.603535:	Got a valid packet
+
+2021-07-02 14:45:57.605648:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 12.25, "RSSI": -93}]}
+2021-07-02 14:45:57.608502:	Done
+2021-07-02 14:45:57.609193:	Waiting for packet
+2021-07-02 14:54:37.215119:	Got a packet. Will try to process it
+2021-07-02 14:54:37.216595:	Got a valid packet
+
+2021-07-02 14:54:37.218869:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.9, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.25, "RSSI": -112}]}
+2021-07-02 14:54:37.221781:	Done
+2021-07-02 14:54:37.222472:	Waiting for packet
+2021-07-02 14:55:53.117356:	Got MQTT message
+2021-07-02 14:55:53.118053:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":626,"method":"setFenceStatus","params":true}}'
+2021-07-02 14:55:53.118842:	Request to turn fence on or off
+2021-07-02 14:55:53.119457:	Setting fence to: True
+2021-07-02 14:56:02.079898:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:56:12.224189:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:56:13.468705:	Got MQTT message
+2021-07-02 14:56:13.469536:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":627,"method":"setFenceStatus","params":false}}'
+2021-07-02 14:56:13.470376:	Request to turn fence on or off
+2021-07-02 14:56:13.470971:	Setting fence to: False
+2021-07-02 14:56:21.304189:	Got MQTT message
+2021-07-02 14:56:21.304868:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":628,"method":"setFenceStatus","params":true}}'
+2021-07-02 14:56:21.305635:	Request to turn fence on or off
+2021-07-02 14:56:21.306314:	Setting fence to: True
+2021-07-02 14:56:22.358437:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:56:32.499837:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:56:42.644214:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:56:52.788885:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:57:02.924827:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:57:13.069085:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:57:23.203710:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:57:33.339929:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 14:57:35.402277:	Got a packet. Will try to process it
+2021-07-02 14:57:35.404155:	Got a valid packet
+
+2021-07-02 14:57:35.406578:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.7, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.0, "RSSI": -115}]}
+2021-07-02 14:57:35.408919:	Done
+2021-07-02 14:57:35.410081:	Waiting for packet
+2021-07-02 14:59:29.179286:	Got MQTT message
+2021-07-02 14:59:29.179915:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":629,"method":"setFenceStatus","params":false}}'
+2021-07-02 14:59:29.180473:	Request to turn fence on or off
+2021-07-02 14:59:29.180856:	Setting fence to: False
+2021-07-02 14:59:33.564900:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 14:59:43.711535:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 14:59:53.852249:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:00:03.996659:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:00:14.140021:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:00:24.280831:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:00:34.416748:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:00:36.478658:	Got a packet. Will try to process it
+2021-07-02 15:00:36.480058:	Got a valid packet
+
+2021-07-02 15:00:36.482172:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.5, "RSSI": -115}]}
+2021-07-02 15:00:36.484734:	Done
+2021-07-02 15:00:36.485603:	Waiting for packet
+2021-07-02 15:01:24.538083:	Got MQTT message
+2021-07-02 15:01:24.538833:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":630,"method":"setFenceStatus","params":true}}'
+2021-07-02 15:01:24.539523:	Request to turn fence on or off
+2021-07-02 15:01:24.540073:	Setting fence to: True
+2021-07-02 15:01:24.588822:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:01:34.731443:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:01:44.874881:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:01:55.019288:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:05.163584:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:15.303273:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:25.447931:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:35.584475:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:45.955436:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:02:56.091827:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:03:06.236300:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:03:16.379188:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:03:26.524123:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:03:28.586645:	Got a packet. Will try to process it
+2021-07-02 15:03:28.588147:	Got a valid packet
+
+2021-07-02 15:03:28.590396:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.0, "RSSI": -116}]}
+2021-07-02 15:03:28.593336:	Done
+2021-07-02 15:03:28.593973:	Waiting for packet
+2021-07-02 15:03:31.507739:	Got MQTT message
+2021-07-02 15:03:31.508572:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":631,"method":"setFenceStatus","params":false}}'
+2021-07-02 15:03:31.509524:	Request to turn fence on or off
+2021-07-02 15:03:31.510160:	Setting fence to: False
+2021-07-02 15:03:36.668960:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:03:38.731369:	Got a packet. Will try to process it
+2021-07-02 15:03:38.732761:	Got a valid packet
+
+2021-07-02 15:03:38.734952:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.6, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.25, "RSSI": -115}]}
+2021-07-02 15:03:38.738464:	Done
+2021-07-02 15:03:38.739470:	Waiting for packet
+2021-07-02 15:16:00.227909:	Got a packet. Will try to process it
+2021-07-02 15:16:00.229429:	Got a valid packet
+
+2021-07-02 15:16:00.231486:	Data: {"Main Pressure Pump":[{"Pump on time": 15.5, "Average pump on time": 11.5, "SNR": 11.0, "RSSI": -89}]}
+2021-07-02 15:16:00.233533:	Done
+2021-07-02 15:16:00.234275:	Waiting for packet
+2021-07-02 15:21:33.067767:	Got MQTT message
+2021-07-02 15:21:33.068606:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":632,"method":"setFenceStatus","params":true}}'
+2021-07-02 15:21:33.069490:	Request to turn fence on or off
+2021-07-02 15:21:33.070151:	Setting fence to: True
+2021-07-02 15:21:37.594078:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:21:47.730958:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:21:57.874762:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:08.019328:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:18.161604:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:28.298573:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:38.437779:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:48.582210:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:22:58.721988:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:23:08.859216:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:23:18.996052:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:23:29.138125:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:23:31.200948:	Got a packet. Will try to process it
+2021-07-02 15:23:31.202358:	Got a valid packet
+
+2021-07-02 15:23:31.204625:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.0, "RSSI": -114}]}
+2021-07-02 15:23:31.207521:	Done
+2021-07-02 15:23:31.208586:	Waiting for packet
+2021-07-02 15:24:27.865859:	Got MQTT message
+2021-07-02 15:24:27.866649:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":633,"method":"setFenceStatus","params":false}}'
+2021-07-02 15:24:27.867475:	Request to turn fence on or off
+2021-07-02 15:24:27.868126:	Setting fence to: False
+2021-07-02 15:24:29.316213:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:24:39.460435:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:24:49.604950:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:24:59.749047:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:25:09.891094:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:25:35.064925:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:25:45.209238:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:25:55.349045:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:26:05.493379:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:26:15.638026:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:26:25.778062:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:26:27.840190:	Got a packet. Will try to process it
+2021-07-02 15:26:27.841634:	Got a valid packet
+
+2021-07-02 15:26:27.843808:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.4, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.75, "RSSI": -109}]}
+2021-07-02 15:26:27.846602:	Done
+2021-07-02 15:26:27.847288:	Waiting for packet
+2021-07-02 15:46:02.862954:	Got a packet. Will try to process it
+2021-07-02 15:46:02.864088:	Got a valid packet
+
+2021-07-02 15:46:02.866209:	Data: {"Main Pressure Pump":[{"Pump on time": 52.5, "Average pump on time": 11.5, "SNR": 7.5, "RSSI": -88}]}
+2021-07-02 15:46:02.867873:	Done
+2021-07-02 15:46:02.869209:	Waiting for packet
+2021-07-02 15:46:02.982604:	Got MQTT message
+2021-07-02 15:46:02.983070:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":634,"method":"setFenceStatus","params":true}}'
+2021-07-02 15:46:02.983552:	Request to turn fence on or off
+2021-07-02 15:46:02.983961:	Setting fence to: True
+2021-07-02 15:46:05.544753:	Got MQTT message
+2021-07-02 15:46:05.545374:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":635,"method":"setFenceStatus","params":false}}'
+2021-07-02 15:46:05.545962:	Request to turn fence on or off
+2021-07-02 15:46:05.546364:	Setting fence to: False
+2021-07-02 15:46:06.763240:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:46:16.821795:	Got MQTT message
+2021-07-02 15:46:16.822339:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":636,"method":"setFenceStatus","params":true}}'
+2021-07-02 15:46:16.822997:	Request to turn fence on or off
+2021-07-02 15:46:16.823556:	Setting fence to: True
+2021-07-02 15:46:16.906744:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:46:20.564732:	Got MQTT message
+2021-07-02 15:46:20.565625:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":637,"method":"setFenceStatus","params":false}}'
+2021-07-02 15:46:20.566627:	Request to turn fence on or off
+2021-07-02 15:46:20.567326:	Setting fence to: False
+2021-07-02 15:46:27.046572:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:46:29.108396:	Got a packet. Will try to process it
+2021-07-02 15:46:29.109678:	Got a valid packet
+
+2021-07-02 15:46:29.111856:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.9, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 2.0, "RSSI": -112}]}
+2021-07-02 15:46:29.115269:	Done
+2021-07-02 15:46:29.116190:	Waiting for packet
+2021-07-02 15:46:38.415836:	Got MQTT message
+2021-07-02 15:46:38.416295:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":638,"method":"setFenceStatus","params":true}}'
+2021-07-02 15:46:38.416858:	Request to turn fence on or off
+2021-07-02 15:46:38.417243:	Setting fence to: True
+2021-07-02 15:46:47.187947:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 15:46:49.249486:	Got a packet. Will try to process it
+2021-07-02 15:46:49.251094:	Got a valid packet
+
+2021-07-02 15:46:49.253592:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.7, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.0, "RSSI": -110}]}
+2021-07-02 15:46:49.256827:	Done
+2021-07-02 15:46:49.257747:	Waiting for packet
+2021-07-02 15:46:52.330851:	Got MQTT message
+2021-07-02 15:46:52.331658:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":639,"method":"setFenceStatus","params":false}}'
+2021-07-02 15:46:52.332688:	Request to turn fence on or off
+2021-07-02 15:46:52.333520:	Setting fence to: False
+2021-07-02 15:46:57.326773:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 15:46:59.388488:	Got a packet. Will try to process it
+2021-07-02 15:46:59.389778:	Got a valid packet
+
+2021-07-02 15:46:59.392073:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.9, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.25, "RSSI": -110}]}
+2021-07-02 15:46:59.394796:	Done
+2021-07-02 15:46:59.395908:	Waiting for packet
+2021-07-02 16:09:39.326530:	Got a packet. Will try to process it
+2021-07-02 16:09:39.327963:	Got a valid packet
+
+2021-07-02 16:09:39.330571:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.9, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.0, "RSSI": -115}]}
+2021-07-02 16:09:39.333400:	Done
+2021-07-02 16:09:39.334232:	Waiting for packet
+2021-07-02 16:16:05.512433:	Got a packet. Will try to process it
+2021-07-02 16:16:05.513706:	Got a valid packet
+
+2021-07-02 16:16:05.515729:	Data: {"Main Pressure Pump":[{"Pump on time": 32.5, "Average pump on time": 11.5, "SNR": 11.0, "RSSI": -96}]}
+2021-07-02 16:16:05.517393:	Done
+2021-07-02 16:16:05.518134:	Waiting for packet
+2021-07-02 16:32:19.697936:	Got a packet. Will try to process it
+2021-07-02 16:32:19.699310:	Got a valid packet
+
+2021-07-02 16:32:19.701302:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.7, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.0, "RSSI": -114}]}
+2021-07-02 16:32:19.703853:	Done
+2021-07-02 16:32:19.704447:	Waiting for packet
+2021-07-02 16:46:07.963784:	Got a packet. Will try to process it
+2021-07-02 16:46:07.964974:	Got a valid packet
+
+2021-07-02 16:46:07.966869:	Data: {"Main Pressure Pump":[{"Pump on time": 15.0, "Average pump on time": 11.5, "SNR": 10.0, "RSSI": -93}]}
+2021-07-02 16:46:07.969033:	Done
+2021-07-02 16:46:07.969593:	Waiting for packet
+2021-07-02 16:55:00.167063:	Got a packet. Will try to process it
+2021-07-02 16:55:00.168451:	Got a valid packet
+
+2021-07-02 16:55:00.170475:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.6, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.25, "RSSI": -114}]}
+2021-07-02 16:55:00.172900:	Done
+2021-07-02 16:55:00.173477:	Waiting for packet
+2021-07-02 16:55:29.435081:	Got MQTT message
+2021-07-02 16:55:29.435608:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":640,"method":"setFenceStatus","params":true}}'
+2021-07-02 16:55:29.436090:	Request to turn fence on or off
+2021-07-02 16:55:29.436471:	Setting fence to: True
+2021-07-02 16:55:30.421122:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 16:55:31.068661:	Got MQTT message
+2021-07-02 16:55:31.069455:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":641,"method":"setFenceStatus","params":false}}'
+2021-07-02 16:55:31.070275:	Request to turn fence on or off
+2021-07-02 16:55:31.070863:	Setting fence to: False
+2021-07-02 16:55:40.559742:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:55:50.702314:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:00.839448:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:10.979789:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:21.122473:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:31.264447:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:41.404166:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:56:51.539226:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:01.679783:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:11.823856:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:21.964951:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:32.109076:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:42.253375:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:52.397685:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 16:57:54.459993:	Got a packet. Will try to process it
+2021-07-02 16:57:54.461247:	Got a valid packet
+
+2021-07-02 16:57:54.463297:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.5, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.75, "RSSI": -115}]}
+2021-07-02 16:57:54.465513:	Done
+2021-07-02 16:57:54.466657:	Waiting for packet
+2021-07-02 17:16:10.795376:	Got a packet. Will try to process it
+2021-07-02 17:16:10.796594:	Got a valid packet
+
+2021-07-02 17:16:10.798480:	Data: {"Main Pressure Pump":[{"Pump on time": 16.0, "Average pump on time": 11.5, "SNR": 10.0, "RSSI": -90}]}
+2021-07-02 17:16:10.800110:	Done
+2021-07-02 17:16:10.800656:	Waiting for packet
+2021-07-02 17:20:34.340405:	Got a packet. Will try to process it
+2021-07-02 17:20:34.341744:	Got a valid packet
+
+2021-07-02 17:20:34.343895:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 2.0, "RSSI": -114}]}
+2021-07-02 17:20:34.346415:	Done
+2021-07-02 17:20:34.347013:	Waiting for packet
+2021-07-02 17:43:14.583293:	Got a packet. Will try to process it
+2021-07-02 17:43:14.584596:	Got a valid packet
+
+2021-07-02 17:43:14.586607:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.5, "RSSI": -112}]}
+2021-07-02 17:43:14.589109:	Done
+2021-07-02 17:43:14.589863:	Waiting for packet
+2021-07-02 17:46:13.279956:	Got a packet. Will try to process it
+2021-07-02 17:46:13.281124:	Got a valid packet
+
+2021-07-02 17:46:13.283019:	Data: {"Main Pressure Pump":[{"Pump on time": 52.5, "Average pump on time": 11.5, "SNR": 9.5, "RSSI": -95}]}
+2021-07-02 17:46:13.284309:	Done
+2021-07-02 17:46:13.285237:	Waiting for packet
+2021-07-02 18:01:17.101161:	Got MQTT message
+2021-07-02 18:01:17.101576:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":642,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:01:17.101942:	Request to turn fence on or off
+2021-07-02 18:01:17.102185:	Setting fence to: True
+2021-07-02 18:01:25.429074:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:01:36.189038:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:01:46.327222:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:01:56.470939:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:06.612839:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:17.550524:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:27.692431:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:37.836709:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:47.980980:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:02:58.125491:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:03:00.187550:	Got a packet. Will try to process it
+2021-07-02 18:03:00.188937:	Got a valid packet
+
+2021-07-02 18:03:00.190987:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.5, "RSSI": -114}]}
+2021-07-02 18:03:00.193640:	Done
+2021-07-02 18:03:00.194234:	Waiting for packet
+2021-07-02 18:03:07.165832:	Got MQTT message
+2021-07-02 18:03:07.166253:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":643,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:03:07.166613:	Request to turn fence on or off
+2021-07-02 18:03:07.166861:	Setting fence to: False
+2021-07-02 18:03:08.269051:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:03:10.329221:	Got a packet. Will try to process it
+2021-07-02 18:03:10.330477:	Got a valid packet
+
+2021-07-02 18:03:10.332445:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.3, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.25, "RSSI": -115}]}
+2021-07-02 18:03:10.334491:	Done
+2021-07-02 18:03:10.335679:	Waiting for packet
+2021-07-02 18:03:19.351893:	Got MQTT message
+2021-07-02 18:03:19.352632:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":644,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:03:19.353350:	Request to turn fence on or off
+2021-07-02 18:03:19.353867:	Setting fence to: True
+2021-07-02 18:03:28.420077:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:03:38.562495:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:03:40.624477:	Got a packet. Will try to process it
+2021-07-02 18:03:40.625735:	Got a valid packet
+
+2021-07-02 18:03:40.627704:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.0, "RSSI": -115}]}
+2021-07-02 18:03:40.629876:	Done
+2021-07-02 18:03:40.630465:	Waiting for packet
+2021-07-02 18:03:46.272838:	Got MQTT message
+2021-07-02 18:03:46.273388:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":645,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:03:46.273895:	Request to turn fence on or off
+2021-07-02 18:03:46.274297:	Setting fence to: False
+2021-07-02 18:03:48.706988:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:03:50.768891:	Got a packet. Will try to process it
+2021-07-02 18:03:50.770139:	Got a valid packet
+
+2021-07-02 18:03:50.772147:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.2, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.25, "RSSI": -115}]}
+2021-07-02 18:03:50.773963:	Done
+2021-07-02 18:03:50.775298:	Waiting for packet
+2021-07-02 18:05:12.567804:	Got MQTT message
+2021-07-02 18:05:12.578541:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":646,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:05:12.579359:	Request to turn fence on or off
+2021-07-02 18:05:12.579768:	Setting fence to: True
+2021-07-02 18:05:18.905112:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:05:29.048674:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:05:39.189063:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:05:49.327124:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:05:59.469219:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:09.613219:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:19.757249:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:29.899794:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:40.044491:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:50.185238:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:06:52.246711:	Got a packet. Will try to process it
+2021-07-02 18:06:52.247953:	Got a valid packet
+
+2021-07-02 18:06:52.250075:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.0, "RSSI": -108}]}
+2021-07-02 18:06:52.252625:	Done
+2021-07-02 18:06:52.253270:	Waiting for packet
+2021-07-02 18:06:59.852243:	Got MQTT message
+2021-07-02 18:06:59.853081:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":647,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:06:59.853935:	Request to turn fence on or off
+2021-07-02 18:06:59.854671:	Setting fence to: False
+2021-07-02 18:07:00.329077:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:07:02.387844:	Got a packet. Will try to process it
+2021-07-02 18:07:02.389260:	Got a valid packet
+
+2021-07-02 18:07:02.391228:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.2, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.75, "RSSI": -114}]}
+2021-07-02 18:07:02.393905:	Done
+2021-07-02 18:07:02.394553:	Waiting for packet
+2021-07-02 18:07:06.358366:	Got MQTT message
+2021-07-02 18:07:06.359047:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":648,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:07:06.359925:	Request to turn fence on or off
+2021-07-02 18:07:06.360617:	Setting fence to: True
+2021-07-02 18:07:10.469804:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:07:12.532381:	Got a packet. Will try to process it
+2021-07-02 18:07:12.533659:	Got a valid packet
+
+2021-07-02 18:07:12.535667:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.5, "RSSI": -108}]}
+2021-07-02 18:07:12.538679:	Done
+2021-07-02 18:07:12.539295:	Waiting for packet
+2021-07-02 18:07:15.471135:	Got MQTT message
+2021-07-02 18:07:15.471694:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":649,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:07:15.472190:	Request to turn fence on or off
+2021-07-02 18:07:15.472542:	Setting fence to: False
+2021-07-02 18:07:20.614331:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:07:22.676832:	Got a packet. Will try to process it
+2021-07-02 18:07:22.678157:	Got a valid packet
+
+2021-07-02 18:07:22.680102:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.2, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.0, "RSSI": -108}]}
+2021-07-02 18:07:22.681981:	Done
+2021-07-02 18:07:22.683179:	Waiting for packet
+2021-07-02 18:07:25.745927:	Got MQTT message
+2021-07-02 18:07:25.746486:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":650,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:07:25.747137:	Request to turn fence on or off
+2021-07-02 18:07:25.747597:	Setting fence to: True
+2021-07-02 18:07:30.749551:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:07:32.811429:	Got a packet. Will try to process it
+2021-07-02 18:07:32.812681:	Got a valid packet
+
+2021-07-02 18:07:32.814704:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.2, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.75, "RSSI": -108}]}
+2021-07-02 18:07:32.816728:	Done
+2021-07-02 18:07:32.817808:	Waiting for packet
+2021-07-02 18:08:05.250890:	Got MQTT message
+2021-07-02 18:08:05.251312:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":651,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:08:05.251722:	Request to turn fence on or off
+2021-07-02 18:08:05.252012:	Setting fence to: False
+2021-07-02 18:08:10.918048:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:08:21.062631:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:08:31.200027:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:08:41.342798:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:08:51.485565:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:01.629654:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:11.772240:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:21.916918:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:32.059431:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:41.204435:	Got MQTT message
+2021-07-02 18:09:41.205107:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":652,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:09:41.205795:	Request to turn fence on or off
+2021-07-02 18:09:41.206321:	Setting fence to: True
+2021-07-02 18:09:41.630199:	Got MQTT message
+2021-07-02 18:09:41.630613:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":653,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:09:41.630940:	Request to turn fence on or off
+2021-07-02 18:09:41.631118:	Setting fence to: False
+2021-07-02 18:09:42.198376:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:09:52.342702:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:10:02.479042:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:10:12.622097:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:10:35.642080:	Got a packet. Will try to process it
+2021-07-02 18:10:35.643367:	Got a valid packet
+
+2021-07-02 18:10:35.645366:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 0.0, "RSSI": -109}]}
+2021-07-02 18:10:35.647440:	Done
+2021-07-02 18:10:35.648748:	Waiting for packet
+2021-07-02 18:10:42.231134:	Got MQTT message
+2021-07-02 18:10:44.016761:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":654,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:10:44.017655:	Request to turn fence on or off
+2021-07-02 18:10:44.018347:	Setting fence to: True
+2021-07-02 18:10:46.075541:	Got MQTT message
+2021-07-02 18:10:46.076401:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":655,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:10:46.077242:	Request to turn fence on or off
+2021-07-02 18:10:46.077775:	Setting fence to: False
+2021-07-02 18:10:46.352552:	Got MQTT message
+2021-07-02 18:10:46.353132:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":656,"method":"setFenceStatus","params":true}}'
+2021-07-02 18:10:46.353731:	Request to turn fence on or off
+2021-07-02 18:10:46.354201:	Setting fence to: True
+2021-07-02 18:10:53.732038:	Need to send packet: b'J\x02\x08)\xff\xc6\x01@'
+2021-07-02 18:10:55.794168:	Got a packet. Will try to process it
+2021-07-02 18:10:55.795440:	Got a valid packet
+
+2021-07-02 18:10:55.797424:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 1, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.5, "RSSI": -108}]}
+2021-07-02 18:10:55.800125:	Done
+2021-07-02 18:10:55.801016:	Waiting for packet
+2021-07-02 18:11:04.865695:	Got MQTT message
+2021-07-02 18:11:04.984473:	Topic: v1/gateway/rpc, Payload: b'{"device":"Solar Electric Fence","data":{"id":657,"method":"setFenceStatus","params":false}}'
+2021-07-02 18:11:04.985048:	Request to turn fence on or off
+2021-07-02 18:11:04.985327:	Setting fence to: False
+2021-07-02 18:11:13.878756:	Need to send packet: b'J\x02\x08)\xff\xc6\x00\xc6'
+2021-07-02 18:11:15.941785:	Got a packet. Will try to process it
+2021-07-02 18:11:15.943166:	Got a valid packet
+
+2021-07-02 18:11:15.945243:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 3.0, "RSSI": -108}]}
+2021-07-02 18:11:15.947313:	Done
+2021-07-02 18:11:15.948572:	Waiting for packet
+2021-07-02 18:16:15.862674:	Got a packet. Will try to process it
+2021-07-02 18:16:15.863853:	Got a valid packet
+
+2021-07-02 18:16:15.865776:	Data: {"Main Pressure Pump":[{"Pump on time": 15.5, "Average pump on time": 11.5, "SNR": 13.0, "RSSI": -91}]}
+2021-07-02 18:16:15.867077:	Done
+2021-07-02 18:16:15.867910:	Waiting for packet
+2021-07-02 18:33:55.922974:	Got a packet. Will try to process it
+2021-07-02 18:33:55.924262:	Got a valid packet
+
+2021-07-02 18:33:55.926184:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -2.0, "RSSI": -110}]}
+2021-07-02 18:33:55.928892:	Done
+2021-07-02 18:33:55.929566:	Waiting for packet
+2021-07-02 18:46:17.812906:	Got a packet. Will try to process it
+2021-07-02 18:46:17.814080:	Got a valid packet
+
+2021-07-02 18:46:17.815950:	Data: {"Main Pressure Pump":[{"Pump on time": 15.0, "Average pump on time": 11.5, "SNR": 12.75, "RSSI": -96}]}
+2021-07-02 18:46:17.817517:	Done
+2021-07-02 18:46:17.818191:	Waiting for packet
+2021-07-02 18:56:36.070252:	Got a packet. Will try to process it
+2021-07-02 18:56:36.071539:	Got a valid packet
+
+2021-07-02 18:56:36.073491:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.25, "RSSI": -115}]}
+2021-07-02 18:56:36.075887:	Done
+2021-07-02 18:56:36.076468:	Waiting for packet
+2021-07-02 19:16:20.379448:	Got a packet. Will try to process it
+2021-07-02 19:16:20.380642:	Got a valid packet
+
+2021-07-02 19:16:20.382525:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 12.5, "RSSI": -96}]}
+2021-07-02 19:16:20.384164:	Done
+2021-07-02 19:16:20.384736:	Waiting for packet
+2021-07-02 19:19:16.452263:	Got a packet. Will try to process it
+2021-07-02 19:19:16.453580:	Got a valid packet
+
+2021-07-02 19:19:16.455881:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.25, "RSSI": -114}]}
+2021-07-02 19:19:16.458192:	Done
+2021-07-02 19:19:16.459574:	Waiting for packet
+2021-07-02 19:41:56.911354:	Got a packet. Will try to process it
+2021-07-02 19:41:56.912650:	Got a valid packet
+
+2021-07-02 19:41:56.914623:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.0, "RSSI": -112}]}
+2021-07-02 19:41:56.917051:	Done
+2021-07-02 19:41:56.917785:	Waiting for packet
+2021-07-02 19:46:22.876244:	Got a packet. Will try to process it
+2021-07-02 19:46:22.877411:	Got a valid packet
+
+2021-07-02 19:46:22.879245:	Data: {"Main Pressure Pump":[{"Pump on time": 0.5, "Average pump on time": 11.5, "SNR": 10.0, "RSSI": -95}]}
+2021-07-02 19:46:22.880724:	Done
+2021-07-02 19:46:22.881592:	Waiting for packet
+2021-07-02 20:04:37.386204:	Got a packet. Will try to process it
+2021-07-02 20:04:37.387543:	Got a valid packet
+
+2021-07-02 20:04:37.389636:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.25, "RSSI": -114}]}
+2021-07-02 20:04:37.392115:	Done
+2021-07-02 20:04:37.392785:	Waiting for packet
+2021-07-02 20:16:25.434245:	Got a packet. Will try to process it
+2021-07-02 20:16:25.435764:	Got a valid packet
+
+2021-07-02 20:16:25.437940:	Data: {"Main Pressure Pump":[{"Pump on time": 14.5, "Average pump on time": 11.5, "SNR": 9.75, "RSSI": -94}]}
+2021-07-02 20:16:25.439536:	Done
+2021-07-02 20:16:25.440379:	Waiting for packet
+2021-07-02 20:27:22.687036:	Got a packet. Will try to process it
+2021-07-02 20:27:22.688492:	Got a valid packet
+
+2021-07-02 20:27:22.690559:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.5, "RSSI": -113}]}
+2021-07-02 20:27:22.696648:	Done
+2021-07-02 20:27:22.697212:	Waiting for packet
+2021-07-02 20:46:27.783256:	Got a packet. Will try to process it
+2021-07-02 20:46:27.784423:	Got a valid packet
+
+2021-07-02 20:46:27.786261:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 10.0, "RSSI": -94}]}
+2021-07-02 20:46:27.788129:	Done
+2021-07-02 20:46:27.788739:	Waiting for packet
+2021-07-02 20:50:02.857054:	Got a packet. Will try to process it
+2021-07-02 20:50:02.858446:	Got a valid packet
+
+2021-07-02 20:50:02.860405:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": 1.0, "RSSI": -113}]}
+2021-07-02 20:50:02.862778:	Done
+2021-07-02 20:50:02.863526:	Waiting for packet
+2021-07-02 21:12:43.615746:	Got a packet. Will try to process it
+2021-07-02 21:12:43.617029:	Got a valid packet
+
+2021-07-02 21:12:43.619018:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.5, "RSSI": -114}]}
+2021-07-02 21:12:43.621528:	Done
+2021-07-02 21:12:43.622304:	Waiting for packet
+2021-07-02 21:16:30.273952:	Got a packet. Will try to process it
+2021-07-02 21:16:30.275143:	Got a valid packet
+
+2021-07-02 21:16:30.276985:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 10.25, "RSSI": -89}]}
+2021-07-02 21:16:30.278781:	Done
+2021-07-02 21:16:30.279355:	Waiting for packet
+2021-07-02 21:35:24.191465:	Got a packet. Will try to process it
+2021-07-02 21:35:24.192745:	Got a valid packet
+
+2021-07-02 21:35:24.195150:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.75, "RSSI": -114}]}
+2021-07-02 21:35:24.199243:	Done
+2021-07-02 21:35:24.199911:	Waiting for packet
+2021-07-02 21:46:32.839422:	Got a packet. Will try to process it
+2021-07-02 21:46:32.840685:	Got a valid packet
+
+2021-07-02 21:46:32.842562:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 9.75, "RSSI": -92}]}
+2021-07-02 21:46:32.844179:	Done
+2021-07-02 21:46:32.844783:	Waiting for packet
+2021-07-02 21:58:04.861000:	Got a packet. Will try to process it
+2021-07-02 21:58:04.862290:	Got a valid packet
+
+2021-07-02 21:58:04.864571:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -0.5, "RSSI": -114}]}
+2021-07-02 21:58:04.867137:	Done
+2021-07-02 21:58:04.867731:	Waiting for packet
+2021-07-02 22:16:35.191949:	Got a packet. Will try to process it
+2021-07-02 22:16:35.192810:	Got a valid packet
+
+2021-07-02 22:16:35.194372:	Data: {"Main Pressure Pump":[{"Pump on time": 0.0, "Average pump on time": 11.5, "SNR": 11.75, "RSSI": -92}]}
+2021-07-02 22:16:35.196186:	Done
+2021-07-02 22:16:35.196678:	Waiting for packet
+2021-07-02 22:20:45.500614:	Got a packet. Will try to process it
+2021-07-02 22:20:45.501735:	Got a valid packet
+
+2021-07-02 22:20:45.503446:	Data: {"Solar Electric Fence":[{"Battery Voltage": 13.1, "Fence Enabled": 0, "Transmit Enabled": 1, "Transmit Interval": 8, "SNR": -1.0, "RSSI": -112}]}
+2021-07-02 22:20:45.506149:	Done
+2021-07-02 22:20:45.506670:	Waiting for packet
