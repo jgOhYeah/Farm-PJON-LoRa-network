@@ -65,8 +65,10 @@ main:
         gosub send_status
 
         ; Restore interval_start_time to reset it after it was used for other things.
+        setint off ; Just in case interval_start_time is updated during an interrupt
         peek INTERVAL_START_BACKUP_LOC_L, interval_start_timel
         peek INTERVAL_START_BACKUP_LOC_H, interval_start_timeh
+        RESTORE_INTERRUPTS()
     endif
     if PIN_RX = 1 then gosub user_interface ; Crude way to tell if something is being sent. Not enough space for a full interface.
     ; TODO: Check if a packet was received
@@ -81,13 +83,11 @@ get_and_reset_time:
 
     ; If the pump is currently on, add the time from when it started to now.
     if LED_ON_STATE = 1 then
-        block_on_time = time - pump_start_time + block_on_time ; Add to current time
+        gosub update_block_time
     endif
 
     ; Copy block_on_time to somewhere else so that the time can be reset and interrupts restarted
     param1 = block_on_time
-
-    pump_start_time = time
     block_on_time = 0
 
     RESTORE_INTERRUPTS()
@@ -119,21 +119,22 @@ send_status:
     gosub add_word
 
     ; Max run time
-    ; @bptrinc = "m"
+    @bptrinc = "m"
     setint off
-    ; NOTE: Fatal flaw with min and max is that the time should be since the pump started, not necessarily since the start of the block if the pump has been running quite a while.
-    ; Thus I have disabled sending this for now
-    ; peek MAX_TIME_LOC_L, rtrnl
-    ; peek MAX_TIME_LOC_H, rtrnh
-    ; sertxd("Max time is ", #rtrnl, cr, lf)
-    ; gosub add_word
+    peek MAX_TIME_LOC_L, rtrnl
+    peek MAX_TIME_LOC_H, rtrnh
+    sertxd("Max time is ", #rtrnl, cr, lf)
+    gosub add_word
 
-    ; ; Min run time
-    ; @bptrinc = "n"
-    ; peek MIN_TIME_LOC_L, rtrnl
-    ; peek MIN_TIME_LOC_H, rtrnh
-    ; sertxd("Min time is ", #rtrnl, cr, lf)
-    ; gosub add_word
+    ; Min run time
+    @bptrinc = "n"
+    peek MIN_TIME_LOC_L, rtrnl
+    peek MIN_TIME_LOC_H, rtrnh
+    if rtrn = 65535 then ; Set min to 0 if pump not run
+        rtrn = 0
+    endif
+    sertxd("Min time is ", #rtrnl, cr, lf)
+    gosub add_word
 
     ; Start counts
     @bptrinc = "c"
@@ -172,6 +173,25 @@ add_word:
 	@bptrinc = rtrn / 0xff
 	return
 
+update_block_time:
+    ; Check whether to use the time the pump started or the start of the interval
+    if pump_start_time < interval_start_time then
+        ; Definitely suspect of pump starting before block
+        param1 = interval_start_time
+    else
+        ; Possibly suspect
+        param1 = pump_start_time - interval_start_time
+        if param1 > 32767 then
+            ; Definitely suspect of pump starting before block (overflow)
+            param1 = interval_start_time
+        else
+            ; Not suspect of pump starting before block
+            param1 = pump_start_time
+        endif
+    endif
+
+    block_on_time = time - param1 + block_on_time ; Add to current time
+    return
 
 user_interface:
     ; Print help and ask for input
@@ -232,28 +252,27 @@ interrupt:
     else
         ; Pump just turned off. Save the time to total time
         BACKUP_PARAMS()
+
+        gosub update_block_time
         param1 = time - pump_start_time
-        block_on_time = param1 + block_on_time ; Add to current time
+        ; Check maximums
+        peek MAX_TIME_LOC_L, rtrnl
+        peek MAX_TIME_LOC_H, rtrnh
+        if param1 > rtrn then
+            poke MAX_TIME_LOC_L, param1l
+            poke MAX_TIME_LOC_H, param1h
+        endif
 
-        ; TODO
-        ; ; Check maximums
-        ; peek MAX_TIME_LOC_L, rtrnl
-        ; peek MAX_TIME_LOC_H, rtrnh
-        ; if param1 > rtrn then
-        ;     poke MAX_TIME_LOC_L, param1l
-        ;     poke MAX_TIME_LOC_H, param1h
-        ; endif
+        ; Check maximums
+        peek MIN_TIME_LOC_L, rtrnl
+        peek MIN_TIME_LOC_H, rtrnh
+        if param1 < rtrn then
+            poke MIN_TIME_LOC_L, param1l
+            poke MIN_TIME_LOC_H, param1h
+        endif
 
-        ; ; Check maximums
-        ; peek MIN_TIME_LOC_L, rtrnl
-        ; peek MIN_TIME_LOC_H, rtrnh
-        ; if param1 < rtrn then
-        ;     poke MIN_TIME_LOC_L, param1l
-        ;     poke MIN_TIME_LOC_H, param1h
-        ; endif
-
-        ; ; TODO: Standard deviation
-        ; RESTORE_PARAMS()
+        ; TODO: Standard deviation
+        RESTORE_PARAMS()
 
         low PIN_LED_ON ; Turn off the LED and remember the pump is off
         setint 0, PIN_PUMP_BIN ; Interrupt for when the pump turns on

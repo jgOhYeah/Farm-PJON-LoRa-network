@@ -4,7 +4,7 @@
 ; Created 15/03/2021
 ; Modified 02/12/2021
 
-#DEFINE VERSION "v2.1.a"
+#DEFINE VERSION "v2.1.1"
 
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -36,8 +36,8 @@ symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; 2*30*60 = 3600 - time increments once every half seconds
-; #DEFINE STORE_INTERVAL 3600 ; Once every 10s.
- #DEFINE STORE_INTERVAL 40 ; Once every 10s.
+#DEFINE STORE_INTERVAL 3600 ; Once every half hour.
+; #DEFINE STORE_INTERVAL 40 ; Once every 10s.
 
 #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -178,10 +178,10 @@ symbol rtrnh = b27
 
 #MACRO RESET_STATS()
 	; Reset all of the above
-    ; poke MAX_TIME_LOC_L, 0 ; TODO
-    ; poke MAX_TIME_LOC_H, 0
-    ; poke MIN_TIME_LOC_L, 255
-    ; poke MIN_TIME_LOC_H, 255
+    poke MAX_TIME_LOC_L, 0
+    poke MAX_TIME_LOC_H, 0
+    poke MIN_TIME_LOC_L, 255
+    poke MIN_TIME_LOC_H, 255
     poke SWITCH_ON_COUNT_LOC_L, 0
     poke SWITCH_ON_COUNT_LOC_H, 0
 #ENDMACRO

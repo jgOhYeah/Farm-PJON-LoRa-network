@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 07:35PM, April 05, 2021----
+'----UPDATED AT 02:39PM, December 03, 2021----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -9,7 +9,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 21/03/2021
+; Modified 02/12/2021
 #PICAXE 18M2      'CHIP VERSION PARSED
 #SLOT 0
 #NO_DATA
@@ -21,9 +21,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 21/03/2021
+; Modified 02/12/2021
 
-; #DEFINE VERSION "v2.0.3"
+; #DEFINE VERSION "v2.1.1"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -35,16 +35,11 @@
 ; #DEFINE TABLE_SERTXD_ADDRESS_END_VAR_H rtrnh
 ; #DEFINE TABLE_SERTXD_TMP_BYTE param2
 
-; #DEFINE ENABLE_LORA_RECEIVE
-; #DEFINE ENABLE_PJON_RECEIVE
-; #DEFINE ENABLE_LORA_TRANSMIT
-; #DEFINE ENABLE_PJON_TRANSMIT
-
 ; #DEFINE PIN_PUMP pinC.2 ; Must be interrupt capable and PIN_PUMP_BIN must be updated to match
 ; #DEFINE PIN_PUMP_BIN %00000100
 ; #DEFINE PIN_LED_ALARM B.3 ; Swapped with PIN_PUMP for V2 due to interrupt requirements
 ; #DEFINE PIN_LED_ON B.6
-; #DEFINE LED_ON_STATE pinB.6 ; Used to keep track of pump status
+; #DEFINE LED_ON_STATE outpinB.6 ; Used to keep track of pump status
 ; #DEFINE PIN_BUTTON B.7
 ; #DEFINE PIN_I2C_SDA B.1
 ; #DEFINE PIN_I2C_SCL B.4
@@ -60,7 +55,8 @@ symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; 2*30*60 = 3600 - time increments once every half seconds
-; #DEFINE STORE_INTERVAL 3600 ; Once every 10s.
+; #DEFINE STORE_INTERVAL 3600 ; Once every half hour.
+; #DEFINE STORE_INTERVAL 40 ; Once every 10s.
 
 ; #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 ; #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -119,6 +115,17 @@ symbol rtrnh = b27
 ; #DEFINE INTERVAL_START_BACKUP_LOC_L 121
 ; #DEFINE INTERVAL_START_BACKUP_LOC_H 122
 
+; #DEFINE MAX_TIME_LOC_L 132
+; #DEFINE MAX_TIME_LOC_H 133
+; #DEFINE MIN_TIME_LOC_L 134
+; #DEFINE MIN_TIME_LOC_H 135
+; #DEFINE SWITCH_ON_COUNT_LOC_L 136
+; #DEFINE SWITCH_ON_COUNT_LOC_H 137
+; #DEFINE STD_TIME_LOC_L 138 ; TODO see https://math.stackexchange.com/a/1769248 for a possible implementations
+; #DEFINE STD_TIME_LOC_H 139
+; #DEFINE BLOCK_ON_TIME 140
+; #DEFINE BLOCK_ON_TIME 141
+
 ; #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 ; #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
 ; #DEFINE EEPROM_ALARM_MULT_DEN 2 ; Multiplier for the average (denominator)
@@ -126,12 +133,20 @@ symbol rtrnh = b27
 ; If consecutive block count is over, raise alarm.
 
 'PARSED MACRO EEPROM_SETUP
+'PARSED MACRO BACKUP_PARAMS
+'PARSED MACRO RESTORE_PARAMS
+'PARSED MACRO BACKUP_TMPWDS
+'PARSED MACRO RESTORE_TMPWDS
+'PARSED MACRO RESTORE_INTERRUPTS
+'PARSED MACRO RESET_STATS
 '---END include/PumpMonitorCommon.basinc---
 '---BEGIN include/symbols.basinc ---
 ; symbols.basinc
 ; Definitions to be used in other files
 ; Jotham Gates
 ; 22/11/2020
+
+;TODO: Update to the latest lora and pjon libraries
 
 ; Pins
 ; Serial
@@ -195,7 +210,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.0.3" , " BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", "05-04-2021", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "03-12-2021", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -216,14 +231,44 @@ gosub print_table_sertxd
     else
         goto computer_mode
 	endif
-    ; Fall throught to start slot 1 if the received char wasn't "t".
 
 start_slot_1:
     ; Go to 
-;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf) 'Evaluated below
+    ; Lora radio setup
+    gosub begin_lora
+	if rtrn = 0 then
+;#sertxd("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 116
-rtrn = 142
+rtrn = 171
+gosub print_table_sertxd
+        high B.3
+        lora_fail = 1
+        pause 60000
+        sertxd("Resetting",cr, lf, "-----", cr, lf)
+        reset
+	else
+		sertxd("LoRa Connected",cr,lf)
+        lora_fail = 0
+	endif
+    ; Set the spreading factor
+	gosub set_spreading_factor
+
+    ; Used in slot 2
+    'Start of macro: RESET_STATS
+	; Reset all of the above
+    poke 132, 0
+    poke 133, 0
+    poke 134, 255
+    poke 135, 255
+    poke 136, 0
+    poke 137, 0
+'--END OF MACRO: RESET_STATS()
+    ; Fall throught to start slot 1 if the received char wasn't "t".
+;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 172
+rtrn = 198
 gosub print_table_sertxd
     low B.6
     run 1
@@ -234,40 +279,25 @@ eeprom_main:
     high B.6
     low B.3
     serrxd tmpwd4l
+    sertxd(cr, lf)
     select case tmpwd4l
         case "a"
-;#sertxd(cr, lf, "Printing all", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 143
-rtrn = 158
-gosub print_table_sertxd
+            sertxd("Printing all", cr, lf)
             for tmpwd3 = 0 to 2047 step 8
                 param1 = tmpwd3
                 gosub print_block
             next tmpwd3
 		case "b"
-;#sertxd(cr, lf, "Printing 1st 255B", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 159
-rtrn = 179
-gosub print_table_sertxd
+			sertxd("Printing 1st 255B", cr, lf)
             for tmpwd3 = 0 to 255 step 8
                 param1 = tmpwd3
                 gosub print_block
             next tmpwd3
 		case "u"
-;#sertxd("From 1st to last:", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 180
-rtrn = 198
-gosub print_table_sertxd
+			sertxd("From 1st to last:", cr, lf)
 			gosub buffer_upload
         case "w"
-;#sertxd("ADDRESS: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 199
-rtrn = 207
-gosub print_table_sertxd
+            sertxd("Enter ADDRESS: ")
             serrxd #tmpwd0
             '--START OF MACRO: EEPROM_SETUP
 	; ADDR is a word
@@ -278,87 +308,42 @@ gosub print_table_sertxd
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
 	hi2csetup i2cmaster, tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd4l)
-            sertxd(#tmpwd0)
-;#sertxd(cr, lf, "VALUE: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 208
-rtrn = 216
-gosub print_table_sertxd
+            sertxd(#tmpwd0, cr, lf, "VALUE: ")
             serrxd #tmpwd4l
             hi2cout tmpwd0l, (tmpwd4l)
             sertxd(#tmpwd4l, cr, lf)
 		case "z"
-;#sertxd("VAL: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 217
-rtrn = 221
-gosub print_table_sertxd
+			sertxd("Enter VALUE: ")
             serrxd #param1
 			gosub buffer_write
 			sertxd(#param1, cr, lf)
 		case "i"
-;#sertxd("# records to ave: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 222
-rtrn = 239
-gosub print_table_sertxd
+			sertxd("# records to ave: ")
             serrxd #param1
 			sertxd(#param1, cr, lf)
 			gosub buffer_average
-;#sertxd("Ave. of ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 240
-rtrn = 247
-gosub print_table_sertxd
-            sertxd(#rtrn)
-;#sertxd(" in last ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 248
-rtrn = 256
-gosub print_table_sertxd
-            sertxd(#param1)
-;#sertxd(" records", cr, lf, "Total length: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 257
-rtrn = 280
-gosub print_table_sertxd
-            sertxd(#buffer_length)
-;#sertxd(" Start: ") 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 281
-rtrn = 288
-gosub print_table_sertxd
-            sertxd(#buffer_start)
-gosub print_newline_sertxd
+			sertxd("Ave. of ", #rtrn, " in last ", #param1, " records", cr, lf, "Total length: ", #buffer_length, " Start: ", #buffer_start, cr, lf) ; More efficient to use this than to use ;@sertxd in this case with vairables
         case "e"
-;#sertxd("Resetting to 255", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 289
-rtrn = 306
-gosub print_table_sertxd
+            sertxd("Resetting to 255", cr, lf)
             gosub erase
         case "p"
 ;#sertxd("Programming mode. Anything sent will reset.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 307
-rtrn = 351
+param1 = 199
+rtrn = 243
 gosub print_table_sertxd
             reconnect
             stop
 		case "q"
-;#sertxd("Resetting",cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 352
-rtrn = 362
-gosub print_table_sertxd
+			sertxd("Resetting",cr, lf)
 			reset
         case "h", " ", cr, lf
             ; Ignore
         else
 ;#sertxd(cr, lf, "Unknown. Please retry.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 363
-rtrn = 388
+param1 = 244
+rtrn = 269
 gosub print_table_sertxd
     end select
 	gosub print_help
@@ -389,45 +374,12 @@ print_help:
 
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
-;#sertxd(cr, lf, "EEPROM Tools", cr, lf) 'Evaluated below
+;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 389
-rtrn = 404
+param1 = 270
+rtrn = 489
 gosub print_table_sertxd
-;#sertxd("Commands:", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 405
-rtrn = 415
-gosub print_table_sertxd
-;#sertxd(" a Read all", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 416
-rtrn = 428
-gosub print_table_sertxd
-;#sertxd(" b Read 1st block", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 429
-rtrn = 447
-gosub print_table_sertxd
-;#sertxd(" u Read buffer old to new", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 448
-rtrn = 474
-gosub print_table_sertxd
-;#sertxd(" z Add value to buffer", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 475
-rtrn = 498
-gosub print_table_sertxd
-    sertxd(" w Write at address", cr, lf)
-	sertxd(" i Buffer info", cr, lf)
-    sertxd(" e Erase all", cr, lf)
-    sertxd(" p Enter programming mode", cr, lf)
-	sertxd(" q Reset", cr, lf)
-    sertxd(" h Show this help", cr, lf)
-    sertxd("Waiting for input: ")
     return
-    
 
 print_block:
     ; Read the 8 bytes and display them as hex
@@ -550,6 +502,676 @@ computer_mode_loop:
     end select
     goto computer_mode_loop
 
+'---BEGIN include/LoRa.basinc ---
+; LoRa.basinc
+; Attempt at talking to an SX1278 LoRa radio module using picaxe M2 parts.
+; Heavily based on the Arduino LoRa library.
+; Jotham Gates
+; 22/11/2020
+
+; Symbols only used for LoRa
+; Registers
+symbol REG_FIFO = 0x00
+symbol REG_OP_MODE = 0x01
+symbol REG_FRF_MSB = 0x06
+symbol REG_FRF_MID = 0x07
+symbol REG_FRF_LSB = 0x08
+symbol REG_PA_CONFIG = 0x09
+symbol REG_OCP = 0x0b
+symbol REG_LNA = 0x0c
+symbol REG_FIFO_ADDR_PTR = 0x0d
+symbol REG_FIFO_TX_BASE_ADDR = 0x0e
+symbol REG_FIFO_RX_BASE_ADDR = 0x0f
+symbol REG_FIFO_RX_CURRENT_ADDR = 0x10
+symbol REG_IRQ_FLAGS = 0x12
+symbol REG_RX_NB_BYTES = 0x13
+symbol REG_PKT_SNR_VALUE = 0x19
+symbol REG_PKT_RSSI_VALUE = 0x1a
+symbol REG_MODEM_CONFIG_1 = 0x1d
+symbol REG_MODEM_CONFIG_2 = 0x1e
+symbol REG_PREAMBLE_MSB = 0x20
+symbol REG_PREAMBLE_LSB = 0x21
+symbol REG_PAYLOAD_LENGTH = 0x22
+symbol REG_MODEM_CONFIG_3 = 0x26
+symbol REG_FREQ_ERROR_MSB = 0x28
+symbol REG_FREQ_ERROR_MID = 0x29
+symbol REG_FREQ_ERROR_LSB = 0x2a
+symbol REG_RSSI_WIDEBAND = 0x2c
+symbol REG_DETECTION_OPTIMIZE = 0x31
+symbol REG_INVERTIQ = 0x33
+symbol REG_DETECTION_THRESHOLD = 0x37
+symbol REG_SYNC_WORD = 0x39
+symbol REG_INVERTIQ2 = 0x3b
+symbol REG_DIO_MAPPING_1 = 0x40
+symbol REG_VERSION = 0x42
+symbol REG_PA_DAC = 0x4d
+
+; Modes
+symbol MODE_LONG_RANGE_MODE = 0x80
+symbol MODE_SLEEP = 0x00
+symbol MODE_STDBY = 0x01
+symbol MODE_TX = 0x03
+symbol MODE_RX_CONTINUOUS = 0x05
+symbol MODE_RX_SINGLE = 0x06
+
+; PA Config
+symbol PA_BOOST = 0x80
+
+; IRQ masks
+symbol IRQ_TX_DONE_MASK = 0x08
+symbol IRQ_PAYLOAD_CRC_ERROR_MASK = 0x20
+symbol IRQ_RX_DONE_MASK = 0x40
+
+; Other
+symbol MAX_PKT_LENGTH = 255
+
+; #IFNDEF DISABLE_LORA_SETUP
+begin_lora:
+	; Sets the module up.
+	; Initialises the LoRa module (begin)
+	; Usage:
+	;	gosub begin_lora
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+
+	high SS
+	
+	; Reset the module
+	low RST
+	pause 10
+	high RST
+	
+	; Begin spi
+	; Check version
+	; uint8_t version = readRegister(REG_VERSION);
+  	; if (version != 0x12) {
+      ;     return 0;
+	; }
+	param1 = REG_VERSION
+	gosub read_register
+	if rtrn != 0x12 then
+		; sertxd("Got: ",#rtrn," ")
+		rtrn = 0
+		return
+	endif
+	
+	; put in sleep mode
+	gosub sleep_lora
+	
+	; set frequency
+	; setFrequency(frequency);
+	gosub set_frequency
+
+	; set base addresses
+	; writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
+	param1 = REG_FIFO_TX_BASE_ADDR
+	param2 = 0
+	gosub write_register
+	
+	; writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
+	param1 = REG_FIFO_RX_BASE_ADDR
+	gosub write_register
+
+	; set LNA boost
+	; writeRegister(REG_LNA, readRegister(REG_LNA) | 0x03);
+	param1 = REG_LNA
+	gosub read_register ; Should not change param1
+	param2 = rtrn | 0x03
+	gosub write_register
+	
+	; set auto AGC
+	; writeRegister(REG_MODEM_CONFIG_3, 0x04);
+	param1 = REG_MODEM_CONFIG_3
+	param2 = 0x04
+	gosub write_register
+
+	; set output power to 17 dBm
+	; setTxPower(17);
+	param1 = 17
+	gosub set_tx_power
+
+	; put in standby mode
+	gosub idle_lora
+
+	; Success. Return
+	rtrn = 1
+	return
+
+; #ENDIF
+
+; ; #IFDEF ENABLE_LORA_TRANSMIT [#IF CODE REMOVED]
+; begin_lora_packet: [#IF CODE REMOVED]
+; 	; Call this to set the module up to send a packet. [#IF CODE REMOVED]
+; 	; Only supports explicit header mode for now. [#IF CODE REMOVED]
+; 	; Usage: [#IF CODE REMOVED]
+; 	;	gosub begin_packet [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Check if the radio is busy and return 0 if so. [#IF CODE REMOVED]
+; 	; As we are always waiting until the packet has been transmitted, we can not do this and save [#IF CODE REMOVED]
+; 	; program memory. [#IF CODE REMOVED]
+; 	; gosub is_transmitting [#IF CODE REMOVED]
+; 	; if rtrn = 1 then [#IF CODE REMOVED]
+; 	; 	rtrn = 0 [#IF CODE REMOVED]
+; 	; 	return [#IF CODE REMOVED]
+; 	; endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Put into standby mode [#IF CODE REMOVED]
+; 	gosub idle_lora [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Explicit header mode [#IF CODE REMOVED]
+; 	; writeRegister(REG_MODEM_CONFIG_1, readRegister(REG_MODEM_CONFIG_1) & 0xfe); [#IF CODE REMOVED]
+; 	param1 = REG_MODEM_CONFIG_1 [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	param2 = rtrn & 0xfe [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; reset FIFO address and paload length [#IF CODE REMOVED]
+;   	; writeRegister(REG_FIFO_ADDR_PTR, 0); [#IF CODE REMOVED]
+; 	param1 = REG_FIFO_ADDR_PTR [#IF CODE REMOVED]
+; 	param2 = 0 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_PAYLOAD_LENGTH, 0); [#IF CODE REMOVED]
+; 	param1 = REG_PAYLOAD_LENGTH [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	rtrn = 1 [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; end_lora_packet: [#IF CODE REMOVED]
+; 	; Finalises the packet and instructs the module to send it. [#IF CODE REMOVED]
+; 	; Waits until transmission is finished (async is treated as false). [#IF CODE REMOVED]
+; 	; Usage: [#IF CODE REMOVED]
+; 	;	gosub end_packet [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, [#IF CODE REMOVED]
+; 	;                     start_time, [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; put in TX mode [#IF CODE REMOVED]
+; 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX); [#IF CODE REMOVED]
+; 	param1 = REG_OP_MODE [#IF CODE REMOVED]
+; 	param2 = MODE_LONG_RANGE_MODE | MODE_TX [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Wait for TX done [#IF CODE REMOVED]
+; 	; while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) { yield(); } [#IF CODE REMOVED]
+; 	start_time = time [#IF CODE REMOVED]
+; end_packet_wait: [#IF CODE REMOVED]
+; 	tmpwd = time - start_time [#IF CODE REMOVED]
+; 	if tmpwd > LORA_TIMEOUT then ; On a breadboard, occasionally the spi seems to drop out and the chip gets stuck here. [#IF CODE REMOVED]
+; 		rtrn = 0 [#IF CODE REMOVED]
+; 		return [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+; 	param1 = REG_IRQ_FLAGS [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	tmpwd = rtrn & IRQ_TX_DONE_MASK [#IF CODE REMOVED]
+; 	if tmpwd = 0 then end_packet_wait [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; clear IRQ's [#IF CODE REMOVED]
+; 	; writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); [#IF CODE REMOVED]
+; 	param1 = REG_IRQ_FLAGS [#IF CODE REMOVED]
+; 	param2 = IRQ_TX_DONE_MASK [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	rtrn = 1 [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; write_lora: [#IF CODE REMOVED]
+; 	; Writes a string starting at bptr that is param1 chars long [#IF CODE REMOVED]
+; 	; Usage: [#IF CODE REMOVED]
+; 	;     bptr = 28 ; First character in string / char array is at the byte after b27 (treating [#IF CODE REMOVED]
+; 	;               ; general purpose memory as a char array). [#IF CODE REMOVED]
+; 	;     param1 = 5 ; 5 bytes to add to send. [#IF CODE REMOVED]
+; 	;     gosub write_lora [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: param1, bptr [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, bptr, [#IF CODE REMOVED]
+; 	;                     level, total_length, counter2 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	level = param1 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	param1 = REG_PAYLOAD_LENGTH [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Check size [#IF CODE REMOVED]
+; 	total_length = rtrn + level [#IF CODE REMOVED]
+; 	if total_length > MAX_PKT_LENGTH then [#IF CODE REMOVED]
+; 		level = MAX_PKT_LENGTH - rtrn [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Write data [#IF CODE REMOVED]
+; 	for counter2 = 1 to level [#IF CODE REMOVED]
+; 		param1 = REG_FIFO [#IF CODE REMOVED]
+; 		param2 = @bptrinc [#IF CODE REMOVED]
+; 		; sertxd("W: ", #param2,cr, lf) [#IF CODE REMOVED]
+; 		gosub write_register [#IF CODE REMOVED]
+; 	next counter2 [#IF CODE REMOVED]
+; 	; sertxd(cr,lf) [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Update length [#IF CODE REMOVED]
+; 	param1 = REG_PAYLOAD_LENGTH [#IF CODE REMOVED]
+; 	param2 = total_length [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	rtrn = level [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; #rem [Commented out]
+; is_transmitting: [Commented out]
+; 	; Returns 1 if the transmitter is transmitting and 0 otherwise. [Commented out]
+; 	; Note: Is this required seeing as we always wait for transmissions to be done? [Commented out]
+; 	; return (readRegister(REG_OP_MODE) & MODE_TX) == MODE_TX) [Commented out]
+; 	; Does not preserve param1 or param2 [Commented out]
+; 	; [Commented out]
+; 	; Variables read: none [Commented out]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [Commented out]
+; 	param1 = REG_OP_MODE [Commented out]
+; 	gosub read_register [Commented out]
+; 	rtrn = rtrn & MODE_TX [Commented out]
+; 	if rtrn = MODE_TX then [Commented out]
+; 		rtrn = 1 [Commented out]
+; 		return [Commented out]
+; 	endif [Commented out]
+;  [Commented out]
+; 	; IRQ Stuff [Commented out]
+; 	; if (readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) { [Commented out]
+; 	;	clear IRQ's [Commented out]
+; 	;	writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); [Commented out]
+; 	; } [Commented out]
+; 	param1 = REG_IRQ_FLAGS [Commented out]
+; 	gosub read_register [Commented out]
+; 	rtrn = rtrn & IRQ_TX_DONE_MASK [Commented out]
+; 	if rtrn != 0 then [Commented out]
+; 		param2 = IRQ_TX_DONE_MASK [Commented out]
+; 		gosub write_register [Commented out]
+; 	endif [Commented out]
+;  [Commented out]
+; 	rtrn = 0 [Commented out]
+; 	return [Commented out]
+; #endrem [Commented out]
+; #ENDIF
+
+; ; #IFDEF ENABLE_LORA_RECEIVE [#IF CODE REMOVED]
+; setup_lora_receive: [#IF CODE REMOVED]
+; 	; Puts the LoRa module in receiving (higher power draw) mode. [#IF CODE REMOVED]
+; 	; Based off void LoRaClass::receive(int size), but no params as always using DI0 pin. [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_DIO_MAPPING_1, 0x00); // DIO0 => RXDONE [#IF CODE REMOVED]
+; 	param1 = REG_DIO_MAPPING_1 [#IF CODE REMOVED]
+; 	param2 = 0x00 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Note: As the size is assumed to always be 0 as the DIO0 pin is used, explicit mode only is implemented [#IF CODE REMOVED]
+; 	; if (size > 0) { [#IF CODE REMOVED]
+; 	;	implicitHeaderMode(); [#IF CODE REMOVED]
+; 	;	writeRegister(REG_PAYLOAD_LENGTH, size & 0xff); [#IF CODE REMOVED]
+; 	; } else { [#IF CODE REMOVED]
+; 	;	explicitHeaderMode(); [#IF CODE REMOVED]
+; 	; } [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Explicit header mode function: [#IF CODE REMOVED]
+; 	; writeRegister(REG_MODEM_CONFIG_1, readRegister(REG_MODEM_CONFIG_1) & 0xfe); [#IF CODE REMOVED]
+; 	param1 = REG_MODEM_CONFIG_1 [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	param2 = rtrn & 0xFE [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS); [#IF CODE REMOVED]
+; 	param1 = REG_OP_MODE [#IF CODE REMOVED]
+; 	param2 = MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; setup_lora_read: [#IF CODE REMOVED]
+; 	; Call this when the dio0 pin on the module is high. [#IF CODE REMOVED]
+; 	; Based off handleDio0Rise() [#IF CODE REMOVED]
+; 	; Returns the packet length is valid or LORA_RECEIVED_CRC_ERROR [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level [#IF CODE REMOVED]
+; 	; int irqFlags = readRegister(REG_IRQ_FLAGS); [#IF CODE REMOVED]
+; 	; writeRegister(REG_IRQ_FLAGS, irqFlags); // clear IRQ's [#IF CODE REMOVED]
+; 	param1 = REG_IRQ_FLAGS [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	param2 = rtrn [#IF CODE REMOVED]
+; 	gosub write_register ; rtrn will be overwritten, so use param2 afterwards as needed [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; if ((irqFlags & IRQ_PAYLOAD_CRC_ERROR_MASK) == 0) { [#IF CODE REMOVED]
+; 	tmpwd = param2 & IRQ_PAYLOAD_CRC_ERROR_MASK [#IF CODE REMOVED]
+; 	if tmpwd = 0 then [#IF CODE REMOVED]
+; 		; Asyncronous tx not implemented, so no checking if it is not because of the rx done flag. [#IF CODE REMOVED]
+; 		; We have received a packet. [#IF CODE REMOVED]
+; 		; Implicit header mode is not implemented. Will need to change registers here if it is. [#IF CODE REMOVED]
+; 		; int packetLength = _implicitHeaderMode ? readRegister(REG_PAYLOAD_LENGTH) : readRegister(REG_RX_NB_BYTES); Read packet length [#IF CODE REMOVED]
+; 		param1 = REG_RX_NB_BYTES [#IF CODE REMOVED]
+; 		gosub read_register [#IF CODE REMOVED]
+; 		level = rtrn [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		; Set FIFO address to current RX address [#IF CODE REMOVED]
+;       	; writeRegister(REG_FIFO_ADDR_PTR, readRegister(REG_FIFO_RX_CURRENT_ADDR)); [#IF CODE REMOVED]
+; 		param1 = REG_FIFO_RX_CURRENT_ADDR [#IF CODE REMOVED]
+; 		gosub read_register [#IF CODE REMOVED]
+; 		param1 = REG_FIFO_ADDR_PTR [#IF CODE REMOVED]
+; 		param2 = rtrn [#IF CODE REMOVED]
+; 		gosub write_register [#IF CODE REMOVED]
+; 		;counter3 = rtrn [#IF CODE REMOVED]
+; 		rtrn = level ; Return the length of the packet [#IF CODE REMOVED]
+; 	else [#IF CODE REMOVED]
+; 		rtrn = LORA_RECEIVED_CRC_ERROR [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; read_lora: [#IF CODE REMOVED]
+; 	; Reads the next byte from the receiver. [#IF CODE REMOVED]
+; 	; Currently does not do any checking if too many bytes have been read. [#IF CODE REMOVED]
+; 	; TODO: Checking if too many bytes have been read. [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	param1 = REG_FIFO [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	; sertxd("Reading: ", #rtrn, cr, lf) [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; packet_rssi: [#IF CODE REMOVED]
+; 	; Returns the RSSI in 2's complement [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; return (readRegister(REG_PKT_RSSI_VALUE) - (_frequency < 868E6 ? 164 : 157)); [#IF CODE REMOVED]
+; 	param1 = REG_PKT_RSSI_VALUE [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	#IF 433000000 < 868000000
+	rtrn = rtrn - 164
+; ; 	#ELSE [#IF CODE REMOVED]
+; 	rtrn = rtrn - 157 [#IF CODE REMOVED]
+; ; 	#ENDIF [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; packet_snr: [#IF CODE REMOVED]
+; 	; Returns the SNR in 2's complement * 4 [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1 [#IF CODE REMOVED]
+; 	param1 = REG_PKT_SNR_VALUE [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; #ENDIF
+
+; #IFNDEF DISABLE_LORA_SETUP
+set_spreading_factor:
+	; Sets the spreading factor. If not called, defaults to 7.
+	; Spread factor 6 is not supported as implicit header mode is not enabled.
+	; Spread factor and LDO flag are hardcoded in symbols.basinc as symbols LORA_SPREADING_FACTOR and LORA_LDO_ON
+	; Usage:
+	;	gosub set_spreading_factor
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+
+; ; #IF 9 < 7 [#IF CODE REMOVED]
+; 	#ERROR "Spread factors less than 7 are not currently supported" [#IF CODE REMOVED]
+; #ELSEIF 9 > 12 [#IF CODE REMOVED]
+; 	#ERROR "Spread factors greater than 12 are not currently supported" [#IF CODE REMOVED]
+; #ENDIF
+	; TODO: Spread factor 6 implementation
+	; if param1 = 6 then
+	; Spread factor 6 (not implemented):
+	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc5);
+	; writeRegister(REG_DETECTION_THRESHOLD, 0x0c);
+	
+	; All other spread factors
+	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc3);
+	param1 = REG_DETECTION_OPTIMIZE
+	param2 = 0xc3
+	gosub write_register
+	
+	; writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
+	param1 = REG_DETECTION_THRESHOLD
+	param2 = 0x0a
+	gosub write_register
+	
+	; writeRegister(REG_MODEM_CONFIG_2, (readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0));
+	param1 = REG_MODEM_CONFIG_2
+	gosub read_register
+	param2 = rtrn & 0x0f
+	tmpwd = 9 * 16 & 0xf0
+	param2 = param2 | tmpwd
+	gosub write_register
+	
+	; setLdoFlag();
+	gosub set_ldo_flag
+	
+	return
+
+set_ldo_flag:
+	; param1 contains the spreading factor
+	; Uses the LORA_LDO_ON symbol for now. Use the included python file to calculate if this should
+	; be 0 (false) or 1 (true).
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	param1 = REG_MODEM_CONFIG_3
+	gosub read_register
+	
+	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared
+	tmpwd = LORA_LDO_ON
+	if tmpwd = 1 then
+		param2 = param2 | %1000 ; Set the bit
+	endif
+	gosub write_register
+	
+	return
+
+set_tx_power:
+	; PA Boost only implemented to save memory (not RFO)
+	; Does NOT preserve param1!
+	;
+	; Variables read: param1
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+
+	level = param1 ; Need to save param 1 for later
+	if level > 17 then
+		if level > 20 then
+			level = 20
+		endif
+		
+		level = level - 3 ; Map 18 - 20 to 15 - 17
+		
+		; High Power +20 dBm Operation (Semtech SX1276/77/78/79 5.4.3.)
+      	; writeRegister(REG_PA_DAC, 0x87);
+		param1 = REG_PA_DAC
+		param2 = 0x87
+		gosub write_register
+		
+      	; setOCP(140);
+		param1 = 140
+		gosub set_OCP
+	else
+		if level < 2 then
+			level = 2
+		endif
+		
+		; Default value PA_HF/LF or +17dBm
+      	; writeRegister(REG_PA_DAC, 0x84);
+		param1 = REG_PA_DAC
+		param2 = 0x84
+		gosub write_register
+		
+      	; setOCP(100);
+		param1 = 100
+		gosub set_OCP
+	endif
+	
+	; writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
+	param1 = REG_PA_CONFIG
+	param2 = level - 2
+	param2 = PA_BOOST | param2
+	gosub write_register
+
+	return
+
+set_OCP:
+	; Sets the overcurrent protection
+	; param1: mA
+	; Does not preserve param1
+	;
+	; Variables read: param1
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	tmpwd = 27
+	
+	if param1 <= 120 then
+		tmpwd = param1 - 45
+		tmpwd = tmpwd / 5
+	elseif param1 <= 240 then
+		tmpwd = param1 + 30
+		tmpwd = tmpwd / 10
+	endif
+	
+	param1 = REG_OCP
+	param2 = 0x1f & tmpwd
+	param2 = 0x20 | param2
+	gosub write_register
+	return
+
+
+set_frequency:
+	; Sets the frequency using the LORA_FREQ_MSB, LORA_FREQ_MID and LORA_FREQ_LSB symbols.
+	; There should be a python script to calculate these.
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	;
+	; uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
+	; writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
+	param1 = REG_FRF_MSB
+	param2 = LORA_FREQ_MSB
+	gosub write_register
+	
+	; writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
+	param1 = REG_FRF_MID
+	param2 = LORA_FREQ_MID
+	gosub write_register
+	
+	; writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
+	param1 = REG_FRF_LSB
+	param2 = LORA_FREQ_LSB
+	gosub write_register
+	return
+
+; #ENDIF
+
+sleep_lora:
+	; Puts the LoRa module into sleep (low power) mode.
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	;
+	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
+	param1 = REG_OP_MODE
+	param2 = MODE_LONG_RANGE_MODE | MODE_SLEEP
+	gosub write_register
+	return
+
+idle_lora:
+	; Puts the LoRa module into idle (default power level) mode.
+	;
+	; Variables read: none
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	;
+	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+	param1 = REG_OP_MODE
+	param2 = MODE_LONG_RANGE_MODE | MODE_STDBY
+	gosub write_register
+	return
+	
+read_register:
+	; Reads a LoRa register
+	;
+	; Variables read: param1
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	param1 = param1 & 0x7f
+	param2 = 0
+	gosub single_transfer
+	; single_transfer will have set rtrn
+	return
+
+write_register:
+	; Writes to a register in the transceiver
+	;
+	; Variables read: param1, param2
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1
+
+	; singleTransfer(address | 0x80, value);
+	param1 = param1 | 0x80
+	; param2 = value is already set
+	gosub single_transfer
+	return
+
+single_transfer:
+	; Performs a single transfer operation to and from the LoRa module
+	; param1 is the first byte
+	; param2 is the second byte
+	; rtrn is the second byte returned
+	;
+	; Variables read: param1, param2
+	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage
+	low SS
+	; param1 is already set
+	s_transfer_storage = param1 ; so param1can be restored later
+	gosub spi_byte
+	param1 = param2
+	gosub spi_byte
+	; rtrn is already set
+	param1 = s_transfer_storage
+	high SS
+	return
+	
+spi_byte:
+	; Sends and receives a byte over spi. Based off the examples in the manual, except full duplex.
+	; The clock frequency is very roughly 1.58kHz at 32MHz clock.
+	; Usage:
+	;     param1 = byte to send
+	;     gosub spi_byte
+	;     rtrn = received byte
+	;
+	; Variables read: param1
+	; Variables modified: rtrn, tmpwd, counter, mask
+	rtrn = 0
+	tmpwd = param1
+	for counter = 1 to 8 ; number of bits
+		mask = tmpwd & 128 ; mask MSB
+		; Send data
+		if mask = 0 then ; Set MOSI
+			low MOSI
+		else
+			high MOSI
+		endif
+		
+		; Receive data
+		rtrn = rtrn * 2 ; shift left as MSB first
+		if MISO != 0 then
+			inc rtrn
+		endif
+		
+		; pulsout SCK,80 ; pulse clock for 800us (80). Slow down to allow the arduino to detect it
+		pulsout SCK, 1 ; Faster version for normal use.
+		
+		tmpwd = tmpwd * 2 ; shift variable left for MSB
+		next counter
+	return
+'---END include/LoRa.basinc---
 '---BEGIN include/CircularBuffer.basinc ---
 ; Pump duty cycle monitor circular buffer
 ; Handles reading and writing to and from a circular buffer in eeprom
@@ -682,7 +1304,7 @@ buffer_write:
 	else
 		inc buffer_length
 	endif
-	sertxd("Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
+	sertxd("EEPROM Buffer Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
 	return
 
 ; ; #IFDEF INCLUDE_BUFFER_ALARM_CHECK [#IF CODE REMOVED]
@@ -709,14 +1331,15 @@ buffer_write:
 ; 	; Iterate over the last X blocks [#IF CODE REMOVED]
 ;     for tmpwd1 = 1 to tmpwd0 [#IF CODE REMOVED]
 ;         '--START OF MACRO: EEPROM_SETUP
-	; ADDR is a word
-	; TMPVAR is a byte
-	; I2C address
-	tmpwd2l = tmpwd4 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
-    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
-'--END OF MACRO: EEPROM_SETUP(tmpwd4, tmpwd2l) [#IF CODE REMOVED]
+; 	; ADDR is a word
+; 	; TMPVAR is a byte
+; 	; I2C address
+; 	TMPVAR = ADDR / 128 & %00001110
+; 	TMPVAR = TMPVAR | %10100000
+;     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+; 	hi2csetup i2cmaster, TMPVAR, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+; '--END OF MACRO: EEPROM_SETUP(tmpwd4, tmpwd2l)
+; [#IF CODE REMOVED]
 ;         hi2cin tmpwd4l, (tmpwd2h, tmpwd2l) [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 		; If tmpwd2 is not out of bounds, there is no alarm, return [#IF CODE REMOVED]
@@ -798,30 +1421,10 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.0.3"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","05-04-2021",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","03-12-2021",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
-table 116, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
-table 143, (cr,lf,"Printing all",cr,lf) ;#sertxd
-table 159, (cr,lf,"Printing 1st 255B",cr,lf) ;#sertxd
-table 180, ("From 1st to last:",cr,lf) ;#sertxd
-table 199, ("ADDRESS: ") ;#sertxd
-table 208, (cr,lf,"VALUE: ") ;#sertxd
-table 217, ("VAL: ") ;#sertxd
-table 222, ("# records to ave: ") ;#sertxd
-table 240, ("Ave. of ") ;#sertxd
-table 248, (" in last ") ;#sertxd
-table 257, (" records",cr,lf,"Total length: ") ;#sertxd
-table 281, (" Start: ") ;#sertxd
-table 289, ("Resetting to 255",cr,lf) ;#sertxd
-table 307, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
-table 352, ("Resetting",cr,lf) ;#sertxd
-table 363, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
-table 389, (cr,lf,"EEPROM Tools",cr,lf) ;#sertxd
-table 405, ("Commands:",cr,lf) ;#sertxd
-table 416, (" a Read all",cr,lf) ;#sertxd
-table 429, (" b Read 1st block",cr,lf) ;#sertxd
-table 448, (" u Read buffer old to new",cr,lf) ;#sertxd
-table 475, (" z Add value to buffer",cr,lf) ;#sertxd
-print_newline_sertxd:
-    sertxd(cr, lf)
-    return
+table 116, ("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) ;#sertxd
+table 172, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
+table 199, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
+table 244, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
+table 270, (cr,lf,"EEPROM Tools",cr,lf,"Commands:",cr,lf," a Read all",cr,lf," b Read 1st block",cr,lf," u Read buffer old to new",cr,lf," z Add value to buffer",cr,lf," w Write at adress",cr,lf," i Buffer info",cr,lf," e Erase all",cr,lf," p Enter programming mode",cr,lf," q Reset",cr,lf," h Show this help",cr,lf,">>> ") ;#sertxd

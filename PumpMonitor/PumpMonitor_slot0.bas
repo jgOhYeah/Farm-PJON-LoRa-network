@@ -65,15 +65,16 @@ eeprom_main:
     high PIN_LED_ON
     low PIN_LED_ALARM
     serrxd tmpwd4l
+    sertxd(cr, lf)
     select case tmpwd4l
         case "a"
-            sertxd(cr, lf, "Printing all", cr, lf)
+            sertxd("Printing all", cr, lf)
             for tmpwd3 = 0 to 2047 step 8
                 param1 = tmpwd3
                 gosub print_block
             next tmpwd3
 		case "b"
-			sertxd(cr, lf, "Printing 1st 255B", cr, lf)
+			sertxd("Printing 1st 255B", cr, lf)
             for tmpwd3 = 0 to 255 step 8
                 param1 = tmpwd3
                 gosub print_block
@@ -82,7 +83,7 @@ eeprom_main:
 			sertxd("From 1st to last:", cr, lf)
 			gosub buffer_upload
         case "w"
-            sertxd("ADDRESS: ")
+            sertxd("Enter ADDRESS: ")
             serrxd #tmpwd0
             EEPROM_SETUP(tmpwd0, tmpwd4l)
             sertxd(#tmpwd0, cr, lf, "VALUE: ")
@@ -90,7 +91,7 @@ eeprom_main:
             hi2cout tmpwd0l, (tmpwd4l)
             sertxd(#tmpwd4l, cr, lf)
 		case "z"
-			sertxd("VALUE: ")
+			sertxd("Enter VALUE: ")
             serrxd #param1
 			gosub buffer_write
 			sertxd(#param1, cr, lf)
@@ -135,9 +136,8 @@ print_help:
 
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
-    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, "Waiting for input: ") ; Ran out of table memory
+    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ")
     return
-    
 
 print_block:
     ; Read the 8 bytes and display them as hex
