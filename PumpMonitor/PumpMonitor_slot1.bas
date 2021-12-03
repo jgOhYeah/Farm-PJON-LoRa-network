@@ -2,7 +2,7 @@
 ; Designed to detect if the pump is running excessively because of a leak or lost prime.
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 21/03/2021
+; Modified 02/12/2021
 ; NOTE: Need to swap pins C.2 and B.3 from V1 as the current shunt needs to be connected to an interrupt
 ; capable pin (schematic should be updated to match)
 ; TODO: Make smaller
@@ -10,6 +10,13 @@
 #PICAXE 18M2
 #SLOT 1
 #NO_DATA
+
+#DEFINE DISABLE_LORA_SETUP ; Save a bit of space
+#DEFINE ENABLE_LORA_RECEIVE
+#DEFINE ENABLE_PJON_RECEIVE
+#DEFINE ENABLE_LORA_TRANSMIT
+#DEFINE ENABLE_PJON_TRANSMIT
+
 
 ; #DEFINE INCLUDE_BUFFER_ALARM_CHECK
 #INCLUDE "include/PumpMonitorCommon.basinc"
@@ -21,17 +28,7 @@ init:
     ;#sertxd("Pump Monitor ", VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     ; TODO: Move LoRa init to slot 0
     ; Assuming that the program in slot 0 has initialised the eeprom circular buffer for us.
-    gosub begin_lora
-	if rtrn = 0 then
-		;#sertxd("LoRa Failed to connect",cr,lf)
-        high PIN_LED_ALARM
-        lora_fail = 1
-	else
-		;#sertxd("LoRa Connected",cr,lf)
-        lora_fail = 0
-	endif
-    ; Set the spreading factor
-	gosub set_spreading_factor
+    
 
     ; Setup monitoring
 	interval_start_time = time ; Counter for when to end each 30 minute block
@@ -93,14 +90,7 @@ get_and_reset_time:
     pump_start_time = time
     block_on_time = 0
 
-    ; Restore interrupts
-    if LED_ON_STATE = 1 then
-        ; Pump is currently on. Resume with interrupt for when off
-        setint PIN_PUMP_BIN, PIN_PUMP_BIN
-    else
-        ; Pump is currently off. Resume with interrupt for when on
-        setint 0, PIN_PUMP_BIN
-    endif
+    RESTORE_INTERRUPTS()
     return
 
 send_status:
@@ -125,22 +115,54 @@ send_status:
     gosub buffer_restore
     gosub buffer_average
     ;#sertxd("Average on time: ")
-    sertxd(#rtrn)
-    ;#sertxdnl
+    sertxd(#rtrn, cr, lf)
     gosub add_word
+
+    ; Max run time
+    ; @bptrinc = "m"
+    setint off
+    ; NOTE: Fatal flaw with min and max is that the time should be since the pump started, not necessarily since the start of the block if the pump has been running quite a while.
+    ; Thus I have disabled sending this for now
+    ; peek MAX_TIME_LOC_L, rtrnl
+    ; peek MAX_TIME_LOC_H, rtrnh
+    ; sertxd("Max time is ", #rtrnl, cr, lf)
+    ; gosub add_word
+
+    ; ; Min run time
+    ; @bptrinc = "n"
+    ; peek MIN_TIME_LOC_L, rtrnl
+    ; peek MIN_TIME_LOC_H, rtrnh
+    ; sertxd("Min time is ", #rtrnl, cr, lf)
+    ; gosub add_word
+
+    ; Start counts
+    @bptrinc = "c"
+    peek SWITCH_ON_COUNT_LOC_L, rtrnl
+    peek SWITCH_ON_COUNT_LOC_H, rtrnh
+    sertxd("Switched on ", #rtrnl, " times", cr, lf)
+    gosub add_word
+
+    ; Reset all of the above
+    RESET_STATS()
+    RESTORE_INTERRUPTS()
+    
 
     ; Finish up
     param1 = UPSTREAM_ADDRESS
     gosub end_pjon_packet
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
-		;#sertxd("LoRa failed.", cr, lf)
+		;#sertxd("LoRa failed. Will reset in a minute to see if that helps", cr, lf)
         lora_fail = 1
-        pause 1000
-		gosub begin_lora
-        gosub set_spreading_factor
+		; gosub begin_lora
+        ; gosub set_spreading_factor
         high PIN_LED_ALARM
+        pause 60000
+        ;#sertxd("Resetting because LoRa failed.", cr, lf)
+        reconnect
+        reset ; TODO: Jump back to slot 0 and return rather than reset - not urgent though as I haven't had a failure after using veroboard.
+
     endif
-    ;#sertxd("Done sending", cr, lf)
+    ;#sertxd("Done sending", cr, lf, cr, lf)
 	return
 
 add_word:
@@ -172,6 +194,7 @@ user_interface:
             gosub buffer_upload
         case "p"
             ;#sertxd("Programming mode. NOT MONITORING! Anything sent resets", cr, lf)
+            high PIN_LED_ALARM
             reconnect
             stop ; Keep the clocks running so the chip will listen for a new download
         else
@@ -189,14 +212,49 @@ user_interface_end:
 
 interrupt:
     ; Start and stop pump timing. Uses the pump on led and pin as memory to tell if the pump is currently on or not.
+    ; Needs to be the very last subroutine in the file
     if LED_ON_STATE = 0 then ; NOTE: Might be an issue with variables on first line
         ; Pump just turned on.
         pump_start_time = time
+
+        ; Increment the switch on count
+        BACKUP_PARAMS()
+        peek SWITCH_ON_COUNT_LOC_L, param1l
+        peek SWITCH_ON_COUNT_LOC_H, param1h
+        inc param1
+        poke SWITCH_ON_COUNT_LOC_L, param1l
+        poke SWITCH_ON_COUNT_LOC_H, param1h
+        RESTORE_PARAMS()
+        
+
         high PIN_LED_ON ; Turn on the on LED and remember the pump is on
         setint PIN_PUMP_BIN, PIN_PUMP_BIN ; Interrupt for when the pump turns off
     else
         ; Pump just turned off. Save the time to total time
-        block_on_time = time - pump_start_time + block_on_time ; Add to current time
+        BACKUP_PARAMS()
+        param1 = time - pump_start_time
+        block_on_time = param1 + block_on_time ; Add to current time
+
+        ; TODO
+        ; ; Check maximums
+        ; peek MAX_TIME_LOC_L, rtrnl
+        ; peek MAX_TIME_LOC_H, rtrnh
+        ; if param1 > rtrn then
+        ;     poke MAX_TIME_LOC_L, param1l
+        ;     poke MAX_TIME_LOC_H, param1h
+        ; endif
+
+        ; ; Check maximums
+        ; peek MIN_TIME_LOC_L, rtrnl
+        ; peek MIN_TIME_LOC_H, rtrnh
+        ; if param1 < rtrn then
+        ;     poke MIN_TIME_LOC_L, param1l
+        ;     poke MIN_TIME_LOC_H, param1h
+        ; endif
+
+        ; ; TODO: Standard deviation
+        ; RESTORE_PARAMS()
+
         low PIN_LED_ON ; Turn off the LED and remember the pump is off
         setint 0, PIN_PUMP_BIN ; Interrupt for when the pump turns on
     endif

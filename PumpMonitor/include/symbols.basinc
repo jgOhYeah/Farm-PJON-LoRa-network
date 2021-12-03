@@ -3,6 +3,8 @@
 ; Jotham Gates
 ; 22/11/2020
 
+;TODO: Update to the latest lora and pjon libraries
+
 ; Pins
 ; Serial
 ; RX = C.5

@@ -4,7 +4,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 21/03/2021
+; Modified 02/12/2021
 #PICAXE 18M2
 #SLOT 0
 #NO_DATA
@@ -20,7 +20,7 @@ init:
     high PIN_LED_ON
     high PIN_LED_ALARM
 
-	;#sertxd("Pump Monitor ", VERSION , " BOOTLOADER",cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+	;#sertxd("Pump Monitor ", VERSION , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     gosub buffer_index
     gosub buffer_backup
 
@@ -33,10 +33,28 @@ init:
     else
         goto computer_mode
 	endif
-    ; Fall throught to start slot 1 if the received char wasn't "t".
 
 start_slot_1:
     ; Go to 
+    ; Lora radio setup
+    gosub begin_lora
+	if rtrn = 0 then
+		;#sertxd("LoRa Failed to connect. Will reset to try again in 15s",cr,lf)
+        high PIN_LED_ALARM
+        lora_fail = 1
+        pause 60000
+        sertxd("Resetting",cr, lf, "-----", cr, lf)
+        reset
+	else
+		sertxd("LoRa Connected",cr,lf)
+        lora_fail = 0
+	endif
+    ; Set the spreading factor
+	gosub set_spreading_factor
+
+    ; Used in slot 2
+    RESET_STATS()
+    ; Fall throught to start slot 1 if the received char wasn't "t".
 	;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf)
     low PIN_LED_ON
     run 1
@@ -49,57 +67,48 @@ eeprom_main:
     serrxd tmpwd4l
     select case tmpwd4l
         case "a"
-            ;#sertxd(cr, lf, "Printing all", cr, lf)
+            sertxd(cr, lf, "Printing all", cr, lf)
             for tmpwd3 = 0 to 2047 step 8
                 param1 = tmpwd3
                 gosub print_block
             next tmpwd3
 		case "b"
-			;#sertxd(cr, lf, "Printing 1st 255B", cr, lf)
+			sertxd(cr, lf, "Printing 1st 255B", cr, lf)
             for tmpwd3 = 0 to 255 step 8
                 param1 = tmpwd3
                 gosub print_block
             next tmpwd3
 		case "u"
-			;#sertxd("From 1st to last:", cr, lf)
+			sertxd("From 1st to last:", cr, lf)
 			gosub buffer_upload
         case "w"
-            ;#sertxd("ADDRESS: ")
+            sertxd("ADDRESS: ")
             serrxd #tmpwd0
             EEPROM_SETUP(tmpwd0, tmpwd4l)
-            sertxd(#tmpwd0)
-            ;#sertxd(cr, lf, "VALUE: ")
+            sertxd(#tmpwd0, cr, lf, "VALUE: ")
             serrxd #tmpwd4l
             hi2cout tmpwd0l, (tmpwd4l)
             sertxd(#tmpwd4l, cr, lf)
 		case "z"
-			;#sertxd("VAL: ")
+			sertxd("VALUE: ")
             serrxd #param1
 			gosub buffer_write
 			sertxd(#param1, cr, lf)
 		case "i"
-			;#sertxd("# records to ave: ")
+			sertxd("# records to ave: ")
             serrxd #param1
 			sertxd(#param1, cr, lf)
 			gosub buffer_average
-			;#sertxd("Ave. of ")
-            sertxd(#rtrn)
-            ;#sertxd(" in last ")
-            sertxd(#param1)
-            ;#sertxd(" records", cr, lf, "Total length: ")
-            sertxd(#buffer_length)
-            ;#sertxd(" Start: ")
-            sertxd(#buffer_start)
-            ;#sertxdnl
+			sertxd("Ave. of ", #rtrn, " in last ", #param1, " records", cr, lf, "Total length: ", #buffer_length, " Start: ", #buffer_start, cr, lf) ; More efficient to use this than to use ;@sertxd in this case with vairables
         case "e"
-            ;#sertxd("Resetting to 255", cr, lf)
+            sertxd("Resetting to 255", cr, lf)
             gosub erase
         case "p"
             ;#sertxd("Programming mode. Anything sent will reset.", cr, lf)
             reconnect
             stop
 		case "q"
-			;#sertxd("Resetting",cr, lf)
+			sertxd("Resetting",cr, lf)
 			reset
         case "h", " ", cr, lf
             ; Ignore
@@ -126,19 +135,7 @@ print_help:
 
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
-    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf)
-    ;#sertxd("Commands:", cr, lf)
-    ;#sertxd(" a Read all", cr, lf)
-	;#sertxd(" b Read 1st block", cr, lf)
-	;#sertxd(" u Read buffer old to new", cr, lf)
-	;#sertxd(" z Add value to buffer", cr, lf)
-    sertxd(" w Write at address", cr, lf)
-	sertxd(" i Buffer info", cr, lf)
-    sertxd(" e Erase all", cr, lf)
-    sertxd(" p Enter programming mode", cr, lf)
-	sertxd(" q Reset", cr, lf)
-    sertxd(" h Show this help", cr, lf)
-    sertxd("Waiting for input: ")
+    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, "Waiting for input: ") ; Ran out of table memory
     return
     
 
@@ -239,4 +236,5 @@ computer_mode_loop:
     end select
     goto computer_mode_loop
 
+#INCLUDE "include/LoRa.basinc"
 #INCLUDE "include/CircularBuffer.basinc"

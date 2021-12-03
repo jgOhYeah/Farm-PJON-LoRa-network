@@ -97,7 +97,7 @@ buffer_write:
 	else
 		inc buffer_length
 	endif
-	sertxd("Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
+	sertxd("EEPROM Buffer Start: ", #buffer_start, ", Length: ", #buffer_length, cr, lf)
 	return
 
 #IFDEF INCLUDE_BUFFER_ALARM_CHECK

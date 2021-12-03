@@ -2,9 +2,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 21/03/2021
+; Modified 02/12/2021
 
-#DEFINE VERSION "v2.0.3"
+#DEFINE VERSION "v2.1.a"
 
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -16,16 +16,11 @@
 #DEFINE TABLE_SERTXD_ADDRESS_END_VAR_H rtrnh
 #DEFINE TABLE_SERTXD_TMP_BYTE param2
 
-#DEFINE ENABLE_LORA_RECEIVE
-#DEFINE ENABLE_PJON_RECEIVE
-#DEFINE ENABLE_LORA_TRANSMIT
-#DEFINE ENABLE_PJON_TRANSMIT
-
 #DEFINE PIN_PUMP pinC.2 ; Must be interrupt capable and PIN_PUMP_BIN must be updated to match
 #DEFINE PIN_PUMP_BIN %00000100
 #DEFINE PIN_LED_ALARM B.3 ; Swapped with PIN_PUMP for V2 due to interrupt requirements
 #DEFINE PIN_LED_ON B.6
-#DEFINE LED_ON_STATE pinB.6 ; Used to keep track of pump status
+#DEFINE LED_ON_STATE outpinB.6 ; Used to keep track of pump status
 #DEFINE PIN_BUTTON B.7
 #DEFINE PIN_I2C_SDA B.1
 #DEFINE PIN_I2C_SCL B.4
@@ -41,7 +36,8 @@ symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; 2*30*60 = 3600 - time increments once every half seconds
-#DEFINE STORE_INTERVAL 3600 ; Once every 10s.
+; #DEFINE STORE_INTERVAL 3600 ; Once every 10s.
+ #DEFINE STORE_INTERVAL 40 ; Once every 10s.
 
 #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -100,6 +96,17 @@ symbol rtrnh = b27
 #DEFINE INTERVAL_START_BACKUP_LOC_L 121
 #DEFINE INTERVAL_START_BACKUP_LOC_H 122
 
+#DEFINE MAX_TIME_LOC_L 132
+#DEFINE MAX_TIME_LOC_H 133
+#DEFINE MIN_TIME_LOC_L 134
+#DEFINE MIN_TIME_LOC_H 135
+#DEFINE SWITCH_ON_COUNT_LOC_L 136
+#DEFINE SWITCH_ON_COUNT_LOC_H 137
+#DEFINE STD_TIME_LOC_L 138 ; TODO see https://math.stackexchange.com/a/1769248 for a possible implementations
+#DEFINE STD_TIME_LOC_H 139
+; #DEFINE BLOCK_ON_TIME 140
+; #DEFINE BLOCK_ON_TIME 141
+
 #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
 #DEFINE EEPROM_ALARM_MULT_DEN 2 ; Multiplier for the average (denominator)
@@ -114,4 +121,67 @@ symbol rtrnh = b27
 	TMPVAR = TMPVAR | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
 	hi2csetup i2cmaster, TMPVAR, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+#ENDMACRO
+
+#MACRO BACKUP_PARAMS()
+	poke 140, param1l
+	poke 141, param1h
+	poke 142, param2
+	poke 143, rtrnl
+	poke 144, rtrnh
+#ENDMACRO
+
+#MACRO RESTORE_PARAMS()
+	peek 140, param1l
+	peek 141, param1h
+	peek 142, param2
+	peek 143, rtrnl
+	peek 144, rtrnh
+#ENDMACRO
+
+#MACRO BACKUP_TMPWDS()
+	poke 145, tmpwd0l
+	poke 146, tmpwd0h
+	poke 147, tmpwd1l
+	poke 148, tmpwd1h
+	poke 149, tmpwd2l
+	poke 150, tmpwd2h
+	poke 151, tmpwd3l
+	poke 152, tmpwd3h
+	poke 153, tmpwd4l
+	poke 154, tmpwd4h
+#ENDMACRO
+
+#MACRO RESTORE_TMPWDS()
+	peek 145, tmpwd0l
+	peek 146, tmpwd0h
+	peek 147, tmpwd1l
+	peek 148, tmpwd1h
+	peek 149, tmpwd2l
+	peek 150, tmpwd2h
+	peek 151, tmpwd3l
+	peek 152, tmpwd3h
+	peek 153, tmpwd4l
+	peek 154, tmpwd4h
+#ENDMACRO
+
+#MACRO RESTORE_INTERRUPTS()
+	; Restore interrupts
+    if LED_ON_STATE = 1 then
+        ; Pump is currently on. Resume with interrupt for when off
+        setint PIN_PUMP_BIN, PIN_PUMP_BIN
+    else
+        ; Pump is currently off. Resume with interrupt for when on
+        setint 0, PIN_PUMP_BIN
+    endif
+#ENDMACRO
+
+#MACRO RESET_STATS()
+	; Reset all of the above
+    ; poke MAX_TIME_LOC_L, 0 ; TODO
+    ; poke MAX_TIME_LOC_H, 0
+    ; poke MIN_TIME_LOC_L, 255
+    ; poke MIN_TIME_LOC_H, 255
+    poke SWITCH_ON_COUNT_LOC_L, 0
+    poke SWITCH_ON_COUNT_LOC_H, 0
 #ENDMACRO
