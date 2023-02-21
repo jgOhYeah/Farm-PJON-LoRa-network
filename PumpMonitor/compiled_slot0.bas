@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:39PM, December 03, 2021----
+'----UPDATED AT 10:20PM, February 20, 2023----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -210,7 +210,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "03-12-2021", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "20-02-2023", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -1421,7 +1421,7 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","03-12-2021",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","20-02-2023",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
 table 116, ("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) ;#sertxd
 table 172, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd

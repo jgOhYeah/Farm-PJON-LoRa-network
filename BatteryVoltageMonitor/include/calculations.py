@@ -12,7 +12,7 @@ from datetime import datetime # To print generated date
 
 # Default configuration. Set ask_every to False to use this instead of asking
 # every time.
-ask_every = True
+ask_every = False
 freq = 433000000
 spread_factor = 9 # Spread factor 6 is not supported.
 bandwidth = 125000 # Default 125kHz bandwidth that this library currently cannot change

@@ -19,7 +19,7 @@
 ; #COM /dev/ttyUSB0
 
 ; Sensors
-; #DEFINE ENABLE_TEMP
+#DEFINE ENABLE_TEMP
 ; #DEFINE ENABLE_FVR
 
 ; Sensors and control
@@ -35,8 +35,9 @@ symbol LED_PIN = B.3
 ; Variables unique to this - see symbols.basinc for the rest
 symbol fence_enable = bit0
 symbol transmit_enable = bit1
-symbol tx_intervals = b17
-symbol tx_interval_count = b18
+symbol iterations_count = w8 ; b16 and b17
+symbol tx_intervals = b18
+symbol tx_interval_count = b19
 
 ; TableSertxd extension settings
 ; Before conversion to tablesertxd: 2005
@@ -46,18 +47,18 @@ symbol tx_interval_count = b18
 #DEFINE TABLE_SERTXD_TMP_BYTE b16
 
 ; Constants
-symbol LISTEN_TIME = 60 ; Listen for 30s (number of 0.5s counts) after each transmission and every 3 minutes
-symbol SLEEP_TIME = 65 ; Roughly 2.5 mins at 26*2.3s each
+symbol LISTEN_TIME = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often
+symbol SLEEP_TIME = 65 ; Roughly 2.5 mins (65*2.3s)
+#DEFINE RESET_PERIODICALLY
+symbol RESET_ITERATIONS_COUNT = 481 ; Roughly 24 hours with 2.5 min sleep and 30s receive.
 symbol TX_INTERVALS_DEFAULT = 10 ; Default to 1 transmission every 10 receive / sleep cycles (roughly once every 30 min).
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
+symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
+symbol TEMP_DIFFERENCE_THRESHOLD = 63
 
 ; Temperature and battery voltage calibration
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
-#IFDEF ENABLE_TEMP
-symbol CAL_TEMP_NUMERATOR = 52
-symbol CAL_TEMP_DENOMINATOR = 17
-#ENDIF
 
 init:
 	; Initial setup
@@ -67,6 +68,7 @@ init:
 	fence_enable = 1
 	transmit_enable = 1
 	tx_intervals = TX_INTERVALS_DEFAULT
+	iterations_count = 0
 
 	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jun 2021", cr, lf)
 	; Attempt to start the module
@@ -100,6 +102,14 @@ main:
 		gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
 		gosub sleep_mode ; Sleep for 2.5m
 	next tx_interval_count
+
+	inc iterations_count
+	sertxd(iterations_count)
+	;#sertxd(" iterations", cr, lf)
+	if iterations_count = RESET_ITERATIONS_COUNT then
+		;#sertxd("Timed reset", cr, lf)
+		reset
+	endif
 	goto main
 
 receive_mode:
@@ -160,7 +170,7 @@ receive_mode:
 							; 1 byte, number of 5 minute blocks to .
 							;#sertxd("Transmit interval is ")
 							if rtrn > 0 then
-								if @bptr > 0 then
+								if @bptr != 0 then
 									tx_intervals = @bptrinc
 									sertxd(#tx_intervals)
 									;#sertxd(" *3 minutes", cr, lf)
@@ -175,6 +185,11 @@ receive_mode:
 							; No payload.
 							;#sertxd("Status", cr, lf)
 							level = 1
+						case 0xD8 ; "X" | 0x80 ; Reset
+							;#sertxd("Resetting", cr, lf)
+							if @bptrinc = RESET_CODE then
+								reset
+							endif
 						else
 							; Something not recognised or implemented
 							; NOTE: Should the rest of the packet be discarded to ensure any possible data of unkown length is not treated as a field?
@@ -243,33 +258,29 @@ send_status:
 	@bptrinc = "T"
 	gosub get_temperature
 	gosub add_word
-	;#sertxd("Temp is: (")
 	sertxd(#rtrn)
 	;#sertxd("*0.1 C", cr, lf)
 #ENDIF
 
 	; Fence enable
 	;#sertxd("Fence: ")
-	sertxd(#fence_enable)
-	;#sertxdnl
+	sertxd(#fence_enable, cr, lf)
 	@bptrinc = "F"
 	@bptrinc = fence_enable
 
 	; Transmit enable
 	;#sertxd("Transmit: ")
-	sertxd(#transmit_enable)
-	;#sertxdnl
+	sertxd(#transmit_enable, cr, lf)
 	@bptrinc = "r"
 	@bptrinc = transmit_enable
-	param1 = UPRSTEAM_ADDRESS
 
 	; TX interval
 	;#sertxd("TX Interval: ")
-	sertxd(#tx_intervals)
-	;#sertxdnl
+	sertxd(#tx_intervals, cr, lf)
 	@bptrinc = "I"
 	@bptrinc = tx_intervals
 
+	param1 = UPRSTEAM_ADDRESS
 	gosub end_pjon_packet ; Stack is 6
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 		;#sertxd("LoRa dropped out.")
@@ -314,13 +325,30 @@ get_voltage:
 #IFDEF ENABLE_TEMP
 get_temperature: ; DS18B20
 	; sertxd("Temp ADC: ",#rtrn)
+	; Attempt to get two fairly close together readings (avoid the 51.1C issue / read errors hopefully).
 	readtemp12 TEMPERATURE_PIN, rtrn
+	readtemp12 TEMPERATURE_PIN, tmpwd
+	; Calculate the difference between readings
+	if rtrn > tmpwd then
+		tmpwd = rtrn - tmpwd
+	else
+		tmpwd = tmpwd - rtrn
+	endif
+	if tmpwd > TEMP_DIFFERENCE_THRESHOLD then goto get_temperature
+
+	; rtrn contains the temperature and both readings were close.
 	; sertxd("Temp raw: ",#rtrn)
-	rtrn = rtrn * 10 / 16
+	tmpwd = rtrn & $8000 ; Is the most significant bit 1, indicating a negative?
+	if tmpwd != 0 then
+		; Negative, sign extend as needed.
+		rtrn = rtrn * 5 / 8
+		rtrn = rtrn | $E000
+	else
+		rtrn = rtrn * 5 / 8
+	endif
 	; sertxd(" Calc: ",#rtrn,cr,lf)
 	return
 #ENDIF
-
 
 add_word:
 	; Adds a word to @bptr in little endian format.

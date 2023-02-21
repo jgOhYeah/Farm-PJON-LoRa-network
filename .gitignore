@@ -1,2 +1,4 @@
 *.pyc
 */compiled.err
+*/compiled*.err
+*-backups/

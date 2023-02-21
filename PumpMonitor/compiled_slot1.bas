@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:39PM, December 03, 2021----
+'----UPDATED AT 10:20PM, February 20, 2023----
 '----SAVING AS compiled_slot1.bas ----
 
 '---BEGIN PumpMonitor_slot1.bas ---
@@ -215,7 +215,7 @@ symbol tmpwd = buffer_length
 init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
-;#sertxd("Pump Monitor ", "v2.1.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "03-12-2021", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.1.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "20-02-2023", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 60
@@ -259,19 +259,8 @@ main:
         gosub send_status
 
         ; Restore interval_start_time to reset it after it was used for other things.
-        setint off ; Just in case interval_start_time is updated during an interrupt
         peek 121, interval_start_timel
         peek 122, interval_start_timeh
-        'Start of macro: RESTORE_INTERRUPTS
-	; Restore interrupts
-    if outpinB.6 = 1 then
-        ; Pump is currently on. Resume with interrupt for when off
-        setint %00000100, %00000100
-    else
-        ; Pump is currently off. Resume with interrupt for when on
-        setint 0, %00000100
-    endif
-'--END OF MACRO: RESTORE_INTERRUPTS()
     endif
     if pinC.4 = 1 then gosub user_interface ; Crude way to tell if something is being sent. Not enough space for a full interface.
     ; TODO: Check if a packet was received
@@ -286,11 +275,13 @@ get_and_reset_time:
 
     ; If the pump is currently on, add the time from when it started to now.
     if outpinB.6 = 1 then
-        gosub update_block_time
+        block_on_time = time - pump_start_time + block_on_time ; Add to current time
     endif
 
     ; Copy block_on_time to somewhere else so that the time can be reset and interrupts restarted
     param1 = block_on_time
+
+    pump_start_time = time
     block_on_time = 0
 
     'Start of macro: RESTORE_INTERRUPTS
@@ -347,22 +338,21 @@ gosub print_table_sertxd
     gosub add_word
 
     ; Max run time
-    @bptrinc = "m"
+    ; @bptrinc = "m"
     setint off
-    peek 132, rtrnl
-    peek 133, rtrnh
-    sertxd("Max time is ", #rtrnl, cr, lf)
-    gosub add_word
+    ; NOTE: Fatal flaw with min and max is that the time should be since the pump started, not necessarily since the start of the block if the pump has been running quite a while.
+    ; Thus I have disabled sending this for now
+    ; peek MAX_TIME_LOC_L, rtrnl
+    ; peek MAX_TIME_LOC_H, rtrnh
+    ; sertxd("Max time is ", #rtrnl, cr, lf)
+    ; gosub add_word
 
-    ; Min run time
-    @bptrinc = "n"
-    peek 134, rtrnl
-    peek 135, rtrnh
-    if rtrn = 65535 then ; Set min to 0 if pump not run
-        rtrn = 0
-    endif
-    sertxd("Min time is ", #rtrnl, cr, lf)
-    gosub add_word
+    ; ; Min run time
+    ; @bptrinc = "n"
+    ; peek MIN_TIME_LOC_L, rtrnl
+    ; peek MIN_TIME_LOC_H, rtrnh
+    ; sertxd("Min time is ", #rtrnl, cr, lf)
+    ; gosub add_word
 
     ; Start counts
     @bptrinc = "c"
@@ -430,25 +420,6 @@ add_word:
 	@bptrinc = rtrn / 0xff
 	return
 
-update_block_time:
-    ; Check whether to use the time the pump started or the start of the interval
-    if pump_start_time < interval_start_time then
-        ; Definitely suspect of pump starting before block
-        param1 = interval_start_time
-    else
-        ; Possibly suspect
-        param1 = pump_start_time - interval_start_time
-        if param1 > 32767 then
-            ; Definitely suspect of pump starting before block (overflow)
-            param1 = interval_start_time
-        else
-            ; Not suspect of pump starting before block
-            param1 = pump_start_time
-        endif
-    endif
-
-    block_on_time = time - param1 + block_on_time ; Add to current time
-    return
 
 user_interface:
     ; Print help and ask for input
@@ -1886,33 +1857,28 @@ interrupt:
 	poke 143, rtrnl
 	poke 144, rtrnh
 '--END OF MACRO: BACKUP_PARAMS()
-
-        gosub update_block_time
         param1 = time - pump_start_time
-        ; Check maximums
-        peek 132, rtrnl
-        peek 133, rtrnh
-        if param1 > rtrn then
-            poke 132, param1l
-            poke 133, param1h
-        endif
+        block_on_time = param1 + block_on_time ; Add to current time
 
-        ; Check maximums
-        peek 134, rtrnl
-        peek 135, rtrnh
-        if param1 < rtrn then
-            poke 134, param1l
-            poke 135, param1h
-        endif
+        ; TODO
+        ; ; Check maximums
+        ; peek MAX_TIME_LOC_L, rtrnl
+        ; peek MAX_TIME_LOC_H, rtrnh
+        ; if param1 > rtrn then
+        ;     poke MAX_TIME_LOC_L, param1l
+        ;     poke MAX_TIME_LOC_H, param1h
+        ; endif
 
-        ; TODO: Standard deviation
-        'Start of macro: RESTORE_PARAMS
-	peek 140, param1l
-	peek 141, param1h
-	peek 142, param2
-	peek 143, rtrnl
-	peek 144, rtrnh
-'--END OF MACRO: RESTORE_PARAMS()
+        ; ; Check maximums
+        ; peek MIN_TIME_LOC_L, rtrnl
+        ; peek MIN_TIME_LOC_H, rtrnh
+        ; if param1 < rtrn then
+        ;     poke MIN_TIME_LOC_L, param1l
+        ;     poke MIN_TIME_LOC_H, param1h
+        ; endif
+
+        ; ; TODO: Standard deviation
+        ; RESTORE_PARAMS()
 
         low B.6 ; Turn off the LED and remember the pump is off
         setint 0, %00000100 ; Interrupt for when the pump turns on
@@ -1943,7 +1909,7 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","03-12-2021",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.1.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","20-02-2023",cr,lf) ;#sertxd
 table 61, ("Pump on time: ") ;#sertxd
 table 75, ("Average on time: ") ;#sertxd
 table 92, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd
