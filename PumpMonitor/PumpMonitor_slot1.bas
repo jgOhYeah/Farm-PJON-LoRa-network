@@ -26,7 +26,6 @@ init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
     ;#sertxd("Pump Monitor ", VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
-    ; TODO: Move LoRa init to slot 0
     ; Assuming that the program in slot 0 has initialised the eeprom circular buffer for us.
     
 

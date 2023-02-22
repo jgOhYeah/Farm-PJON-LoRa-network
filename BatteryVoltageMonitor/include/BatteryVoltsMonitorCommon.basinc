@@ -1,0 +1,70 @@
+; Battery voltage monitor monitor common code
+; Defines and symbols shared between each slot
+; Written by Jotham Gates
+; Created 22/02/2023
+; Modified 22/03/2023
+
+#DEFINE VERSION "v2.0.0"
+#DEFINE NAME "Battery voltage monitor and fence control"
+
+#PICAXE 14M2
+#TERMINAL 38400
+; #COM /dev/ttyUSB0
+
+; Sensors
+#DEFINE ENABLE_TEMP
+; #DEFINE ENABLE_FVR
+
+; Sensors and control
+symbol BATTERY_PIN = B.2
+#IFDEF ENABLE_TEMP
+symbol TEMPERATURE_PIN = B.1
+#ENDIF
+symbol FENCE_PIN = B.4
+
+; Status LED
+symbol LED_PIN = B.3
+
+; Variables unique to this - see symbols.basinc for the rest
+symbol fence_enable = bit0
+symbol transmit_enable = bit1
+symbol iterations_count = w8 ; b16 and b17
+symbol tx_intervals = b18
+symbol tx_interval_count = b19
+
+; TableSertxd extension settings
+; Before conversion to tablesertxd: 2005
+; After conversion to tablesertxd: 1765
+#DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
+#DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
+#DEFINE TABLE_SERTXD_TMP_BYTE b16
+
+; Constants
+symbol LISTEN_TIME = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often
+symbol SLEEP_TIME = 65 ; Roughly 2.5 mins (65*2.3s)
+#DEFINE RESET_PERIODICALLY ; Reset every so often in case something like the radio stops talking properly.
+symbol RESET_ITERATIONS_COUNT = 481 ; Roughly 24 hours with 2.5 min sleep and 30s receive.
+symbol FAILED_RESET_ITERATIONS_COUNT = 60 ; 1 minute of 1s period flashes
+symbol RECEIVE_FLASH_INT = 1 ; Every half second
+symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
+symbol TEMP_DIFFERENCE_THRESHOLD = 63
+
+; Temperature and battery voltage calibration
+symbol CAL_BATT_NUMERATOR = 58
+symbol CAL_BATT_DENOMINATOR = 85
+
+#MACRO UPDATE_EEPROM(ADDRESS,VALUE,TMP_VAR)
+	read ADDRESS, TMP_VAR
+	if TMP_VAR != VALUE then
+		write ADDRESS, VALUE
+	endif
+#ENDMACRO
+
+symbol EEPROM_FENCE_ENABLED = 0
+symbol EEPROM_TX_ENABLED = 1
+symbol EEPROM_TX_INTERVALS = 2
+
+; Values to be loaded into EEPROM on slot 0 upload
+symbol DEFAULT_FENCE_ENABLED = 1
+symbol DEFAULT_TX_ENABLED = 1
+symbol DEFAULT_TX_INTERVALS = 10

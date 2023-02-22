@@ -11,101 +11,22 @@
 ; Actively listening: One flash every half second
 ; Cannot connect to LoRa module on start: Constant long flashes (on half second, off half second).
 ;
+#SLOT 1
+#NO_DATA ; EEPROM settings set when uploading slot 0
+
+#INCLUDE "include/BatteryVoltsMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
 #INCLUDE "include/generated.basinc"
 #DEFINE ENABLE_LORA_RECEIVE
 #DEFINE ENABLE_PJON_RECEIVE
 #DEFINE ENABLE_LORA_TRANSMIT
 #DEFINE ENABLE_PJON_TRANSMIT
-#PICAXE 14M2
-#TERMINAL 38400
-; #COM /dev/ttyUSB0
-
-; Sensors
-#DEFINE ENABLE_TEMP
-; #DEFINE ENABLE_FVR
-
-; Sensors and control
-symbol BATTERY_PIN = B.2
-#IFDEF ENABLE_TEMP
-symbol TEMPERATURE_PIN = B.1
-#ENDIF
-symbol FENCE_PIN = B.4
-
-; Status LED
-symbol LED_PIN = B.3
-
-; Variables unique to this - see symbols.basinc for the rest
-symbol fence_enable = bit0
-symbol transmit_enable = bit1
-symbol iterations_count = w8 ; b16 and b17
-symbol tx_intervals = b18
-symbol tx_interval_count = b19
-
-; TableSertxd extension settings
-; Before conversion to tablesertxd: 2005
-; After conversion to tablesertxd: 1765
-#DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
-#DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
-#DEFINE TABLE_SERTXD_TMP_BYTE b16
-
-; Constants
-symbol LISTEN_TIME = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often
-symbol SLEEP_TIME = 65 ; Roughly 2.5 mins (65*2.3s)
-#DEFINE RESET_PERIODICALLY
-symbol RESET_ITERATIONS_COUNT = 481 ; Roughly 24 hours with 2.5 min sleep and 30s receive.
-symbol FAILED_RESET_ITERATIONS_COUNT = 60 ; 1 minute of 1s period flashes
-symbol RECEIVE_FLASH_INT = 1 ; Every half second
-symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
-symbol TEMP_DIFFERENCE_THRESHOLD = 63
-
-; Temperature and battery voltage calibration
-symbol CAL_BATT_NUMERATOR = 58
-symbol CAL_BATT_DENOMINATOR = 85
-
-#MACRO UPDATE_EEPROM(ADDRESS,VALUE,TMP_VAR)
-	read ADDRESS, TMP_VAR
-	if TMP_VAR != VALUE then
-		write ADDRESS, VALUE
-	endif
-#ENDMACRO
-
-symbol EEPROM_FENCE_ENABLED = 0
-symbol EEPROM_TX_ENABLED = 1
-symbol EEPROM_TX_INTERVALS = 2
+#DEFINE DISABLE_LORA_SETUP
 
 init:
-	; Initial setup
+	; Initial setup (need to have run slot 0 for radio init)
 	setfreq m32
-	high FENCE_PIN ; Fence is fail deadly to keep cattle in at all costs :)
-	high LED_PIN
-
-	; Load settings from EEPROM
-	read EEPROM_FENCE_ENABLED, fence_enable
-	read EEPROM_TX_ENABLED,  transmit_enable
-	read EEPROM_TX_INTERVALS, tx_intervals
-
-	iterations_count = 0
-
-	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jun 2021", cr, lf)
-	; Attempt to start the module
-	gosub begin_lora
-	if rtrn = 0 then
-		;#sertxd("LoRa Failed",cr,lf)
-		goto failed
-	else
-		;#sertxd("LoRa Started",cr,lf)
-	endif
-
-	; Set the spreading factor
-	gosub set_spreading_factor
-
-	; gosub idle_lora ; 4.95mA
-	; gosub sleep_lora ; 3.16mA
-	gosub setup_lora_receive ; 14mA
-	; Everything in sleep ; 0.18 to 0.25mA
-	; Finish setup
-	low LED_PIN
+	;#sertxd(NAME, VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
 	
 main:
 	; Create and send a packet with the temperature and measured battery voltage
@@ -225,7 +146,7 @@ receive_mode:
 
 				; Send a message back if needed.
 				if level = 1 then
-					;#sertxd("Replying with status", cr, lf)
+					;#sertxd("Replying", cr, lf)
 					nap 5 ; Wait for things to settle (576ms)
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
@@ -312,26 +233,11 @@ send_status:
 			pause 4000
 		next tmpwd
 
-		gosub begin_lora ; Stack is 6
-		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
-			;#sertxd("Reconnected ok")
-			param1 = LORA_SPREADING_FACTOR
-			gosub set_spreading_factor
-		else
-			;#sertxd("Could not reconnect")
-		endif
+		;#sertxd("Will reset and have another go.", cr, lf, cr, lf)
+		reset
 	endif
 	low LED_PIN
 	return
-
-failed:
-	; Flashes the LED on and off to give an indication it isn't happy.
-	high LED_PIN
-	pause 4000
-	low LED_PIN
-	pause 4000
-	if time > FAILED_RESET_ITERATIONS_COUNT then goto init
-	goto failed
 
 get_voltage:
 	; Calculates the supply voltage in 0.1V steps (255 = 25.5V)
