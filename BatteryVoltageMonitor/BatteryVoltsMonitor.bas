@@ -1,7 +1,10 @@
 ; BatteryVoltsMonitor.bas
 ; A remote LoRa battery monitor and electric fence energiser switch.
-; Jotham Gates, Jan 2021
-; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
+; Written by Jotham Gates
+; Created Jan 2021
+; Modified 22/02/2023
+;
+; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
 ;
 ; FLASH MODES:
 ; Sleeping: One flash ~once per minute
@@ -51,7 +54,7 @@ symbol LISTEN_TIME = 30 ; Listen for 15s (number of 0.5s counts) after each tran
 symbol SLEEP_TIME = 65 ; Roughly 2.5 mins (65*2.3s)
 #DEFINE RESET_PERIODICALLY
 symbol RESET_ITERATIONS_COUNT = 481 ; Roughly 24 hours with 2.5 min sleep and 30s receive.
-symbol TX_INTERVALS_DEFAULT = 10 ; Default to 1 transmission every 10 receive / sleep cycles (roughly once every 30 min).
+symbol FAILED_RESET_ITERATIONS_COUNT = 60 ; 1 minute of 1s period flashes
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
 symbol TEMP_DIFFERENCE_THRESHOLD = 63
@@ -60,21 +63,35 @@ symbol TEMP_DIFFERENCE_THRESHOLD = 63
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
 
+#MACRO UPDATE_EEPROM(ADDRESS,VALUE,TMP_VAR)
+	read ADDRESS, TMP_VAR
+	if TMP_VAR != VALUE then
+		write ADDRESS, VALUE
+	endif
+#ENDMACRO
+
+symbol EEPROM_FENCE_ENABLED = 0
+symbol EEPROM_TX_ENABLED = 1
+symbol EEPROM_TX_INTERVALS = 2
+
 init:
 	; Initial setup
 	setfreq m32
 	high FENCE_PIN ; Fence is fail deadly to keep cattle in at all costs :)
 	high LED_PIN
-	fence_enable = 1
-	transmit_enable = 1
-	tx_intervals = TX_INTERVALS_DEFAULT
+
+	; Load settings from EEPROM
+	read EEPROM_FENCE_ENABLED, fence_enable
+	read EEPROM_TX_ENABLED,  transmit_enable
+	read EEPROM_TX_INTERVALS, tx_intervals
+
 	iterations_count = 0
 
 	;#sertxd("Electric Fence Controller", cr, lf, "Jotham Gates, Jun 2021", cr, lf)
 	; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
-		;#sertxd("Failed to start LoRa",cr,lf)
+		;#sertxd("LoRa Failed",cr,lf)
 		goto failed
 	else
 		;#sertxd("LoRa Started",cr,lf)
@@ -118,7 +135,6 @@ receive_mode:
 	; Maximum stack depth used: 7
 
 	pulsout LED_PIN, 10000
-	;#sertxd("Entering receive mode", cr, lf)
 	gosub setup_lora_receive ; Stack depth 4
 	start_time = time
 	rtrn = time ; Start time for led flashing
@@ -149,6 +165,7 @@ receive_mode:
 									fence_enable = 1
 									high FENCE_PIN
 								endif
+								UPDATE_EEPROM(EEPROM_FENCE_ENABLED, fence_enable, tmpwd_l)
 								dec rtrn
 							endif
 							level = 1
@@ -163,6 +180,7 @@ receive_mode:
 									;#sertxd("On", cr, lf)
 									transmit_enable = 1
 								endif
+								UPDATE_EEPROM(EEPROM_TX_ENABLED, transmit_enable, tmpwd_l)
 								dec rtrn
 							endif
 							level = 1
@@ -174,6 +192,7 @@ receive_mode:
 									tx_intervals = @bptrinc
 									sertxd(#tx_intervals)
 									;#sertxd(" *3 minutes", cr, lf)
+									UPDATE_EEPROM(EEPROM_TX_INTERVALS, tx_intervals, tmpwd_l)
 								else
 									inc bptr
 									;#sertxd("invalid. Ignoring", cr, lf)
@@ -186,9 +205,14 @@ receive_mode:
 							;#sertxd("Status", cr, lf)
 							level = 1
 						case 0xD8 ; "X" | 0x80 ; Reset
-							;#sertxd("Resetting", cr, lf)
-							if @bptrinc = RESET_CODE then
-								reset
+							if rtrn > 0 then
+								if @bptrinc = RESET_CODE then
+									;#sertxd("Resetting", cr, lf)
+									reset
+								else
+									;#sertxd("Bad code", cr, lf)
+								endif
+								dec rtrn
 							endif
 						else
 							; Something not recognised or implemented
@@ -198,6 +222,8 @@ receive_mode:
 							;#sertxd(" unkown", cr, lf)
 					endselect
 				loop
+
+				; Send a message back if needed.
 				if level = 1 then
 					;#sertxd("Replying with status", cr, lf)
 					nap 5 ; Wait for things to settle (576ms)
@@ -207,7 +233,6 @@ receive_mode:
 					tx_interval_count = 1
 
 				endif
-				;#sertxd("Finished", cr, lf, cr, lf)
 
 				low LED_PIN
 				start_time = time ; Reset the time. ; NOTE Possible security risk of being able to keep the box in high power state?
@@ -229,7 +254,6 @@ receive_mode:
 
 sleep_mode:
 	; Go into power saving mode
-	;#sertxd("Entering sleep mode", cr, lf)
 	gosub sleep_lora
 	low LED_PIN
 	
@@ -248,7 +272,6 @@ send_status:
 	; Battery voltage
 	@bptrinc = "V"
 	gosub get_voltage
-	;#sertxd("Batt is: ")
 	sertxd(#rtrn)
 	;#sertxd(" (*0.1) V", cr, lf)
 	gosub add_word
@@ -307,6 +330,7 @@ failed:
 	pause 4000
 	low LED_PIN
 	pause 4000
+	if time > FAILED_RESET_ITERATIONS_COUNT then goto init
 	goto failed
 
 get_voltage:

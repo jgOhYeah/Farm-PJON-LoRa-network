@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "PumpMonitor-rescue")(type "Legacy")(uri "${KIPRJMOD}/PumpMonitor-rescue.lib")(options "")(descr ""))
+  (lib (name "PumpMonitor-cache")(type "Legacy")(uri "${KIPRJMOD}/PumpMonitor-cache.lib")(options "")(descr ""))
+)
