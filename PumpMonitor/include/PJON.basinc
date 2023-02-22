@@ -1,15 +1,16 @@
 ; PJON.basinc
 ; Basic BASIC implementation of the PJON Protocol for use with LoRa.
+; The official C++ library can be found here: https://www.pjon.org/
 ; Jotham Gates
 ; Created: 24/11/2020
-; Modified: 01/01/2021
+; Modified: 22/02/2023
+; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
 ; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
 symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
-symbol MY_ID = 0x5A ; PJON id of this device
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
 ; symbol BUS_ID_2 = 0
@@ -35,17 +36,40 @@ symbol HEADER_MODE = %00000001
 
 ; #DEFINE DEBUG_PJON_RECEIVE ; At this stage, cannot include code for transmitting and debug as not enough memory
 
-
+; Check the correct files have been included to reduce cryptic error messages.
+#IFNDEF FILE_SYMBOLS_INCLUDED
+	#ERROR "'symbols.basinc' is not included. Please make sure it included above 'PJON.basinc'."
+#ENDIF
+#IFNDEF FILE_GENERATED_INCLUDED
+	#ERROR "'generated.basinc' is not included. Please make sure it included above 'PJON.basinc'."
+#ENDIF
+#IFNDEF FILE_LORA_INCLUDED
+	#ERROR "'LoRa.basinc' is not included. Please make sure it is included above 'PJON.basinc'."
+#ENDIF
+#IFDEF ENABLE_PJON_RECEIVE
+	#IFNDEF ENABLE_LORA_RECEIVE
+		#ERROR "'ENABLE_LORA_RECEIVE' must be defined to use PJON receive."
+	#ENDIF
+#ENDIF
+#IFDEF ENABLE_PJON_TRANSMIT
+	#IFNDEF ENABLE_LORA_TRANSMIT
+		#ERROR "'ENABLE_LORA_TRANSMIT' must be defined to use PJON transmit."
+	#ENDIF
+#ENDIF
 
 #IFDEF ENABLE_PJON_TRANSMIT
 begin_pjon_packet:
 	; Sets bptr to the correct location to start writing data
+	; Maximum stack depth used: 0
+
 	bptr = PACKET_TX_START + PACKET_HEAD_LENGTH
 	return
 
 end_pjon_packet:
 	; Finalises the packet, writes the header and sends it using LoRa radio
 	; param1 contains the id
+	; Maximum stack depth used: 5
+	
 	level = bptr
 	param2 = bptr - PACKET_TX_START + 4 ; Length of packet with the crc bytes
 	gosub write_pjon_header
@@ -60,7 +84,7 @@ end_pjon_packet:
 	@bptrinc = crc0
 	
 	; Send the packet
-	gosub begin_lora_packet
+	gosub begin_lora_packet ; Stack is 5
 	param1 = bptr - PACKET_TX_START
 	bptr = PACKET_TX_START
 	gosub write_lora
@@ -71,6 +95,8 @@ write_pjon_header:
 	; param1 contains the id
 	; param2 contains the length
 	; Afterwards, bptr is at the correct location to begin writing the packet contents.
+	; Maximum stack depth used: 2
+
 	bptr = PACKET_TX_START
 	@bptrinc = param1
 	@bptrinc = PACKET_HEADER
@@ -100,7 +126,7 @@ read_pjon_packet:
 	;                     level, rtrn, s_transfer_Storage, bptr, total_length, start_time,
 	;                     start_time_h, start_time_l, counter3 (in other words, everything defined
 	;                     as of when this was written)
-
+	; Maximum stack depth used: 3
 	gosub setup_lora_read
 	if rtrn != LORA_RECEIVED_CRC_ERROR then
 		total_length = rtrn
@@ -309,16 +335,6 @@ read_pjon_packet:
 		endif
 	endif
 	rtrn = PJON_INVALID_PACKET
-
-	; Clear buffer
-	#rem
-	if total_length != 0 then
-		total_length = total_length - 1 ; NOTE: Could be underflow?
-	endif
-	for counter2 = counter3 to total_length
-		gosub read_lora
-	next counter2
-	#endrem
 	return
 #ENDIF
 
@@ -347,6 +363,8 @@ crc8_compute:
 	; bptr points to the byte after.
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1, mask, counter, bptr
+	; Maximum stack depth used: 1
+
 	rtrn = 0
 	mask = param1
 	for counter = 1 to mask
@@ -363,6 +381,8 @@ crc8_roll:
 	;
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1
+	; Maximum stack depth used: 0
+
 	for counter2 = 8 to 1 step -1
 		tmpwd = rtrn ^ param1
 		tmpwd = tmpwd & 0x01
@@ -384,6 +404,8 @@ crc32_compute:
 	; Variables read: none
 	; Variables modified: crc0, crc1, crc2, crc3, counter, param1, counter2, tmpwd, mask, level,
 	;                     bptr
+	; Maximum stack depth used: 0
+
 	crc0 = 0xFF ; Lowest byte
 	crc1 = 0xFF
 	crc2 = 0xFF

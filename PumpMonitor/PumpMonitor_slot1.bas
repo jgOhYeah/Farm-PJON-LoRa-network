@@ -207,6 +207,7 @@ user_interface_end:
 
 
 #INCLUDE "include/CircularBuffer.basinc"
+#INCLUDE "include/generated.basinc"
 #INCLUDE "include/LoRa.basinc"
 #INCLUDE "include/PJON.basinc"
 

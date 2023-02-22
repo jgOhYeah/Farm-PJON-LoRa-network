@@ -113,7 +113,7 @@ symbol rtrnh = b27
 ; A block is counted as > baseline if (on_time > (average * multiplier) / deniminator)
 ; If consecutive block count is over, raise alarm.
 
-#MACRO EEPROM_SETUP(ADDR, TMPVAR)
+#MACRO EEPROM_SETUP(ADDR,TMPVAR)
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address

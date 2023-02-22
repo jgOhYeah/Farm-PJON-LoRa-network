@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 10:20PM, February 20, 2023----
+'----UPDATED AT 02:25PM, February 22, 2023----
 '----SAVING AS compiled_slot1.bas ----
 
 '---BEGIN PumpMonitor_slot1.bas ---
@@ -154,8 +154,6 @@ symbol rtrnh = b27
 ; Jotham Gates
 ; 22/11/2020
 
-;TODO: Update to the latest lora and pjon libraries
-
 ; Pins
 ; Serial
 ; RX = C.5
@@ -166,6 +164,8 @@ symbol LISTEN_TIME = 120 ; Listen for 60s (0.5s each) after each transmission
 symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 
+symbol MY_ID = 0x5A ; PJON id of this device
+
 ; Temperature and battery voltage calibration
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
@@ -174,15 +174,7 @@ symbol CAL_BATT_DENOMINATOR = 85
 ; symbol CAL_TEMP_DENOMINATOR = 17 [#IF CODE REMOVED]
 ; #ENDIF
 
-; #DEFINE LORA_FREQ 433000000
-symbol LORA_FREQ_MSB = 0x6C ; Python script can be used to calculate these 3 bytes
-symbol LORA_FREQ_MID = 0x40
-symbol LORA_FREQ_LSB = 0x00
-; symbol LORA_BANDWIDTH = 125000 ; Not implemented, uses default 125000
-symbol LORA_LDO_ON = 0 ; Need to use the python script to calculate this for the spreading factor. Changes with spreading factor
-; #DEFINE LORA_SPREADING_FACTOR 9
 symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out and should be reset.
-
 
 ; #DEFINE LORA_RECEIVED DIO0 = 1
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by
@@ -210,12 +202,15 @@ symbol tmpwd = buffer_length
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13
+
+; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
+
 '---END include/symbols.basinc---
 
 init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
-;#sertxd("Pump Monitor ", "v2.1.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "20-02-2023", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.1.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "22-02-2023", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 60
@@ -284,7 +279,7 @@ get_and_reset_time:
     pump_start_time = time
     block_on_time = 0
 
-    'Start of macro: RESTORE_INTERRUPTS
+    '--START OF MACRO: RESTORE_INTERRUPTS
 	; Restore interrupts
     if outpinB.6 = 1 then
         ; Pump is currently on. Resume with interrupt for when off
@@ -309,10 +304,10 @@ send_status:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd1 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd1 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
 ;#sertxd("Pump on time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
@@ -362,7 +357,7 @@ gosub print_table_sertxd
     gosub add_word
 
     ; Reset all of the above
-    'Start of macro: RESET_STATS
+    '--START OF MACRO: RESET_STATS
 	; Reset all of the above
     poke 132, 0
     poke 133, 0
@@ -371,7 +366,7 @@ gosub print_table_sertxd
     poke 136, 0
     poke 137, 0
 '--END OF MACRO: RESET_STATS()
-    'Start of macro: RESTORE_INTERRUPTS
+    '--START OF MACRO: RESTORE_INTERRUPTS
 	; Restore interrupts
     if outpinB.6 = 1 then
         ; Pump is currently on. Resume with interrupt for when off
@@ -520,10 +515,10 @@ buffer_upload:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd1 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd1 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
 		hi2cin tmpwd1l, (tmpwd2h, tmpwd2l)
 		sertxd(#tmpwd0, ",", #tmpwd2, cr, lf)
@@ -556,10 +551,10 @@ buffer_average: ; TODO: Exclude everthing above base
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd4 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd4 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd4, tmpwd2l)
         hi2cin tmpwd4l, (tmpwd2h, tmpwd2l)
         ; sertxd("ADDR: ", #tmpwd4, "Reading: ", #tmpwd2, " ave: ", #rtrn, " rem: ", #tmpwd0, cr, lf)
@@ -590,10 +585,10 @@ buffer_write:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd1h = tmpwd0 / 128 & %00001110
-	tmpwd1h = tmpwd1h | %10100000
+	 tmpwd1h = tmpwd0 / 128 & %00001110
+	 tmpwd1h =  tmpwd1h | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd1h)
 	hi2cout tmpwd0l, (param1h, param1l)
     pause 80 ; Wait for writing to be done
@@ -604,10 +599,10 @@ buffer_write:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd1h = tmpwd0 / 128 & %00001110
-	tmpwd1h = tmpwd1h | %10100000
+	 tmpwd1h = tmpwd0 / 128 & %00001110
+	 tmpwd1h =  tmpwd1h | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd1h)
 	hi2cin tmpwd0l, (tmpwd1h, tmpwd1l)
 	; sertxd("Byte after is: ", #tmpwd1)
@@ -710,12 +705,27 @@ buffer_write:
 ;  [#IF CODE REMOVED]
 ; #ENDIF
 '---END include/CircularBuffer.basinc---
+'---BEGIN include/generated.basinc ---
+; Autogenerated by calculations.py at 2023-02-22 14:11:40
+; For a FREQUENCY of 433.0MHz, a SPREAD FACTOR of 9 and a bandwidth of 125000kHz:
+; #DEFINE LORA_FREQ 433000000
+; #DEFINE LORA_FREQ_MSB 0x6C
+; #DEFINE LORA_FREQ_MID 0x40
+; #DEFINE LORA_FREQ_LSB 0x00
+; #DEFINE LORA_SPREADING_FACTOR 9
+; #DEFINE LORA_LDO_ON 0
+
+; #DEFINE FILE_GENERATED_INCLUDED ; Prove this file is included properly
+
+'---END include/generated.basinc---
 '---BEGIN include/LoRa.basinc ---
 ; LoRa.basinc
 ; Attempt at talking to an SX1278 LoRa radio module using picaxe M2 parts.
-; Heavily based on the Arduino LoRa library.
+; Heavily based on the Arduino LoRa library found here: https://github.com/sandeepmistry/arduino-LoRa
 ; Jotham Gates
-; 22/11/2020
+; Created 22/11/2020
+; Modified 22/02/2023
+; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 ; Symbols only used for LoRa
 ; Registers
@@ -773,6 +783,14 @@ symbol IRQ_RX_DONE_MASK = 0x40
 ; Other
 symbol MAX_PKT_LENGTH = 255
 
+; Check the correct files have been included to reduce cryptic error messages.
+; ; #IFNDEF FILE_SYMBOLS_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'symbols.basinc' is not included. Please make sure it included above 'LoRa.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+; ; #IFNDEF FILE_GENERATED_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'generated.basinc' is not included. Please make sure it included above 'LoRa.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+
 ; ; #IFNDEF DISABLE_LORA_SETUP [#IF CODE REMOVED]
 ; begin_lora: [#IF CODE REMOVED]
 ; 	; Sets the module up. [#IF CODE REMOVED]
@@ -782,6 +800,7 @@ symbol MAX_PKT_LENGTH = 255
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 5 [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	high SS [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
@@ -857,6 +876,7 @@ begin_lora_packet:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 	; Check if the radio is busy and return 0 if so.
 	; As we are always waiting until the packet has been transmitted, we can not do this and save
@@ -899,6 +919,7 @@ end_lora_packet:
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2,
 	;                     start_time,
+	; Maximum stack depth used: 3
 
 	; put in TX mode
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
@@ -1011,6 +1032,7 @@ setup_lora_receive:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
 
 	; writeRegister(REG_DIO_MAPPING_1, 0x00); // DIO0 => RXDONE
 	param1 = REG_DIO_MAPPING_1
@@ -1045,6 +1067,8 @@ setup_lora_read:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 3
+
 	; int irqFlags = readRegister(REG_IRQ_FLAGS);
 	; writeRegister(REG_IRQ_FLAGS, irqFlags); // clear IRQ's
 	param1 = REG_IRQ_FLAGS
@@ -1085,6 +1109,8 @@ read_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_FIFO
 	gosub read_register
 	; sertxd("Reading: ", #rtrn, cr, lf)
@@ -1127,6 +1153,7 @@ packet_snr:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 4 [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; ; #IF 9 < 7 [#IF CODE REMOVED]
 ; 	#ERROR "Spread factors less than 7 are not currently supported" [#IF CODE REMOVED]
@@ -1170,14 +1197,18 @@ packet_snr:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
 ; 	param1 = REG_MODEM_CONFIG_3 [#IF CODE REMOVED]
 ; 	gosub read_register [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared [#IF CODE REMOVED]
-; 	tmpwd = LORA_LDO_ON [#IF CODE REMOVED]
-; 	if tmpwd = 1 then [#IF CODE REMOVED]
-; 		param2 = param2 | %1000 ; Set the bit [#IF CODE REMOVED]
-; 	endif [#IF CODE REMOVED]
+; 	;tmpwd = LORA_LDO_ON [#IF CODE REMOVED]
+; ; #IF 0 = 1 [#IF CODE REMOVED]
+; 	; if tmpwd = 1 then [#IF CODE REMOVED]
+; 	param2 = param2 | %1000 ; Set the bit [#IF CODE REMOVED]
+; 	; endif [#IF CODE REMOVED]
+; ; #ENDIF [#IF CODE REMOVED]
 ; 	gosub write_register [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	return [#IF CODE REMOVED]
@@ -1264,17 +1295,17 @@ packet_snr:
 ; 	; uint64_t frf = ((uint64_t)frequency << 19) / 32000000; [#IF CODE REMOVED]
 ; 	; writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16)); [#IF CODE REMOVED]
 ; 	param1 = REG_FRF_MSB [#IF CODE REMOVED]
-; 	param2 = LORA_FREQ_MSB [#IF CODE REMOVED]
+; 	param2 = 0x6C [#IF CODE REMOVED]
 ; 	gosub write_register [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	; writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8)); [#IF CODE REMOVED]
 ; 	param1 = REG_FRF_MID [#IF CODE REMOVED]
-; 	param2 = LORA_FREQ_MID [#IF CODE REMOVED]
+; 	param2 = 0x40 [#IF CODE REMOVED]
 ; 	gosub write_register [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	; writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0)); [#IF CODE REMOVED]
 ; 	param1 = REG_FRF_LSB [#IF CODE REMOVED]
-; 	param2 = LORA_FREQ_LSB [#IF CODE REMOVED]
+; 	param2 = 0x00 [#IF CODE REMOVED]
 ; 	gosub write_register [#IF CODE REMOVED]
 ; 	return [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
@@ -1297,7 +1328,8 @@ idle_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	;
+	; Maximum stack depth used: 3
+
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 	param1 = REG_OP_MODE
 	param2 = MODE_LONG_RANGE_MODE | MODE_STDBY
@@ -1309,6 +1341,8 @@ read_register:
 	;
 	; Variables read: param1
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 2
+
 	param1 = param1 & 0x7f
 	param2 = 0
 	gosub single_transfer
@@ -1320,6 +1354,7 @@ write_register:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1
+	; Maximum stack depth used: 2
 
 	; singleTransfer(address | 0x80, value);
 	param1 = param1 | 0x80
@@ -1335,6 +1370,7 @@ single_transfer:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage
+	; Maximum stack depth used: 1
 	low SS
 	; param1 is already set
 	s_transfer_storage = param1 ; so param1can be restored later
@@ -1379,20 +1415,24 @@ spi_byte:
 		tmpwd = tmpwd * 2 ; shift variable left for MSB
 		next counter
 	return
+
+; #DEFINE FILE_LORA_INCLUDED ; Prove this file has been included correctly
+
 '---END include/LoRa.basinc---
 '---BEGIN include/PJON.basinc ---
 ; PJON.basinc
 ; Basic BASIC implementation of the PJON Protocol for use with LoRa.
+; The official C++ library can be found here: https://www.pjon.org/
 ; Jotham Gates
 ; Created: 24/11/2020
-; Modified: 01/01/2021
+; Modified: 22/02/2023
+; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
 ; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
 symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
-symbol MY_ID = 0x5A ; PJON id of this device
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
 ; symbol BUS_ID_2 = 0
@@ -1418,17 +1458,40 @@ symbol HEADER_MODE = %00000001
 
 ; #DEFINE DEBUG_PJON_RECEIVE ; At this stage, cannot include code for transmitting and debug as not enough memory
 
-
+; Check the correct files have been included to reduce cryptic error messages.
+; ; #IFNDEF FILE_SYMBOLS_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'symbols.basinc' is not included. Please make sure it included above 'PJON.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+; ; #IFNDEF FILE_GENERATED_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'generated.basinc' is not included. Please make sure it included above 'PJON.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+; ; #IFNDEF FILE_LORA_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'LoRa.basinc' is not included. Please make sure it is included above 'PJON.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+; #IFDEF ENABLE_PJON_RECEIVE
+; ; 	#IFNDEF ENABLE_LORA_RECEIVE [#IF CODE REMOVED]
+; 		#ERROR "'ENABLE_LORA_RECEIVE' must be defined to use PJON receive." [#IF CODE REMOVED]
+; 	#ENDIF
+; #ENDIF
+; #IFDEF ENABLE_PJON_TRANSMIT
+; ; 	#IFNDEF ENABLE_LORA_TRANSMIT [#IF CODE REMOVED]
+; 		#ERROR "'ENABLE_LORA_TRANSMIT' must be defined to use PJON transmit." [#IF CODE REMOVED]
+; 	#ENDIF
+; #ENDIF
 
 ; #IFDEF ENABLE_PJON_TRANSMIT
 begin_pjon_packet:
 	; Sets bptr to the correct location to start writing data
+	; Maximum stack depth used: 0
+
 	bptr = PACKET_TX_START + PACKET_HEAD_LENGTH
 	return
 
 end_pjon_packet:
 	; Finalises the packet, writes the header and sends it using LoRa radio
 	; param1 contains the id
+	; Maximum stack depth used: 5
+	
 	level = bptr
 	param2 = bptr - PACKET_TX_START + 4 ; Length of packet with the crc bytes
 	gosub write_pjon_header
@@ -1443,7 +1506,7 @@ end_pjon_packet:
 	@bptrinc = crc0
 	
 	; Send the packet
-	gosub begin_lora_packet
+	gosub begin_lora_packet ; Stack is 5
 	param1 = bptr - PACKET_TX_START
 	bptr = PACKET_TX_START
 	gosub write_lora
@@ -1454,6 +1517,8 @@ write_pjon_header:
 	; param1 contains the id
 	; param2 contains the length
 	; Afterwards, bptr is at the correct location to begin writing the packet contents.
+	; Maximum stack depth used: 2
+
 	bptr = PACKET_TX_START
 	@bptrinc = param1
 	@bptrinc = PACKET_HEADER
@@ -1483,7 +1548,7 @@ read_pjon_packet:
 	;                     level, rtrn, s_transfer_Storage, bptr, total_length, start_time,
 	;                     start_time_h, start_time_l, counter3 (in other words, everything defined
 	;                     as of when this was written)
-
+	; Maximum stack depth used: 3
 	gosub setup_lora_read
 	if rtrn != LORA_RECEIVED_CRC_ERROR then
 		total_length = rtrn
@@ -1692,16 +1757,6 @@ read_pjon_packet:
 		endif
 	endif
 	rtrn = PJON_INVALID_PACKET
-
-	; Clear buffer
-; 	#rem [Commented out]
-; 	if total_length != 0 then [Commented out]
-; 		total_length = total_length - 1 ; NOTE: Could be underflow? [Commented out]
-; 	endif [Commented out]
-; 	for counter2 = counter3 to total_length [Commented out]
-; 		gosub read_lora [Commented out]
-; 	next counter2 [Commented out]
-; 	#endrem [Commented out]
 	return
 ; #ENDIF
 
@@ -1730,6 +1785,8 @@ crc8_compute:
 	; bptr points to the byte after.
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1, mask, counter, bptr
+	; Maximum stack depth used: 1
+
 	rtrn = 0
 	mask = param1
 	for counter = 1 to mask
@@ -1746,6 +1803,8 @@ crc8_roll:
 	;
 	; Variables read: none
 	; Variables modified: counter2, tmpwd, rtrn, param1
+	; Maximum stack depth used: 0
+
 	for counter2 = 8 to 1 step -1
 		tmpwd = rtrn ^ param1
 		tmpwd = tmpwd & 0x01
@@ -1767,6 +1826,8 @@ crc32_compute:
 	; Variables read: none
 	; Variables modified: crc0, crc1, crc2, crc3, counter, param1, counter2, tmpwd, mask, level,
 	;                     bptr
+	; Maximum stack depth used: 0
+
 	crc0 = 0xFF ; Lowest byte
 	crc1 = 0xFF
 	crc2 = 0xFF
@@ -1825,7 +1886,7 @@ interrupt:
         pump_start_time = time
 
         ; Increment the switch on count
-        'Start of macro: BACKUP_PARAMS
+        '--START OF MACRO: BACKUP_PARAMS
 	poke 140, param1l
 	poke 141, param1h
 	poke 142, param2
@@ -1837,7 +1898,7 @@ interrupt:
         inc param1
         poke 136, param1l
         poke 137, param1h
-        'Start of macro: RESTORE_PARAMS
+        '--START OF MACRO: RESTORE_PARAMS
 	peek 140, param1l
 	peek 141, param1h
 	peek 142, param2
@@ -1850,7 +1911,7 @@ interrupt:
         setint %00000100, %00000100 ; Interrupt for when the pump turns off
     else
         ; Pump just turned off. Save the time to total time
-        'Start of macro: BACKUP_PARAMS
+        '--START OF MACRO: BACKUP_PARAMS
 	poke 140, param1l
 	poke 141, param1h
 	poke 142, param2
@@ -1909,7 +1970,7 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","20-02-2023",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.1.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","22-02-2023",cr,lf) ;#sertxd
 table 61, ("Pump on time: ") ;#sertxd
 table 75, ("Average on time: ") ;#sertxd
 table 92, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd

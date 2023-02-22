@@ -3,8 +3,6 @@
 ; Jotham Gates
 ; 22/11/2020
 
-;TODO: Update to the latest lora and pjon libraries
-
 ; Pins
 ; Serial
 ; RX = C.5
@@ -15,6 +13,8 @@ symbol LISTEN_TIME = 120 ; Listen for 60s (0.5s each) after each transmission
 symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 
+symbol MY_ID = 0x5A ; PJON id of this device
+
 ; Temperature and battery voltage calibration
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
@@ -23,15 +23,7 @@ symbol CAL_TEMP_NUMERATOR = 52
 symbol CAL_TEMP_DENOMINATOR = 17
 #ENDIF
 
-#DEFINE LORA_FREQ 433000000
-symbol LORA_FREQ_MSB = 0x6C ; Python script can be used to calculate these 3 bytes
-symbol LORA_FREQ_MID = 0x40
-symbol LORA_FREQ_LSB = 0x00
-; symbol LORA_BANDWIDTH = 125000 ; Not implemented, uses default 125000
-symbol LORA_LDO_ON = 0 ; Need to use the python script to calculate this for the spreading factor. Changes with spreading factor
-#DEFINE LORA_SPREADING_FACTOR 9
 symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out and should be reset.
-
 
 #DEFINE LORA_RECEIVED DIO0 = 1
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by
@@ -59,3 +51,5 @@ symbol tmpwd = buffer_length
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13
+
+#DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly

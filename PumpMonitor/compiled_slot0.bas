@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 10:20PM, February 20, 2023----
+'----UPDATED AT 02:25PM, February 22, 2023----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -146,8 +146,6 @@ symbol rtrnh = b27
 ; Jotham Gates
 ; 22/11/2020
 
-;TODO: Update to the latest lora and pjon libraries
-
 ; Pins
 ; Serial
 ; RX = C.5
@@ -158,6 +156,8 @@ symbol LISTEN_TIME = 120 ; Listen for 60s (0.5s each) after each transmission
 symbol SLEEP_TIME = 5 ; Roughly 5 mins at 26*2.3s each ; TODO: Save in eeprom and adjust OTA?
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 
+symbol MY_ID = 0x5A ; PJON id of this device
+
 ; Temperature and battery voltage calibration
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
@@ -166,15 +166,7 @@ symbol CAL_BATT_DENOMINATOR = 85
 ; symbol CAL_TEMP_DENOMINATOR = 17 [#IF CODE REMOVED]
 ; #ENDIF
 
-; #DEFINE LORA_FREQ 433000000
-symbol LORA_FREQ_MSB = 0x6C ; Python script can be used to calculate these 3 bytes
-symbol LORA_FREQ_MID = 0x40
-symbol LORA_FREQ_LSB = 0x00
-; symbol LORA_BANDWIDTH = 125000 ; Not implemented, uses default 125000
-symbol LORA_LDO_ON = 0 ; Need to use the python script to calculate this for the spreading factor. Changes with spreading factor
-; #DEFINE LORA_SPREADING_FACTOR 9
 symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out and should be reset.
-
 
 ; #DEFINE LORA_RECEIVED DIO0 = 1
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by
@@ -202,6 +194,9 @@ symbol tmpwd = buffer_length
 ; symbol param1 = b24
 ; symbol param2 = b25
 ; symbol rtrn = w13
+
+; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
+
 '---END include/symbols.basinc---
 
 init:
@@ -210,7 +205,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "20-02-2023", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "22-02-2023", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -255,7 +250,7 @@ gosub print_table_sertxd
 	gosub set_spreading_factor
 
     ; Used in slot 2
-    'Start of macro: RESET_STATS
+    '--START OF MACRO: RESET_STATS
 	; Reset all of the above
     poke 132, 0
     poke 133, 0
@@ -303,10 +298,10 @@ eeprom_main:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd4l = tmpwd0 / 128 & %00001110
-	tmpwd4l = tmpwd4l | %10100000
+	 tmpwd4l = tmpwd0 / 128 & %00001110
+	 tmpwd4l =  tmpwd4l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd4l)
             sertxd(#tmpwd0, cr, lf, "VALUE: ")
             serrxd #tmpwd4l
@@ -358,10 +353,10 @@ erase:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd4l = tmpwd1 / 128 & %00001110
-	tmpwd4l = tmpwd4l | %10100000
+	 tmpwd4l = tmpwd1 / 128 & %00001110
+	 tmpwd4l =  tmpwd4l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd4l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd4l)
         hi2cout tmpwd1l, (0xFF)
         pause 80
@@ -399,10 +394,10 @@ print_block:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	param1l = tmpwd2 / 128 & %00001110
-	param1l = param1l | %10100000
+	 param1l = tmpwd2 / 128 & %00001110
+	 param1l =  param1l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, param1l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  param1l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd2, param1l)
         hi2cin tmpwd2l, (param1)
         gosub print_byte
@@ -458,10 +453,10 @@ computer_mode_loop:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd3l = tmpwd0 / 128 & %00001110
-	tmpwd3l = tmpwd3l | %10100000
+	 tmpwd3l = tmpwd0 / 128 & %00001110
+	 tmpwd3l =  tmpwd3l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd3l)
                 hi2cin tmpwd0l, (tmpwd3l)
                 sertxd(tmpwd3l)
@@ -479,10 +474,10 @@ computer_mode_loop:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd3l = tmpwd0 / 128 & %00001110
-	tmpwd3l = tmpwd3l | %10100000
+	 tmpwd3l = tmpwd0 / 128 & %00001110
+	 tmpwd3l =  tmpwd3l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd3l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd3l)
                 serrxd tmpwd3l
                 hi2cout tmpwd0l, (tmpwd3l)
@@ -502,12 +497,27 @@ computer_mode_loop:
     end select
     goto computer_mode_loop
 
+'---BEGIN include/generated.basinc ---
+; Autogenerated by calculations.py at 2023-02-22 14:11:40
+; For a FREQUENCY of 433.0MHz, a SPREAD FACTOR of 9 and a bandwidth of 125000kHz:
+; #DEFINE LORA_FREQ 433000000
+; #DEFINE LORA_FREQ_MSB 0x6C
+; #DEFINE LORA_FREQ_MID 0x40
+; #DEFINE LORA_FREQ_LSB 0x00
+; #DEFINE LORA_SPREADING_FACTOR 9
+; #DEFINE LORA_LDO_ON 0
+
+; #DEFINE FILE_GENERATED_INCLUDED ; Prove this file is included properly
+
+'---END include/generated.basinc---
 '---BEGIN include/LoRa.basinc ---
 ; LoRa.basinc
 ; Attempt at talking to an SX1278 LoRa radio module using picaxe M2 parts.
-; Heavily based on the Arduino LoRa library.
+; Heavily based on the Arduino LoRa library found here: https://github.com/sandeepmistry/arduino-LoRa
 ; Jotham Gates
-; 22/11/2020
+; Created 22/11/2020
+; Modified 22/02/2023
+; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 ; Symbols only used for LoRa
 ; Registers
@@ -565,6 +575,14 @@ symbol IRQ_RX_DONE_MASK = 0x40
 ; Other
 symbol MAX_PKT_LENGTH = 255
 
+; Check the correct files have been included to reduce cryptic error messages.
+; ; #IFNDEF FILE_SYMBOLS_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'symbols.basinc' is not included. Please make sure it included above 'LoRa.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+; ; #IFNDEF FILE_GENERATED_INCLUDED [#IF CODE REMOVED]
+; 	#ERROR "'generated.basinc' is not included. Please make sure it included above 'LoRa.basinc'." [#IF CODE REMOVED]
+; #ENDIF
+
 ; #IFNDEF DISABLE_LORA_SETUP
 begin_lora:
 	; Sets the module up.
@@ -574,6 +592,7 @@ begin_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 5
 
 	high SS
 	
@@ -649,6 +668,7 @@ begin_lora:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 4 [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	; Check if the radio is busy and return 0 if so. [#IF CODE REMOVED]
 ; 	; As we are always waiting until the packet has been transmitted, we can not do this and save [#IF CODE REMOVED]
@@ -691,6 +711,7 @@ begin_lora:
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, [#IF CODE REMOVED]
 ; 	;                     start_time, [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	; put in TX mode [#IF CODE REMOVED]
 ; 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX); [#IF CODE REMOVED]
@@ -803,6 +824,7 @@ begin_lora:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
 ;  [#IF CODE REMOVED]
 ; 	; writeRegister(REG_DIO_MAPPING_1, 0x00); // DIO0 => RXDONE [#IF CODE REMOVED]
 ; 	param1 = REG_DIO_MAPPING_1 [#IF CODE REMOVED]
@@ -837,6 +859,8 @@ begin_lora:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
 ; 	; int irqFlags = readRegister(REG_IRQ_FLAGS); [#IF CODE REMOVED]
 ; 	; writeRegister(REG_IRQ_FLAGS, irqFlags); // clear IRQ's [#IF CODE REMOVED]
 ; 	param1 = REG_IRQ_FLAGS [#IF CODE REMOVED]
@@ -877,6 +901,8 @@ begin_lora:
 ; 	; [#IF CODE REMOVED]
 ; 	; Variables read: none [#IF CODE REMOVED]
 ; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
 ; 	param1 = REG_FIFO [#IF CODE REMOVED]
 ; 	gosub read_register [#IF CODE REMOVED]
 ; 	; sertxd("Reading: ", #rtrn, cr, lf) [#IF CODE REMOVED]
@@ -919,6 +945,7 @@ set_spreading_factor:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 ; ; #IF 9 < 7 [#IF CODE REMOVED]
 ; 	#ERROR "Spread factors less than 7 are not currently supported" [#IF CODE REMOVED]
@@ -962,14 +989,18 @@ set_ldo_flag:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_MODEM_CONFIG_3
 	gosub read_register
 	
 	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared
-	tmpwd = LORA_LDO_ON
-	if tmpwd = 1 then
-		param2 = param2 | %1000 ; Set the bit
-	endif
+	;tmpwd = LORA_LDO_ON
+; ; #IF 0 = 1 [#IF CODE REMOVED]
+; 	; if tmpwd = 1 then [#IF CODE REMOVED]
+; 	param2 = param2 | %1000 ; Set the bit [#IF CODE REMOVED]
+; 	; endif [#IF CODE REMOVED]
+; #ENDIF
 	gosub write_register
 	
 	return
@@ -1056,17 +1087,17 @@ set_frequency:
 	; uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
 	; writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
 	param1 = REG_FRF_MSB
-	param2 = LORA_FREQ_MSB
+	param2 = 0x6C
 	gosub write_register
 	
 	; writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
 	param1 = REG_FRF_MID
-	param2 = LORA_FREQ_MID
+	param2 = 0x40
 	gosub write_register
 	
 	; writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
 	param1 = REG_FRF_LSB
-	param2 = LORA_FREQ_LSB
+	param2 = 0x00
 	gosub write_register
 	return
 
@@ -1089,7 +1120,8 @@ idle_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	;
+	; Maximum stack depth used: 3
+
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 	param1 = REG_OP_MODE
 	param2 = MODE_LONG_RANGE_MODE | MODE_STDBY
@@ -1101,6 +1133,8 @@ read_register:
 	;
 	; Variables read: param1
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 2
+
 	param1 = param1 & 0x7f
 	param2 = 0
 	gosub single_transfer
@@ -1112,6 +1146,7 @@ write_register:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1
+	; Maximum stack depth used: 2
 
 	; singleTransfer(address | 0x80, value);
 	param1 = param1 | 0x80
@@ -1127,6 +1162,7 @@ single_transfer:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage
+	; Maximum stack depth used: 1
 	low SS
 	; param1 is already set
 	s_transfer_storage = param1 ; so param1can be restored later
@@ -1171,6 +1207,9 @@ spi_byte:
 		tmpwd = tmpwd * 2 ; shift variable left for MSB
 		next counter
 	return
+
+; #DEFINE FILE_LORA_INCLUDED ; Prove this file has been included correctly
+
 '---END include/LoRa.basinc---
 '---BEGIN include/CircularBuffer.basinc ---
 ; Pump duty cycle monitor circular buffer
@@ -1206,10 +1245,10 @@ buffer_upload:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd1 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd1 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
 		hi2cin tmpwd1l, (tmpwd2h, tmpwd2l)
 		sertxd(#tmpwd0, ",", #tmpwd2, cr, lf)
@@ -1242,10 +1281,10 @@ buffer_average: ; TODO: Exclude everthing above base
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd4 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd4 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd4, tmpwd2l)
         hi2cin tmpwd4l, (tmpwd2h, tmpwd2l)
         ; sertxd("ADDR: ", #tmpwd4, "Reading: ", #tmpwd2, " ave: ", #rtrn, " rem: ", #tmpwd0, cr, lf)
@@ -1276,10 +1315,10 @@ buffer_write:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd1h = tmpwd0 / 128 & %00001110
-	tmpwd1h = tmpwd1h | %10100000
+	 tmpwd1h = tmpwd0 / 128 & %00001110
+	 tmpwd1h =  tmpwd1h | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd1h)
 	hi2cout tmpwd0l, (param1h, param1l)
     pause 80 ; Wait for writing to be done
@@ -1290,10 +1329,10 @@ buffer_write:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd1h = tmpwd0 / 128 & %00001110
-	tmpwd1h = tmpwd1h | %10100000
+	 tmpwd1h = tmpwd0 / 128 & %00001110
+	 tmpwd1h =  tmpwd1h | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd1h, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd1h)
 	hi2cin tmpwd0l, (tmpwd1h, tmpwd1l)
 	; sertxd("Byte after is: ", #tmpwd1)
@@ -1374,10 +1413,10 @@ buffer_index:
 	; ADDR is a word
 	; TMPVAR is a byte
 	; I2C address
-	tmpwd2l = tmpwd0 / 128 & %00001110
-	tmpwd2l = tmpwd2l | %10100000
+	 tmpwd2l = tmpwd0 / 128 & %00001110
+	 tmpwd2l =  tmpwd2l | %10100000
     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster, tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
 '--END OF MACRO: EEPROM_SETUP(tmpwd0, tmpwd2l)
 		hi2cin tmpwd0l, (tmpwd2h, tmpwd2l) ; Get the current
 		; Process
@@ -1421,7 +1460,7 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","20-02-2023",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","22-02-2023",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
 table 116, ("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) ;#sertxd
 table 172, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd

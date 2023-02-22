@@ -236,5 +236,6 @@ computer_mode_loop:
     end select
     goto computer_mode_loop
 
+#INCLUDE "include/generated.basinc"
 #INCLUDE "include/LoRa.basinc"
 #INCLUDE "include/CircularBuffer.basinc"

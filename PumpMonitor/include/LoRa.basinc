@@ -1,8 +1,10 @@
 ; LoRa.basinc
 ; Attempt at talking to an SX1278 LoRa radio module using picaxe M2 parts.
-; Heavily based on the Arduino LoRa library.
+; Heavily based on the Arduino LoRa library found here: https://github.com/sandeepmistry/arduino-LoRa
 ; Jotham Gates
-; 22/11/2020
+; Created 22/11/2020
+; Modified 22/02/2023
+; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 ; Symbols only used for LoRa
 ; Registers
@@ -60,6 +62,14 @@ symbol IRQ_RX_DONE_MASK = 0x40
 ; Other
 symbol MAX_PKT_LENGTH = 255
 
+; Check the correct files have been included to reduce cryptic error messages.
+#IFNDEF FILE_SYMBOLS_INCLUDED
+	#ERROR "'symbols.basinc' is not included. Please make sure it included above 'LoRa.basinc'."
+#ENDIF
+#IFNDEF FILE_GENERATED_INCLUDED
+	#ERROR "'generated.basinc' is not included. Please make sure it included above 'LoRa.basinc'."
+#ENDIF
+
 #IFNDEF DISABLE_LORA_SETUP
 begin_lora:
 	; Sets the module up.
@@ -69,6 +79,7 @@ begin_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 5
 
 	high SS
 	
@@ -144,6 +155,7 @@ begin_lora_packet:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 	; Check if the radio is busy and return 0 if so.
 	; As we are always waiting until the packet has been transmitted, we can not do this and save
@@ -186,6 +198,7 @@ end_lora_packet:
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2,
 	;                     start_time,
+	; Maximum stack depth used: 3
 
 	; put in TX mode
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
@@ -298,6 +311,7 @@ setup_lora_receive:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
 
 	; writeRegister(REG_DIO_MAPPING_1, 0x00); // DIO0 => RXDONE
 	param1 = REG_DIO_MAPPING_1
@@ -332,6 +346,8 @@ setup_lora_read:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
+	; Maximum stack depth used: 3
+
 	; int irqFlags = readRegister(REG_IRQ_FLAGS);
 	; writeRegister(REG_IRQ_FLAGS, irqFlags); // clear IRQ's
 	param1 = REG_IRQ_FLAGS
@@ -372,6 +388,8 @@ read_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_FIFO
 	gosub read_register
 	; sertxd("Reading: ", #rtrn, cr, lf)
@@ -414,6 +432,7 @@ set_spreading_factor:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 4
 
 #IF LORA_SPREADING_FACTOR < 7
 	#ERROR "Spread factors less than 7 are not currently supported"
@@ -457,14 +476,18 @@ set_ldo_flag:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 3
+
 	param1 = REG_MODEM_CONFIG_3
 	gosub read_register
 	
 	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared
-	tmpwd = LORA_LDO_ON
-	if tmpwd = 1 then
-		param2 = param2 | %1000 ; Set the bit
-	endif
+	;tmpwd = LORA_LDO_ON
+#IF LORA_LDO_ON = 1
+	; if tmpwd = 1 then
+	param2 = param2 | %1000 ; Set the bit
+	; endif
+#ENDIF
 	gosub write_register
 	
 	return
@@ -584,7 +607,8 @@ idle_lora:
 	;
 	; Variables read: none
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	;
+	; Maximum stack depth used: 3
+
 	; writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 	param1 = REG_OP_MODE
 	param2 = MODE_LONG_RANGE_MODE | MODE_STDBY
@@ -596,6 +620,8 @@ read_register:
 	;
 	; Variables read: param1
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
+	; Maximum stack depth used: 2
+
 	param1 = param1 & 0x7f
 	param2 = 0
 	gosub single_transfer
@@ -607,6 +633,7 @@ write_register:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1
+	; Maximum stack depth used: 2
 
 	; singleTransfer(address | 0x80, value);
 	param1 = param1 | 0x80
@@ -622,6 +649,7 @@ single_transfer:
 	;
 	; Variables read: param1, param2
 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage
+	; Maximum stack depth used: 1
 	low SS
 	; param1 is already set
 	s_transfer_storage = param1 ; so param1can be restored later
@@ -666,3 +694,5 @@ spi_byte:
 		tmpwd = tmpwd * 2 ; shift variable left for MSB
 		next counter
 	return
+
+#DEFINE FILE_LORA_INCLUDED ; Prove this file has been included correctly
