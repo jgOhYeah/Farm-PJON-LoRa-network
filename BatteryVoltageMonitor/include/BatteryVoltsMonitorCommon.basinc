@@ -6,6 +6,7 @@
 
 #DEFINE VERSION "v2.0.0"
 #DEFINE NAME "Battery voltage monitor and fence control"
+#DEFINE URL "https://github.com/jgOhYeah/Farm-PJON-LoRa-network"
 
 #PICAXE 14M2
 #TERMINAL 38400
@@ -28,7 +29,7 @@ symbol LED_PIN = B.3
 ; Variables unique to this - see symbols.basinc for the rest
 symbol fence_enable = bit0
 symbol transmit_enable = bit1
-symbol iterations_count = w8 ; b16 and b17
+symbol long_listen_time = bit2
 symbol tx_intervals = b18
 symbol tx_interval_count = b19
 
@@ -40,10 +41,12 @@ symbol tx_interval_count = b19
 #DEFINE TABLE_SERTXD_TMP_BYTE b16
 
 ; Constants
-symbol LISTEN_TIME = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often
-symbol SLEEP_TIME = 65 ; Roughly 2.5 mins (65*2.3s)
+symbol LISTEN_TIME_NORMAL = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often.
+; 15s should be 2 transmission attempts with the current base station setup.
+symbol LISTEN_TIME_AWAKE = 600 ; Listedn for a longer time continuously in case someone wants to send more commands in quick succession.
+symbol SLEEP_TIME = 33 ; Roughly 75s
 #DEFINE RESET_PERIODICALLY ; Reset every so often in case something like the radio stops talking properly.
-symbol RESET_ITERATIONS_COUNT = 481 ; Roughly 24 hours with 2.5 min sleep and 30s receive.
+symbol RESET_ITERATIONS_COUNT = 960 ; Roughly 24 hours with 90s periods
 symbol FAILED_RESET_ITERATIONS_COUNT = 60 ; 1 minute of 1s period flashes
 symbol RECEIVE_FLASH_INT = 1 ; Every half second
 symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
@@ -68,3 +71,6 @@ symbol EEPROM_TX_INTERVALS = 2
 symbol DEFAULT_FENCE_ENABLED = 1
 symbol DEFAULT_TX_ENABLED = 1
 symbol DEFAULT_TX_INTERVALS = 10
+
+symbol RAM_ITERATIONS_COUNT_L = 256 ; bptr can't mess around up here
+symbol RAM_ITERATIONS_COUNT_H = 257 ; bptr can't mess around up here

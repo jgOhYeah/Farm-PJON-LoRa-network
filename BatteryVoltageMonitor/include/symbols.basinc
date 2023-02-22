@@ -36,6 +36,7 @@ symbol start_time_l = b20
 symbol tmpwd = w11
 symbol tmpwd_l = b22
 symbol tmpwd_h = b23
+symbol paramwd = w12
 symbol param1 = b24
 symbol param2 = b25
 symbol rtrn = w13

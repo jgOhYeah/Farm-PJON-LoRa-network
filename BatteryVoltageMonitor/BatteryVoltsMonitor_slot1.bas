@@ -26,7 +26,7 @@
 init:
 	; Initial setup (need to have run slot 0 for radio init)
 	setfreq m32
-	;#sertxd(NAME, VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+	;#sertxd(NAME, " ",    VERSION , " MAIN", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
 	
 main:
 	; Create and send a packet with the temperature and measured battery voltage
@@ -39,15 +39,19 @@ main:
 	for tx_interval_count = 1 to tx_intervals
 		gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
 		gosub sleep_mode ; Sleep for 2.5m
-	next tx_interval_count
 
-	inc iterations_count
-	sertxd(iterations_count)
-	;#sertxd(" iterations", cr, lf)
-	if iterations_count = RESET_ITERATIONS_COUNT then
-		;#sertxd("Timed reset", cr, lf)
-		reset
-	endif
+		; Reset the unit on a timed basis.
+		peek RAM_ITERATIONS_COUNT_L, tmpwd_l, tmpwd_h
+		inc tmpwd
+		poke RAM_ITERATIONS_COUNT_L, tmpwd_l, tmpwd_h
+		sertxd(#tmpwd)
+		;#sertxd(" iterations of ")
+		sertxd(#RESET_ITERATIONS_COUNT, cr, lf)
+		if tmpwd = RESET_ITERATIONS_COUNT then
+			;#sertxd("Timed reset", cr, lf)
+			reset
+		endif
+	next tx_interval_count
 	goto main
 
 receive_mode:
@@ -56,6 +60,8 @@ receive_mode:
 	; Maximum stack depth used: 7
 
 	pulsout LED_PIN, 10000
+	;#sertxd("Entering receive mode", cr, lf)
+	long_listen_time = 0 ; By default, listen for only a short while.
 	gosub setup_lora_receive ; Stack depth 4
 	start_time = time
 	rtrn = time ; Start time for led flashing
@@ -68,7 +74,7 @@ receive_mode:
 				; Valid packet
 				high LED_PIN
 				; Processing and actions
-				level = 0 ; Whether to send the status back
+				level = 0 ; Whether to send the status back and stay listening for a while after.
 				do while rtrn > 0 ; rtrn is the length left
 					mask = @bptrinc ; Field is stored in mask
 					dec rtrn
@@ -106,13 +112,13 @@ receive_mode:
 							endif
 							level = 1
 						case 201 ; "I" | 0x80 ; Interval between transmissions
-							; 1 byte, number of 5 minute blocks to .
+							; 1 byte, number of blocks to skip between transmissions.
 							;#sertxd("Transmit interval is ")
 							if rtrn > 0 then
 								if @bptr != 0 then
 									tx_intervals = @bptrinc
 									sertxd(#tx_intervals)
-									;#sertxd(" *3 minutes", cr, lf)
+									;#sertxd(" *1.5 minutes", cr, lf)
 									UPDATE_EEPROM(EEPROM_TX_INTERVALS, tx_intervals, tmpwd_l)
 								else
 									inc bptr
@@ -135,6 +141,7 @@ receive_mode:
 								endif
 								dec rtrn
 							endif
+							level = 1
 						else
 							; Something not recognised or implemented
 							; NOTE: Should the rest of the packet be discarded to ensure any possible data of unkown length is not treated as a field?
@@ -150,8 +157,9 @@ receive_mode:
 					nap 5 ; Wait for things to settle (576ms)
 					gosub send_status ; Reply with the current settings if needed
 					gosub setup_lora_receive ; Go back to listening
-					; Reset interval counter as we just send a packet back
-					tx_interval_count = 1
+					; Am going to be in long receive mode, so due for a status message when we leave.
+					tx_interval_count = tx_intervals
+					long_listen_time = 1 ; Stay in receive mode for a longer time to make it easier to send subsequent commands.
 
 				endif
 
@@ -166,15 +174,30 @@ receive_mode:
 		; Flash the LED every half second
 		tmpwd = time - rtrn
 		if tmpwd >= RECEIVE_FLASH_INT then
-			pulsout LED_PIN, 10000
+			if long_listen_time = 1 then
+				high LED_PIN
+				;#sertxd("Long listen time", cr, lf)
+				low LED_PIN
+			else
+				pulsout LED_PIN, 10000
+			endif
 			rtrn = time
 		endif
+		; nap 2 ; Save some power hopefully
+
+		; How long do we stay in listening mode?
 		tmpwd = time - start_time
-	loop while tmpwd < LISTEN_TIME
+		if long_listen_time = 1 then
+			paramwd = LISTEN_TIME_AWAKE
+		else
+			paramwd	= LISTEN_TIME_NORMAL
+		endif
+	loop while tmpwd < paramwd
 	return
 
 sleep_mode:
 	; Go into power saving mode
+	;#sertxd("Entering sleep mode", cr, lf)
 	gosub sleep_lora
 	low LED_PIN
 	
