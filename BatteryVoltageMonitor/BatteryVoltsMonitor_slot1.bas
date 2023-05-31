@@ -280,22 +280,20 @@ get_temperature: ; DS18B20
 	; sertxd("Temp ADC: ",#rtrn)
 	; Attempt to get two fairly close together readings (avoid the 51.1C issue / read errors hopefully).
 	readtemp12 TEMPERATURE_PIN, rtrn
-	readtemp12 TEMPERATURE_PIN, tmpwd
-	; Calculate the difference between readings
-	if rtrn > tmpwd then
-		tmpwd = rtrn - tmpwd
-	else
-		tmpwd = tmpwd - rtrn
-	endif
-	if tmpwd > TEMP_DIFFERENCE_THRESHOLD then goto get_temperature
-
+	
 	; rtrn contains the temperature and both readings were close.
 	; sertxd("Temp raw: ",#rtrn)
 	tmpwd = rtrn & $8000 ; Is the most significant bit 1, indicating a negative?
 	if tmpwd != 0 then
 		; Negative, sign extend as needed.
+		; Take the two's complement
+		rtrn = NOT rtrn + 1
+
+		; Scale as needed
 		rtrn = rtrn * 5 / 8
-		rtrn = rtrn | $E000
+
+		; Take the two's complement again to make negative.
+		rtrn = NOT rtrn + 1
 	else
 		rtrn = rtrn * 5 / 8
 	endif
