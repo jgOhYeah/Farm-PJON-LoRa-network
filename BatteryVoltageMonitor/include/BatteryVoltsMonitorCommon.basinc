@@ -4,7 +4,7 @@
 ; Created 22/02/2023
 ; Modified 22/03/2023
 
-#DEFINE VERSION "v2.0.1"
+#DEFINE VERSION "v2.0.2"
 #DEFINE NAME "Battery voltage monitor and fence control"
 #DEFINE URL "https://github.com/jgOhYeah/Farm-PJON-LoRa-network"
 

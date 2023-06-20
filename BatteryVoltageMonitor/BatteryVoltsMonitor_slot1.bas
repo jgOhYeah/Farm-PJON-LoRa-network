@@ -304,9 +304,8 @@ get_temperature: ; DS18B20
 add_word:
 	; Adds a word to @bptr in little endian format.
 	; rtrn contains the word to add (it is a word)
-	@bptrinc = rtrn & 0xff
-	tmpwd = rtrn / 0xff
-	@bptrinc = tmpwd
+	@bptrinc = rtrn_l
+	@bptrinc = rtrn_h
 	return
 
 ; Libraries that will not be run first thing.

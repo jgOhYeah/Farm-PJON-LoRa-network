@@ -40,6 +40,8 @@ symbol paramwd = w12
 symbol param1 = b24
 symbol param2 = b25
 symbol rtrn = w13
+symbol rtrn_l = b26
+symbol rtrn_h = b27
 
 symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out
                         ; due to a dodgy connection or breadboard and should be reset.
