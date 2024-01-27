@@ -4,7 +4,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 02/12/2021
+; Modified 27/01/2024
 #PICAXE 18M2
 #SLOT 0
 #NO_DATA
@@ -13,6 +13,7 @@
 #DEFINE INCLUDE_BUFFER_INIT
 #INCLUDE "include/PumpMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
+#INCLUDE "include/aht20.basinc"
 
 init:
     disconnect
@@ -36,10 +37,19 @@ init:
 
 start_slot_1:
     ; Go to 
+    ; Initialise the temperature sensor
+    TEMP_HUM_I2C()
+    TEMP_HUM_INIT()
+    TEMP_HUM_GET_STATUS(rtrnl)
+    TEMP_HUM_BUSY(rtrnl)
+    if rtrnl != 0 then
+        ;#sertxd("AHT20 busy or NC.", cr, lf)
+    endif
+
     ; Lora radio setup
     gosub begin_lora
 	if rtrn = 0 then
-		;#sertxd("LoRa Failed to connect. Will reset to try again in 15s",cr,lf)
+		;#sertxd("LoRa Failed to connect. Will reset to try again in 15s.",cr,lf)
         high PIN_LED_ALARM
         lora_fail = 1
         pause 60000

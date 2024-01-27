@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:25PM, February 22, 2023----
+'----UPDATED AT 02:06PM, January 27, 2024----
 '----SAVING AS compiled_slot1.bas ----
 
 '---BEGIN PumpMonitor_slot1.bas ---
@@ -7,7 +7,7 @@
 ; Designed to detect if the pump is running excessively because of a leak or lost prime.
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 02/12/2021
+; Modified 27/04/2024
 ; NOTE: Need to swap pins C.2 and B.3 from V1 as the current shunt needs to be connected to an interrupt
 ; capable pin (schematic should be updated to match)
 ; TODO: Make smaller
@@ -29,9 +29,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 02/12/2021
+; Modified 27/01/2024
 
-; #DEFINE VERSION "v2.1.1"
+; #DEFINE VERSION "v2.2.0"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -62,9 +62,10 @@ symbol MISO = pinB.0
 symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
-; 2*30*60 = 3600 - time increments once every half seconds
-; #DEFINE STORE_INTERVAL 3600 ; Once every half hour.
-; #DEFINE STORE_INTERVAL 40 ; Once every 10s.
+; 2*30*60 = 3600 - time increments once every half second
+; STORE_INTERVAL = STORE_SUB_INTERVAL * STORE_SUBS
+; #DEFINE STORE_SUB_INTERVAL 600 ; Once every 5 minutes, store once per half hour.
+; #DEFINE STORE_SUBS 6
 
 ; #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 ; #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -133,6 +134,7 @@ symbol rtrnh = b27
 ; #DEFINE STD_TIME_LOC_H 139
 ; #DEFINE BLOCK_ON_TIME 140
 ; #DEFINE BLOCK_ON_TIME 141
+; #DEFINE STORE_INTERVAL_COUNT_LOC 140 ; Used to count the number of sub intervals that have elapsed.
 
 ; #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 ; #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
@@ -206,16 +208,41 @@ symbol tmpwd = buffer_length
 ; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
 
 '---END include/symbols.basinc---
+'---BEGIN include/aht20.basinc ---
+; Macros and constants for talking to an AHT20 temperature and humidity sensor
+; Written by Jotham Gates
+; Created 26/01/2024
+; Modified 27/01/2024
+
+symbol AHT20_DEF_I2C_ADDR = 0x70 ;0x38 ;Default I2C address of AHT20 sensor 
+symbol CMD_INIT = 0xBE ;Init command
+symbol CMD_INIT_PARAMS_1ST = 0x08 ;The first parameter of init command: 0x08
+symbol CMD_INIT_PARAMS_2ND = 0x00 ;The second parameter of init command: 0x00
+symbol CMD_INIT_TIME = 80; 10 ;Waiting time for init completion: 10ms
+symbol CMD_MEASUREMENT = 0xAC ;Trigger measurement command
+symbol CMD_MEASUREMENT_PARAMS_1ST = 0x33 ;The first parameter of trigger measurement command: 0x33
+symbol CMD_MEASUREMENT_PARAMS_2ND = 0x00 ;The second parameter of trigger measurement command: 0x00
+symbol CMD_MEASUREMENT_TIME = 640 ; 80 ;Measurement command completion time: 80ms
+symbol CMD_MEASUREMENT_DATA_LEN = 6 ;Return length when the measurement command is without CRC check.
+symbol CMD_MEASUREMENT_DATA_CRC_LEN = 7 ;Return data length when the measurement command is with CRC check.
+symbol CMD_SOFT_RESET = 0xBA ;Soft reset command
+symbol CMD_SOFT_RESET_TIME = 160 ; 20 ;Soft reset time: 20ms
+symbol CMD_STATUS = 0x71 ;Get status word command
+
+'PARSED MACRO TEMP_HUM_I2C
+'PARSED MACRO TEMP_HUM_INIT
+'PARSED MACRO TEMP_HUM_GET_STATUS
+'PARSED MACRO TEMP_HUM_BUSY
+'---END include/aht20.basinc---
 
 init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
-;#sertxd("Pump Monitor ", "v2.1.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "22-02-2023", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.2.0" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "27-01-2024", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 60
 gosub print_table_sertxd
-    ; TODO: Move LoRa init to slot 0
     ; Assuming that the program in slot 0 has initialised the eeprom circular buffer for us.
     
 
@@ -235,23 +262,37 @@ gosub print_table_sertxd
 main:
     ; Check if 30 min has passed
     tmpwd0 = time - interval_start_time
-    if tmpwd0 >= 3600 then
+    if tmpwd0 >= 600 then
         ; Backup the current time so this point counts as t0 in the c ountdown for the next iteration
         tmpwd0 = time ; To freeze time and get lower and higher bytes
         poke 121, tmpwd0l
         poke 122, tmpwd0h
 
-        ; Get the pump on time, save it to eeprom, calculate the average and send it off on radio
-        gosub get_and_reset_time ; param1 is the time on in the last half hour
+        ; Check if this is a sub interval or the main deal.
+        peek 140, tmpwd0l
+        inc tmpwd0l ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
+        if tmpwd0l > 6 then
+            ; Main store / analyse pump occured.
+            tmpwd0l = 0
+            poke 140, tmpwd0l
 
-        ; Save to the eeprom buffer
-        gosub buffer_restore
-        gosub buffer_write
-        gosub buffer_backup ; buffer_write changes the values
+            ; Get the pump on time, save it to eeprom, calculate the average and send it off on radio
+            gosub get_and_reset_time ; param1 is the time on in the last half hour
+
+            ; Save to the eeprom buffer
+            gosub buffer_restore
+            gosub buffer_write
+            gosub buffer_backup ; buffer_write changes the values
 ; ; #IFDEF INCLUDE_BUFFER_ALARM_CHECK [#IF CODE REMOVED]
-;         gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this. Also actually make this cause an alarm. [#IF CODE REMOVED]
+;             gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this. Also actually make this cause an alarm. [#IF CODE REMOVED]
 ; #ENDIF
-        gosub send_status
+            gosub send_status
+        
+        else
+            ; Smaller interval. Just take the temperature and humidity readings.
+            poke 140, tmpwd0l
+            gosub send_short_status
+        endif
 
         ; Restore interval_start_time to reset it after it was used for other things.
         peek 121, interval_start_timel
@@ -296,23 +337,19 @@ send_status:
     ; param1 is the pump on time
     ; buffer_average is called from here
     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+;#sertxd("Long status", cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 61
+rtrn = 73
+gosub print_table_sertxd
 	gosub begin_pjon_packet
 
     ; Pump on time
 	@bptrinc = "P"
-    '--START OF MACRO: EEPROM_SETUP
-	; ADDR is a word
-	; TMPVAR is a byte
-	; I2C address
-	 tmpwd2l = tmpwd1 / 128 & %00001110
-	 tmpwd2l =  tmpwd2l | %10100000
-    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
-'--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
 ;#sertxd("Pump on time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 61
-rtrn = 74
+param1 = 74
+rtrn = 87
 gosub print_table_sertxd
     sertxd(#param1)
 gosub print_newline_sertxd
@@ -326,8 +363,8 @@ gosub print_newline_sertxd
     gosub buffer_average
 ;#sertxd("Average on time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 75
-rtrn = 91
+param1 = 88
+rtrn = 104
 gosub print_table_sertxd
     sertxd(#rtrn, cr, lf)
     gosub add_word
@@ -376,7 +413,10 @@ gosub print_table_sertxd
         setint 0, %00000100
     endif
 '--END OF MACRO: RESTORE_INTERRUPTS()
-    
+    ; Falls through.
+finish_status:
+    ; Add temperature and humidity
+    gosub add_temp_hum
 
     ; Finish up
     param1 = UPSTREAM_ADDRESS
@@ -384,8 +424,8 @@ gosub print_table_sertxd
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa failed. Will reset in a minute to see if that helps", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 92
-rtrn = 149
+param1 = 105
+rtrn = 162
 gosub print_table_sertxd
         lora_fail = 1
 		; gosub begin_lora
@@ -394,8 +434,8 @@ gosub print_table_sertxd
         pause 60000
 ;#sertxd("Resetting because LoRa failed.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 150
-rtrn = 181
+param1 = 163
+rtrn = 194
 gosub print_table_sertxd
         reconnect
         reset ; TODO: Jump back to slot 0 and return rather than reset - not urgent though as I haven't had a failure after using veroboard.
@@ -403,10 +443,20 @@ gosub print_table_sertxd
     endif
 ;#sertxd("Done sending", cr, lf, cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 182
-rtrn = 197
+param1 = 195
+rtrn = 210
 gosub print_table_sertxd
 	return
+
+send_short_status:
+    ; Sends the minimum sized status.
+;#sertxd("Short status", cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 211
+rtrn = 224
+gosub print_table_sertxd
+    gosub begin_pjon_packet
+    goto finish_status
 
 add_word:
 	; Adds a word to @bptr in little endian format.
@@ -420,27 +470,27 @@ user_interface:
     ; Print help and ask for input
 ;#sertxd("Uptime: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 198
-rtrn = 205
+param1 = 225
+rtrn = 232
 gosub print_table_sertxd
     sertxd(#time)
 ;#sertxd(cr, lf, "Block time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 206
-rtrn = 219
+param1 = 233
+rtrn = 246
 gosub print_table_sertxd
     tmpwd0 = time - interval_start_time
     sertxd(#tmpwd0)
 ;#sertxd(cr, lf, "On Time (not including current start): ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 220
-rtrn = 260
+param1 = 247
+rtrn = 287
 gosub print_table_sertxd
     sertxd(#block_on_time)
 ;#sertxd(cr, lf, "Options:", cr, lf, " u Upload data in buffer as csv", cr, lf, " p Programming mode", cr, lf, ">>> ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 261
-rtrn = 330
+param1 = 288
+rtrn = 357
 gosub print_table_sertxd
     serrxd [32000, user_interface_end], tmpwd0
     sertxd(tmpwd0, cr, lf) ; Print what the user just wrote in case using a terminal that does not show it.
@@ -450,16 +500,16 @@ gosub print_table_sertxd
         case "u"
 ;#sertxd("Record,On Time", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 331
-rtrn = 346
+param1 = 358
+rtrn = 373
 gosub print_table_sertxd
             gosub buffer_restore
             gosub buffer_upload
         case "p"
 ;#sertxd("Programming mode. NOT MONITORING! Anything sent resets", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 347
-rtrn = 402
+param1 = 374
+rtrn = 429
 gosub print_table_sertxd
             high B.3
             reconnect
@@ -467,19 +517,53 @@ gosub print_table_sertxd
         else
 ;#sertxd("Unknown command", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 403
-rtrn = 419
+param1 = 430
+rtrn = 446
 gosub print_table_sertxd
     end select
 
 user_interface_end:
 ;#sertxd(cr, lf, "Returning to monitoring", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 420
-rtrn = 446
+param1 = 447
+rtrn = 473
 gosub print_table_sertxd
     return
 
+add_temp_hum:
+    ; Reads the temperature and humidity from the sensor and adds it to a packet.
+    ; Modifies tmpwd0, tmpwd1, rtrn
+    '--START OF MACRO: TEMP_HUM_I2C
+    hi2csetup i2cmaster, AHT20_DEF_I2C_ADDR, i2cslow_32, i2cbyte
+'--END OF MACRO: TEMP_HUM_I2C()
+    hi2cout (CMD_MEASUREMENT, CMD_MEASUREMENT_PARAMS_1ST, CMD_MEASUREMENT_PARAMS_2ND)
+    pause CMD_MEASUREMENT_TIME
+    
+    ; Big endian
+    ; status, hum, hum, hum / temp, temp, temp, crc if requested.
+    hi2cin (tmpwd0l, rtrnh, rtrnl, tmpwd0h, tmpwd1l, tmpwd1h)
+
+    ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
+    rtrn = rtrn ** 100
+    sertxd("Humidity: ", #rtrn, " %", cr, lf)
+    @bptrinc = "H"
+    gosub add_word
+
+    ; Unpack temperature.
+    ; Extract the 16MSB
+    rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
+    rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
+    tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
+    rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+    
+    ; Magic conversions. Ends up as 2's complement if negative.
+    rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
+    
+    sertxd("Temperature: ", #rtrn, " *0.1C", cr, lf)
+    @bptrinc = "T"
+    gosub add_word
+
+    return
 
 '---BEGIN include/CircularBuffer.basinc ---
 ; Pump duty cycle monitor circular buffer
@@ -706,7 +790,7 @@ buffer_write:
 ; #ENDIF
 '---END include/CircularBuffer.basinc---
 '---BEGIN include/generated.basinc ---
-; Autogenerated by calculations.py at 2023-02-22 14:11:40
+; Autogenerated by calculations.py at 2023-06-20 22:06:12
 ; For a FREQUENCY of 433.0MHz, a SPREAD FACTOR of 9 and a bandwidth of 125000kHz:
 ; #DEFINE LORA_FREQ 433000000
 ; #DEFINE LORA_FREQ_MSB 0x6C
@@ -1881,43 +1965,28 @@ crc32_compute:
 interrupt:
     ; Start and stop pump timing. Uses the pump on led and pin as memory to tell if the pump is currently on or not.
     ; Needs to be the very last subroutine in the file
+    '--START OF MACRO: BACKUP_PARAMS
+	poke 140, param1l
+	poke 141, param1h
+	poke 142, param2
+	poke 143, rtrnl
+	poke 144, rtrnh
+'--END OF MACRO: BACKUP_PARAMS()
     if outpinB.6 = 0 then ; NOTE: Might be an issue with variables on first line
         ; Pump just turned on.
         pump_start_time = time
 
         ; Increment the switch on count
-        '--START OF MACRO: BACKUP_PARAMS
-	poke 140, param1l
-	poke 141, param1h
-	poke 142, param2
-	poke 143, rtrnl
-	poke 144, rtrnh
-'--END OF MACRO: BACKUP_PARAMS()
         peek 136, param1l
         peek 137, param1h
         inc param1
         poke 136, param1l
         poke 137, param1h
-        '--START OF MACRO: RESTORE_PARAMS
-	peek 140, param1l
-	peek 141, param1h
-	peek 142, param2
-	peek 143, rtrnl
-	peek 144, rtrnh
-'--END OF MACRO: RESTORE_PARAMS()
         
-
         high B.6 ; Turn on the on LED and remember the pump is on
         setint %00000100, %00000100 ; Interrupt for when the pump turns off
     else
         ; Pump just turned off. Save the time to total time
-        '--START OF MACRO: BACKUP_PARAMS
-	poke 140, param1l
-	poke 141, param1h
-	poke 142, param2
-	poke 143, rtrnl
-	poke 144, rtrnh
-'--END OF MACRO: BACKUP_PARAMS()
         param1 = time - pump_start_time
         block_on_time = param1 + block_on_time ; Add to current time
 
@@ -1939,11 +2008,17 @@ interrupt:
         ; endif
 
         ; ; TODO: Standard deviation
-        ; RESTORE_PARAMS()
 
         low B.6 ; Turn off the LED and remember the pump is off
         setint 0, %00000100 ; Interrupt for when the pump turns on
     endif
+    '--START OF MACRO: RESTORE_PARAMS
+	peek 140, param1l
+	peek 141, param1h
+	peek 142, param2
+	peek 143, rtrnl
+	peek 144, rtrnh
+'--END OF MACRO: RESTORE_PARAMS()
     return
 '---END PumpMonitor_slot1.bas---
 
@@ -1959,9 +2034,9 @@ backup_table_sertxd:
 
 print_table_sertxd:
     for param1 = param1 to rtrn
-    readtable param1, param2
-    sertxd(param2)
-next param1
+        readtable param1, param2
+        sertxd(param2)
+    next param1
 
     peek 127, param2
     peek 128, param1l
@@ -1970,20 +2045,22 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","22-02-2023",cr,lf) ;#sertxd
-table 61, ("Pump on time: ") ;#sertxd
-table 75, ("Average on time: ") ;#sertxd
-table 92, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd
-table 150, ("Resetting because LoRa failed.",cr,lf) ;#sertxd
-table 182, ("Done sending",cr,lf,cr,lf) ;#sertxd
-table 198, ("Uptime: ") ;#sertxd
-table 206, (cr,lf,"Block time: ") ;#sertxd
-table 220, (cr,lf,"On Time (not including current start): ") ;#sertxd
-table 261, (cr,lf,"Options:",cr,lf," u Upload data in buffer as csv",cr,lf," p Programming mode",cr,lf,">>> ") ;#sertxd
-table 331, ("Record,On Time",cr,lf) ;#sertxd
-table 347, ("Programming mode. NOT MONITORING! Anything sent resets",cr,lf) ;#sertxd
-table 403, ("Unknown command",cr,lf) ;#sertxd
-table 420, (cr,lf,"Returning to monitoring",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.2.0"," MAIN",cr,lf,"Jotham Gates, Compiled ","27-01-2024",cr,lf) ;#sertxd
+table 61, ("Long status",cr,lf) ;#sertxd
+table 74, ("Pump on time: ") ;#sertxd
+table 88, ("Average on time: ") ;#sertxd
+table 105, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd
+table 163, ("Resetting because LoRa failed.",cr,lf) ;#sertxd
+table 195, ("Done sending",cr,lf,cr,lf) ;#sertxd
+table 211, ("Short status",cr,lf) ;#sertxd
+table 225, ("Uptime: ") ;#sertxd
+table 233, (cr,lf,"Block time: ") ;#sertxd
+table 247, (cr,lf,"On Time (not including current start): ") ;#sertxd
+table 288, (cr,lf,"Options:",cr,lf," u Upload data in buffer as csv",cr,lf," p Programming mode",cr,lf,">>> ") ;#sertxd
+table 358, ("Record,On Time",cr,lf) ;#sertxd
+table 374, ("Programming mode. NOT MONITORING! Anything sent resets",cr,lf) ;#sertxd
+table 430, ("Unknown command",cr,lf) ;#sertxd
+table 447, (cr,lf,"Returning to monitoring",cr,lf) ;#sertxd
 print_newline_sertxd:
     sertxd(cr, lf)
     return

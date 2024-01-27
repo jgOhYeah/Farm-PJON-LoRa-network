@@ -2,9 +2,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 02/12/2021
+; Modified 27/01/2024
 
-#DEFINE VERSION "v2.1.1"
+#DEFINE VERSION "v2.2.0"
 
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -35,9 +35,10 @@ symbol MISO = pinB.0
 symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
-; 2*30*60 = 3600 - time increments once every half seconds
-#DEFINE STORE_INTERVAL 3600 ; Once every half hour.
-; #DEFINE STORE_INTERVAL 40 ; Once every 10s.
+; 2*30*60 = 3600 - time increments once every half second
+; STORE_INTERVAL = STORE_SUB_INTERVAL * STORE_SUBS
+#DEFINE STORE_SUB_INTERVAL 600 ; Once every 5 minutes, store once per half hour.
+#DEFINE STORE_SUBS 6
 
 #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -106,6 +107,7 @@ symbol rtrnh = b27
 #DEFINE STD_TIME_LOC_H 139
 ; #DEFINE BLOCK_ON_TIME 140
 ; #DEFINE BLOCK_ON_TIME 141
+#DEFINE STORE_INTERVAL_COUNT_LOC 140 ; Used to count the number of sub intervals that have elapsed.
 
 #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)

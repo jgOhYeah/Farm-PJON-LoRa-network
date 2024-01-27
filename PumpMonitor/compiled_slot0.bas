@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:25PM, February 22, 2023----
+'----UPDATED AT 02:06PM, January 27, 2024----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -9,7 +9,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 02/12/2021
+; Modified 27/01/2024
 #PICAXE 18M2      'CHIP VERSION PARSED
 #SLOT 0
 #NO_DATA
@@ -21,9 +21,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 02/12/2021
+; Modified 27/01/2024
 
-; #DEFINE VERSION "v2.1.1"
+; #DEFINE VERSION "v2.2.0"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -54,9 +54,10 @@ symbol MISO = pinB.0
 symbol RST = C.1
 symbol DIO0 = pinC.5 ; High when a packet has been received
 
-; 2*30*60 = 3600 - time increments once every half seconds
-; #DEFINE STORE_INTERVAL 3600 ; Once every half hour.
-; #DEFINE STORE_INTERVAL 40 ; Once every 10s.
+; 2*30*60 = 3600 - time increments once every half second
+; STORE_INTERVAL = STORE_SUB_INTERVAL * STORE_SUBS
+; #DEFINE STORE_SUB_INTERVAL 600 ; Once every 5 minutes, store once per half hour.
+; #DEFINE STORE_SUBS 6
 
 ; #DEFINE BUFFER_BLANK_CHAR 0xFFFF
 ; #DEFINE BUFFER_BLANK_CHAR_HALF 0xFF
@@ -125,6 +126,7 @@ symbol rtrnh = b27
 ; #DEFINE STD_TIME_LOC_H 139
 ; #DEFINE BLOCK_ON_TIME 140
 ; #DEFINE BLOCK_ON_TIME 141
+; #DEFINE STORE_INTERVAL_COUNT_LOC 140 ; Used to count the number of sub intervals that have elapsed.
 
 ; #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 ; #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
@@ -198,6 +200,32 @@ symbol tmpwd = buffer_length
 ; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
 
 '---END include/symbols.basinc---
+'---BEGIN include/aht20.basinc ---
+; Macros and constants for talking to an AHT20 temperature and humidity sensor
+; Written by Jotham Gates
+; Created 26/01/2024
+; Modified 27/01/2024
+
+symbol AHT20_DEF_I2C_ADDR = 0x70 ;0x38 ;Default I2C address of AHT20 sensor 
+symbol CMD_INIT = 0xBE ;Init command
+symbol CMD_INIT_PARAMS_1ST = 0x08 ;The first parameter of init command: 0x08
+symbol CMD_INIT_PARAMS_2ND = 0x00 ;The second parameter of init command: 0x00
+symbol CMD_INIT_TIME = 80; 10 ;Waiting time for init completion: 10ms
+symbol CMD_MEASUREMENT = 0xAC ;Trigger measurement command
+symbol CMD_MEASUREMENT_PARAMS_1ST = 0x33 ;The first parameter of trigger measurement command: 0x33
+symbol CMD_MEASUREMENT_PARAMS_2ND = 0x00 ;The second parameter of trigger measurement command: 0x00
+symbol CMD_MEASUREMENT_TIME = 640 ; 80 ;Measurement command completion time: 80ms
+symbol CMD_MEASUREMENT_DATA_LEN = 6 ;Return length when the measurement command is without CRC check.
+symbol CMD_MEASUREMENT_DATA_CRC_LEN = 7 ;Return data length when the measurement command is with CRC check.
+symbol CMD_SOFT_RESET = 0xBA ;Soft reset command
+symbol CMD_SOFT_RESET_TIME = 160 ; 20 ;Soft reset time: 20ms
+symbol CMD_STATUS = 0x71 ;Get status word command
+
+'PARSED MACRO TEMP_HUM_I2C
+'PARSED MACRO TEMP_HUM_INIT
+'PARSED MACRO TEMP_HUM_GET_STATUS
+'PARSED MACRO TEMP_HUM_BUSY
+'---END include/aht20.basinc---
 
 init:
     disconnect
@@ -205,7 +233,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.1.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "22-02-2023", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.2.0" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "27-01-2024", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -229,13 +257,36 @@ gosub print_table_sertxd
 
 start_slot_1:
     ; Go to 
+    ; Initialise the temperature sensor
+    '--START OF MACRO: TEMP_HUM_I2C
+    hi2csetup i2cmaster, AHT20_DEF_I2C_ADDR, i2cslow_32, i2cbyte
+'--END OF MACRO: TEMP_HUM_I2C()
+    '--START OF MACRO: TEMP_HUM_INIT
+    hi2cout (CMD_INIT, CMD_INIT_PARAMS_1ST, CMD_INIT_PARAMS_2ND)
+    pause CMD_INIT_TIME
+'--END OF MACRO: TEMP_HUM_INIT()
+    '--START OF MACRO: TEMP_HUM_GET_STATUS
+    hi2cout (CMD_STATUS)
+    hi2cin (rtrnl)
+'--END OF MACRO: TEMP_HUM_GET_STATUS(rtrnl)
+    '--START OF MACRO: TEMP_HUM_BUSY
+    rtrnl = rtrnl & 0x80
+'--END OF MACRO: TEMP_HUM_BUSY(rtrnl)
+    if rtrnl != 0 then
+;#sertxd("AHT20 busy or NC.", cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 116
+rtrn = 134
+gosub print_table_sertxd
+    endif
+
     ; Lora radio setup
     gosub begin_lora
 	if rtrn = 0 then
-;#sertxd("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) 'Evaluated below
+;#sertxd("LoRa Failed to connect. Will reset to try again in 15s.",cr,lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 116
-rtrn = 171
+param1 = 135
+rtrn = 191
 gosub print_table_sertxd
         high B.3
         lora_fail = 1
@@ -262,8 +313,8 @@ gosub print_table_sertxd
     ; Fall throught to start slot 1 if the received char wasn't "t".
 ;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 172
-rtrn = 198
+param1 = 192
+rtrn = 218
 gosub print_table_sertxd
     low B.6
     run 1
@@ -324,8 +375,8 @@ eeprom_main:
         case "p"
 ;#sertxd("Programming mode. Anything sent will reset.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 199
-rtrn = 243
+param1 = 219
+rtrn = 263
 gosub print_table_sertxd
             reconnect
             stop
@@ -337,8 +388,8 @@ gosub print_table_sertxd
         else
 ;#sertxd(cr, lf, "Unknown. Please retry.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 244
-rtrn = 269
+param1 = 264
+rtrn = 289
 gosub print_table_sertxd
     end select
 	gosub print_help
@@ -371,8 +422,8 @@ print_help:
     ; of the program.
 ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 270
-rtrn = 489
+param1 = 290
+rtrn = 509
 gosub print_table_sertxd
     return
 
@@ -498,7 +549,7 @@ computer_mode_loop:
     goto computer_mode_loop
 
 '---BEGIN include/generated.basinc ---
-; Autogenerated by calculations.py at 2023-02-22 14:11:40
+; Autogenerated by calculations.py at 2023-06-20 22:06:12
 ; For a FREQUENCY of 433.0MHz, a SPREAD FACTOR of 9 and a bandwidth of 125000kHz:
 ; #DEFINE LORA_FREQ 433000000
 ; #DEFINE LORA_FREQ_MSB 0x6C
@@ -1449,9 +1500,9 @@ backup_table_sertxd:
 
 print_table_sertxd:
     for param1 = param1 to rtrn
-    readtable param1, param2
-    sertxd(param2)
-next param1
+        readtable param1, param2
+        sertxd(param2)
+    next param1
 
     peek 127, param2
     peek 128, param1l
@@ -1460,10 +1511,11 @@ next param1
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.1.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","22-02-2023",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.2.0"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","27-01-2024",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
-table 116, ("LoRa Failed to connect. Will reset to try again in 15s",cr,lf) ;#sertxd
-table 172, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
-table 199, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
-table 244, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
-table 270, (cr,lf,"EEPROM Tools",cr,lf,"Commands:",cr,lf," a Read all",cr,lf," b Read 1st block",cr,lf," u Read buffer old to new",cr,lf," z Add value to buffer",cr,lf," w Write at adress",cr,lf," i Buffer info",cr,lf," e Erase all",cr,lf," p Enter programming mode",cr,lf," q Reset",cr,lf," h Show this help",cr,lf,">>> ") ;#sertxd
+table 116, ("AHT20 busy or NC.",cr,lf) ;#sertxd
+table 135, ("LoRa Failed to connect. Will reset to try again in 15s.",cr,lf) ;#sertxd
+table 192, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
+table 219, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
+table 264, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
+table 290, (cr,lf,"EEPROM Tools",cr,lf,"Commands:",cr,lf," a Read all",cr,lf," b Read 1st block",cr,lf," u Read buffer old to new",cr,lf," z Add value to buffer",cr,lf," w Write at adress",cr,lf," i Buffer info",cr,lf," e Erase all",cr,lf," p Enter programming mode",cr,lf," q Reset",cr,lf," h Show this help",cr,lf,">>> ") ;#sertxd

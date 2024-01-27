@@ -2,7 +2,7 @@
 ; Designed to detect if the pump is running excessively because of a leak or lost prime.
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 02/12/2021
+; Modified 27/04/2024
 ; NOTE: Need to swap pins C.2 and B.3 from V1 as the current shunt needs to be connected to an interrupt
 ; capable pin (schematic should be updated to match)
 ; TODO: Make smaller
@@ -21,6 +21,7 @@
 ; #DEFINE INCLUDE_BUFFER_ALARM_CHECK
 #INCLUDE "include/PumpMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
+#INCLUDE "include/aht20.basinc"
 
 init:
     disconnect
@@ -45,23 +46,37 @@ init:
 main:
     ; Check if 30 min has passed
     tmpwd0 = time - interval_start_time
-    if tmpwd0 >= STORE_INTERVAL then
+    if tmpwd0 >= STORE_SUB_INTERVAL then
         ; Backup the current time so this point counts as t0 in the c ountdown for the next iteration
         tmpwd0 = time ; To freeze time and get lower and higher bytes
         poke INTERVAL_START_BACKUP_LOC_L, tmpwd0l
         poke INTERVAL_START_BACKUP_LOC_H, tmpwd0h
 
-        ; Get the pump on time, save it to eeprom, calculate the average and send it off on radio
-        gosub get_and_reset_time ; param1 is the time on in the last half hour
+        ; Check if this is a sub interval or the main deal.
+        peek STORE_INTERVAL_COUNT_LOC, tmpwd0l
+        inc tmpwd0l ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
+        if tmpwd0l > STORE_SUBS then
+            ; Main store / analyse pump occured.
+            tmpwd0l = 0
+            poke STORE_INTERVAL_COUNT_LOC, tmpwd0l
 
-        ; Save to the eeprom buffer
-        gosub buffer_restore
-        gosub buffer_write
-        gosub buffer_backup ; buffer_write changes the values
+            ; Get the pump on time, save it to eeprom, calculate the average and send it off on radio
+            gosub get_and_reset_time ; param1 is the time on in the last half hour
+
+            ; Save to the eeprom buffer
+            gosub buffer_restore
+            gosub buffer_write
+            gosub buffer_backup ; buffer_write changes the values
 #IFDEF INCLUDE_BUFFER_ALARM_CHECK
-        gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this. Also actually make this cause an alarm.
+            gosub buffer_alarm_check ; TODO: Sort out modifying or not of rtrn and calling buffer_average before this. Also actually make this cause an alarm.
 #ENDIF
-        gosub send_status
+            gosub send_status
+        
+        else
+            ; Smaller interval. Just take the temperature and humidity readings.
+            poke STORE_INTERVAL_COUNT_LOC, tmpwd0l
+            gosub send_short_status
+        endif
 
         ; Restore interval_start_time to reset it after it was used for other things.
         peek INTERVAL_START_BACKUP_LOC_L, interval_start_timel
@@ -97,11 +112,11 @@ send_status:
     ; param1 is the pump on time
     ; buffer_average is called from here
     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
+    ;#sertxd("Long status", cr, lf)
 	gosub begin_pjon_packet
 
     ; Pump on time
 	@bptrinc = "P"
-    EEPROM_SETUP(tmpwd1, tmpwd2l)
     ;#sertxd("Pump on time: ")
     sertxd(#param1)
     ;#sertxdnl
@@ -144,7 +159,10 @@ send_status:
     ; Reset all of the above
     RESET_STATS()
     RESTORE_INTERRUPTS()
-    
+    ; Falls through.
+finish_status:
+    ; Add temperature and humidity
+    gosub add_temp_hum
 
     ; Finish up
     param1 = UPSTREAM_ADDRESS
@@ -163,6 +181,12 @@ send_status:
     endif
     ;#sertxd("Done sending", cr, lf, cr, lf)
 	return
+
+send_short_status:
+    ; Sends the minimum sized status.
+    ;#sertxd("Short status", cr, lf)
+    gosub begin_pjon_packet
+    goto finish_status
 
 add_word:
 	; Adds a word to @bptr in little endian format.
@@ -204,6 +228,38 @@ user_interface_end:
     ;#sertxd(cr, lf, "Returning to monitoring", cr, lf)
     return
 
+add_temp_hum:
+    ; Reads the temperature and humidity from the sensor and adds it to a packet.
+    ; Modifies tmpwd0, tmpwd1, rtrn
+    TEMP_HUM_I2C()
+    hi2cout (CMD_MEASUREMENT, CMD_MEASUREMENT_PARAMS_1ST, CMD_MEASUREMENT_PARAMS_2ND)
+    pause CMD_MEASUREMENT_TIME
+    
+    ; Big endian
+    ; status, hum, hum, hum / temp, temp, temp, crc if requested.
+    hi2cin (tmpwd0l, rtrnh, rtrnl, tmpwd0h, tmpwd1l, tmpwd1h)
+
+    ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
+    rtrn = rtrn ** 100
+    sertxd("Humidity: ", #rtrn, " %", cr, lf)
+    @bptrinc = "H"
+    gosub add_word
+
+    ; Unpack temperature.
+    ; Extract the 16MSB
+    rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
+    rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
+    tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
+    rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+    
+    ; Magic conversions. Ends up as 2's complement if negative.
+    rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
+    
+    sertxd("Temperature: ", #rtrn, " *0.1C", cr, lf)
+    @bptrinc = "T"
+    gosub add_word
+
+    return
 
 #INCLUDE "include/CircularBuffer.basinc"
 #INCLUDE "include/generated.basinc"
@@ -213,25 +269,22 @@ user_interface_end:
 interrupt:
     ; Start and stop pump timing. Uses the pump on led and pin as memory to tell if the pump is currently on or not.
     ; Needs to be the very last subroutine in the file
+    BACKUP_PARAMS()
     if LED_ON_STATE = 0 then ; NOTE: Might be an issue with variables on first line
         ; Pump just turned on.
         pump_start_time = time
 
         ; Increment the switch on count
-        BACKUP_PARAMS()
         peek SWITCH_ON_COUNT_LOC_L, param1l
         peek SWITCH_ON_COUNT_LOC_H, param1h
         inc param1
         poke SWITCH_ON_COUNT_LOC_L, param1l
         poke SWITCH_ON_COUNT_LOC_H, param1h
-        RESTORE_PARAMS()
         
-
         high PIN_LED_ON ; Turn on the on LED and remember the pump is on
         setint PIN_PUMP_BIN, PIN_PUMP_BIN ; Interrupt for when the pump turns off
     else
         ; Pump just turned off. Save the time to total time
-        BACKUP_PARAMS()
         param1 = time - pump_start_time
         block_on_time = param1 + block_on_time ; Add to current time
 
@@ -253,9 +306,9 @@ interrupt:
         ; endif
 
         ; ; TODO: Standard deviation
-        ; RESTORE_PARAMS()
 
         low PIN_LED_ON ; Turn off the LED and remember the pump is off
         setint 0, PIN_PUMP_BIN ; Interrupt for when the pump turns on
     endif
+    RESTORE_PARAMS()
     return

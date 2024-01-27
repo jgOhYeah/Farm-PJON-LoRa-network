@@ -1,0 +1,37 @@
+; Macros and constants for talking to an AHT20 temperature and humidity sensor
+; Written by Jotham Gates
+; Created 26/01/2024
+; Modified 27/01/2024
+
+symbol AHT20_DEF_I2C_ADDR = 0x70 ;0x38 ;Default I2C address of AHT20 sensor 
+symbol CMD_INIT = 0xBE ;Init command
+symbol CMD_INIT_PARAMS_1ST = 0x08 ;The first parameter of init command: 0x08
+symbol CMD_INIT_PARAMS_2ND = 0x00 ;The second parameter of init command: 0x00
+symbol CMD_INIT_TIME = 80; 10 ;Waiting time for init completion: 10ms
+symbol CMD_MEASUREMENT = 0xAC ;Trigger measurement command
+symbol CMD_MEASUREMENT_PARAMS_1ST = 0x33 ;The first parameter of trigger measurement command: 0x33
+symbol CMD_MEASUREMENT_PARAMS_2ND = 0x00 ;The second parameter of trigger measurement command: 0x00
+symbol CMD_MEASUREMENT_TIME = 640 ; 80 ;Measurement command completion time: 80ms
+symbol CMD_MEASUREMENT_DATA_LEN = 6 ;Return length when the measurement command is without CRC check.
+symbol CMD_MEASUREMENT_DATA_CRC_LEN = 7 ;Return data length when the measurement command is with CRC check.
+symbol CMD_SOFT_RESET = 0xBA ;Soft reset command
+symbol CMD_SOFT_RESET_TIME = 160 ; 20 ;Soft reset time: 20ms
+symbol CMD_STATUS = 0x71 ;Get status word command
+
+#MACRO TEMP_HUM_I2C()
+    hi2csetup i2cmaster, AHT20_DEF_I2C_ADDR, i2cslow_32, i2cbyte
+#ENDMACRO
+
+#MACRO TEMP_HUM_INIT()
+    hi2cout (CMD_INIT, CMD_INIT_PARAMS_1ST, CMD_INIT_PARAMS_2ND)
+    pause CMD_INIT_TIME
+#ENDMACRO
+
+#MACRO TEMP_HUM_GET_STATUS(VAR)
+    hi2cout (CMD_STATUS)
+    hi2cin (VAR)
+#ENDMACRO
+
+#MACRO TEMP_HUM_BUSY(STATUS_VAR)
+    STATUS_VAR = STATUS_VAR & 0x80
+#ENDMACRO

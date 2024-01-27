@@ -25,7 +25,7 @@ void uLongToCharArray(uint32_t integer, char *charBuffer, uint8_t startPos) {
 uint32_t charArrayToULong(char *charBuffer, uint8_t startPos) {
     // For each byte, generate a char from it.
     uint32_t integer = 0;
-    for(uint8_t i = startPos + 3; i >= startPos; i--) {
+    for(int8_t i = startPos + 3; i >= startPos; i--) {
         integer = integer << 8;
         integer += (uint8_t)charBuffer[i];
     }
