@@ -55,7 +55,7 @@ main:
         ; Check if this is a sub interval or the main deal.
         peek STORE_INTERVAL_COUNT_LOC, tmpwd0l
         inc tmpwd0l ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
-        if tmpwd0l > STORE_SUBS then
+        if tmpwd0l >= STORE_SUBS then
             ; Main store / analyse pump occured.
             tmpwd0l = 0
             poke STORE_INTERVAL_COUNT_LOC, tmpwd0l
@@ -75,7 +75,18 @@ main:
         else
             ; Smaller interval. Just take the temperature and humidity readings.
             poke STORE_INTERVAL_COUNT_LOC, tmpwd0l
-            gosub send_short_status
+
+            ; Check if sensor is actually connected.
+            TEMP_HUM_I2C()
+            TEMP_HUM_GET_STATUS(tmpwd0l)
+            TEMP_HUM_BUSY(tmpwd0l)
+            if tmpwd0l = 0 then
+                ; Not busy and communicating ok.
+                gosub send_short_status
+            else
+                ;#sertxd("AHT20 busy", cr, lf)
+                TEMP_HUM_INIT()
+            endif
         endif
 
         ; Restore interval_start_time to reset it after it was used for other things.
@@ -205,16 +216,12 @@ user_interface:
     sertxd(#tmpwd0)
     ;#sertxd(cr, lf, "On Time (not including current start): ")
     sertxd(#block_on_time)
-    ;#sertxd(cr, lf, "Options:", cr, lf, " u Upload data in buffer as csv", cr, lf, " p Programming mode", cr, lf, ">>> ")
+    ;#sertxd(cr, lf, "Options (more available in bootloader):", cr, lf, " p Programming mode", cr, lf, ">>> ")
     serrxd [32000, user_interface_end], tmpwd0
     sertxd(tmpwd0, cr, lf) ; Print what the user just wrote in case using a terminal that does not show it.
 
     ; Check what the input actually was
     select case tmpwd0
-        case "u"
-            ;#sertxd("Record,On Time", cr, lf)
-            gosub buffer_restore
-            gosub buffer_upload
         case "p"
             ;#sertxd("Programming mode. NOT MONITORING! Anything sent resets", cr, lf)
             high PIN_LED_ALARM
@@ -230,35 +237,77 @@ user_interface_end:
 
 add_temp_hum:
     ; Reads the temperature and humidity from the sensor and adds it to a packet.
-    ; Modifies tmpwd0, tmpwd1, rtrn
+    ; Modifies tmpwd0, tmpwd1, tmpwd2, rtrn, tmpbt0
     TEMP_HUM_I2C()
     hi2cout (CMD_MEASUREMENT, CMD_MEASUREMENT_PARAMS_1ST, CMD_MEASUREMENT_PARAMS_2ND)
     pause CMD_MEASUREMENT_TIME
     
     ; Big endian
-    ; status, hum, hum, hum / temp, temp, temp, crc if requested.
-    hi2cin (tmpwd0l, rtrnh, rtrnl, tmpwd0h, tmpwd1l, tmpwd1h)
+    ; status, hum, hum, hum / temp, temp, temp, crc.
+    hi2cin (tmpwd0l, tmpwd2h, tmpwd2l, tmpwd0h, tmpwd1l, tmpwd1h, tmpbt0)
 
-    ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
-    rtrn = rtrn ** 100
-    sertxd("Humidity: ", #rtrn, " %", cr, lf)
-    @bptrinc = "H"
-    gosub add_word
-
-    ; Unpack temperature.
-    ; Extract the 16MSB
-    rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
-    rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
-    tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
-    rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+    ; Check the checksum. (fall through)
+compute_aht20_crc8:
+    ; Different from PJON. Computes the CRC8 for verifying temperatue and humidity readings.
+    ; rtrnl contains the result. rtrnl and rtrnh are modified.
+    rtrnl = 0xff ; CRC Value
     
-    ; Magic conversions. Ends up as 2's complement if negative.
-    rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
-    
-    sertxd("Temperature: ", #rtrn, " *0.1C", cr, lf)
-    @bptrinc = "T"
-    gosub add_word
+    ; Using an unrolled loop so I don't need to use indexing.
+    rtrnl = rtrnl ^ tmpwd0l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd2h
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd2l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd0h
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd1l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd1h
+    gosub aht20_crc8_roll
+    ; Finished calculations. Fall through to save memory.
 
+compute_aht20_crc8_return:
+    ; Check that the busy flag and calibrated bits are set correctly:
+    tmpwd0l = tmpwd0l & 0x88
+    if rtrnl = tmpbt0 and tmpwd0l = 0x08 then
+        ; Matches
+        ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
+        tmpwd2 = tmpwd2 ** 100
+        @bptrinc = "H"
+        @bptrinc = tmpwd2l ; Single byte only.
+
+        ; Unpack temperature.
+        ; Extract the 16MSB
+        rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
+        rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
+        tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
+        rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+        
+        ; Magic conversions. Ends up as 2's complement if negative.
+        rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
+        
+        sertxd("Temp: ", #rtrn, " *0.1C", cr, lf, "Humid: ", #tmpwd2l, " %", cr, lf)
+        @bptrinc = "T"
+        gosub add_word
+    else
+        ; Checksum didn't match. Try to initialise for next time.
+        ;#sertxd("AHT20 CRC fail, busy or not initialised.", cr, lf)
+        TEMP_HUM_INIT()
+    endif
+    return
+
+aht20_crc8_roll:
+    ; rtrnl contains the current crc to be operated on.
+    ; rtrnh is modified.
+    for rtrnh = 1 to 8
+        if rtrnl >= 0x80 then
+            ; Same as if (rtrnl & 0x80)
+            rtrnl = rtrnl * 2 ^ 0x31
+        else
+            rtrnl = rtrnl * 2
+        endif
+    next rtrnh
     return
 
 #INCLUDE "include/CircularBuffer.basinc"

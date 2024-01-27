@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:06PM, January 27, 2024----
+'----UPDATED AT 08:51PM, January 27, 2024----
 '----SAVING AS compiled_slot1.bas ----
 
 '---BEGIN PumpMonitor_slot1.bas ---
@@ -271,7 +271,7 @@ main:
         ; Check if this is a sub interval or the main deal.
         peek 140, tmpwd0l
         inc tmpwd0l ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
-        if tmpwd0l > 6 then
+        if tmpwd0l >= 6 then
             ; Main store / analyse pump occured.
             tmpwd0l = 0
             poke 140, tmpwd0l
@@ -291,7 +291,32 @@ main:
         else
             ; Smaller interval. Just take the temperature and humidity readings.
             poke 140, tmpwd0l
-            gosub send_short_status
+
+            ; Check if sensor is actually connected.
+            '--START OF MACRO: TEMP_HUM_I2C
+    hi2csetup i2cmaster, AHT20_DEF_I2C_ADDR, i2cslow_32, i2cbyte
+'--END OF MACRO: TEMP_HUM_I2C()
+            '--START OF MACRO: TEMP_HUM_GET_STATUS
+    hi2cout (CMD_STATUS)
+    hi2cin (tmpwd0l)
+'--END OF MACRO: TEMP_HUM_GET_STATUS(tmpwd0l)
+            '--START OF MACRO: TEMP_HUM_BUSY
+    tmpwd0l = tmpwd0l & 0x80
+'--END OF MACRO: TEMP_HUM_BUSY(tmpwd0l)
+            if tmpwd0l = 0 then
+                ; Not busy and communicating ok.
+                gosub send_short_status
+            else
+;#sertxd("AHT20 busy", cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 61
+rtrn = 72
+gosub print_table_sertxd
+                '--START OF MACRO: TEMP_HUM_INIT
+    hi2cout (CMD_INIT, CMD_INIT_PARAMS_1ST, CMD_INIT_PARAMS_2ND)
+    pause CMD_INIT_TIME
+'--END OF MACRO: TEMP_HUM_INIT()
+            endif
         endif
 
         ; Restore interval_start_time to reset it after it was used for other things.
@@ -339,8 +364,8 @@ send_status:
     ; Variables modified: rtrn, tmpwd0, tmpwd1, tmpwd2, tmpwd3, tmpwd4, param1
 ;#sertxd("Long status", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 61
-rtrn = 73
+param1 = 73
+rtrn = 85
 gosub print_table_sertxd
 	gosub begin_pjon_packet
 
@@ -348,8 +373,8 @@ gosub print_table_sertxd
 	@bptrinc = "P"
 ;#sertxd("Pump on time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 74
-rtrn = 87
+param1 = 86
+rtrn = 99
 gosub print_table_sertxd
     sertxd(#param1)
 gosub print_newline_sertxd
@@ -363,8 +388,8 @@ gosub print_newline_sertxd
     gosub buffer_average
 ;#sertxd("Average on time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 88
-rtrn = 104
+param1 = 100
+rtrn = 116
 gosub print_table_sertxd
     sertxd(#rtrn, cr, lf)
     gosub add_word
@@ -424,8 +449,8 @@ finish_status:
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa failed. Will reset in a minute to see if that helps", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 105
-rtrn = 162
+param1 = 117
+rtrn = 174
 gosub print_table_sertxd
         lora_fail = 1
 		; gosub begin_lora
@@ -434,8 +459,8 @@ gosub print_table_sertxd
         pause 60000
 ;#sertxd("Resetting because LoRa failed.", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 163
-rtrn = 194
+param1 = 175
+rtrn = 206
 gosub print_table_sertxd
         reconnect
         reset ; TODO: Jump back to slot 0 and return rather than reset - not urgent though as I haven't had a failure after using veroboard.
@@ -443,8 +468,8 @@ gosub print_table_sertxd
     endif
 ;#sertxd("Done sending", cr, lf, cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 195
-rtrn = 210
+param1 = 207
+rtrn = 222
 gosub print_table_sertxd
 	return
 
@@ -452,8 +477,8 @@ send_short_status:
     ; Sends the minimum sized status.
 ;#sertxd("Short status", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 211
-rtrn = 224
+param1 = 223
+rtrn = 236
 gosub print_table_sertxd
     gosub begin_pjon_packet
     goto finish_status
@@ -470,46 +495,38 @@ user_interface:
     ; Print help and ask for input
 ;#sertxd("Uptime: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 225
-rtrn = 232
+param1 = 237
+rtrn = 244
 gosub print_table_sertxd
     sertxd(#time)
 ;#sertxd(cr, lf, "Block time: ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 233
-rtrn = 246
+param1 = 245
+rtrn = 258
 gosub print_table_sertxd
     tmpwd0 = time - interval_start_time
     sertxd(#tmpwd0)
 ;#sertxd(cr, lf, "On Time (not including current start): ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 247
-rtrn = 287
+param1 = 259
+rtrn = 299
 gosub print_table_sertxd
     sertxd(#block_on_time)
-;#sertxd(cr, lf, "Options:", cr, lf, " u Upload data in buffer as csv", cr, lf, " p Programming mode", cr, lf, ">>> ") 'Evaluated below
+;#sertxd(cr, lf, "Options (more available in bootloader):", cr, lf, " p Programming mode", cr, lf, ">>> ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 288
-rtrn = 357
+param1 = 300
+rtrn = 367
 gosub print_table_sertxd
     serrxd [32000, user_interface_end], tmpwd0
     sertxd(tmpwd0, cr, lf) ; Print what the user just wrote in case using a terminal that does not show it.
 
     ; Check what the input actually was
     select case tmpwd0
-        case "u"
-;#sertxd("Record,On Time", cr, lf) 'Evaluated below
-gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 358
-rtrn = 373
-gosub print_table_sertxd
-            gosub buffer_restore
-            gosub buffer_upload
         case "p"
 ;#sertxd("Programming mode. NOT MONITORING! Anything sent resets", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 374
-rtrn = 429
+param1 = 368
+rtrn = 423
 gosub print_table_sertxd
             high B.3
             reconnect
@@ -517,22 +534,22 @@ gosub print_table_sertxd
         else
 ;#sertxd("Unknown command", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 430
-rtrn = 446
+param1 = 424
+rtrn = 440
 gosub print_table_sertxd
     end select
 
 user_interface_end:
 ;#sertxd(cr, lf, "Returning to monitoring", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
-param1 = 447
-rtrn = 473
+param1 = 441
+rtrn = 467
 gosub print_table_sertxd
     return
 
 add_temp_hum:
     ; Reads the temperature and humidity from the sensor and adds it to a packet.
-    ; Modifies tmpwd0, tmpwd1, rtrn
+    ; Modifies tmpwd0, tmpwd1, tmpwd2, rtrn, tmpbt0
     '--START OF MACRO: TEMP_HUM_I2C
     hi2csetup i2cmaster, AHT20_DEF_I2C_ADDR, i2cslow_32, i2cbyte
 '--END OF MACRO: TEMP_HUM_I2C()
@@ -540,29 +557,78 @@ add_temp_hum:
     pause CMD_MEASUREMENT_TIME
     
     ; Big endian
-    ; status, hum, hum, hum / temp, temp, temp, crc if requested.
-    hi2cin (tmpwd0l, rtrnh, rtrnl, tmpwd0h, tmpwd1l, tmpwd1h)
+    ; status, hum, hum, hum / temp, temp, temp, crc.
+    hi2cin (tmpwd0l, tmpwd2h, tmpwd2l, tmpwd0h, tmpwd1l, tmpwd1h, tmpbt0)
 
-    ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
-    rtrn = rtrn ** 100
-    sertxd("Humidity: ", #rtrn, " %", cr, lf)
-    @bptrinc = "H"
-    gosub add_word
-
-    ; Unpack temperature.
-    ; Extract the 16MSB
-    rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
-    rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
-    tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
-    rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+    ; Check the checksum. (fall through)
+compute_aht20_crc8:
+    ; Different from PJON. Computes the CRC8 for verifying temperatue and humidity readings.
+    ; rtrnl contains the result. rtrnl and rtrnh are modified.
+    rtrnl = 0xff ; CRC Value
     
-    ; Magic conversions. Ends up as 2's complement if negative.
-    rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
-    
-    sertxd("Temperature: ", #rtrn, " *0.1C", cr, lf)
-    @bptrinc = "T"
-    gosub add_word
+    ; Using an unrolled loop so I don't need to use indexing.
+    rtrnl = rtrnl ^ tmpwd0l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd2h
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd2l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd0h
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd1l
+    gosub aht20_crc8_roll
+    rtrnl = rtrnl ^ tmpwd1h
+    gosub aht20_crc8_roll
+    ; Finished calculations. Fall through to save memory.
 
+compute_aht20_crc8_return:
+    ; Check that the busy flag and calibrated bits are set correctly:
+    tmpwd0l = tmpwd0l & 0x88
+    if rtrnl = tmpbt0 and tmpwd0l = 0x08 then
+        ; Matches
+        ; Unpack humidity (chucking away the bottom 4 bits as insignificant)
+        tmpwd2 = tmpwd2 ** 100
+        @bptrinc = "H"
+        @bptrinc = tmpwd2l ; Single byte only.
+
+        ; Unpack temperature.
+        ; Extract the 16MSB
+        rtrnl = tmpwd1l & 0xf0 / 0x10 ; Bottom nibble of top byte.
+        rtrnh = tmpwd0h & 0x0f * 0x10 + rtrnl; Top 4 bits + bottom.
+        tmpwd0h = tmpwd1h & 0xf0 / 0x10 ; Bottom nibble of bottom byte.
+        rtrnl = tmpwd1l & 0x0f * 0x10 + tmpwd0h; Bottom byte
+        
+        ; Magic conversions. Ends up as 2's complement if negative.
+        rtrn = rtrn ** 2000 - 500; Already chucked out the bottom 16 bits in the low word.
+        
+        sertxd("Temp: ", #rtrn, " *0.1C", cr, lf, "Humid: ", #tmpwd2l, " %", cr, lf)
+        @bptrinc = "T"
+        gosub add_word
+    else
+        ; Checksum didn't match. Try to initialise for next time.
+;#sertxd("AHT20 CRC fail, busy or not initialised.", cr, lf) 'Evaluated below
+gosub backup_table_sertxd ; Save the values currently in the variables
+param1 = 468
+rtrn = 509
+gosub print_table_sertxd
+        '--START OF MACRO: TEMP_HUM_INIT
+    hi2cout (CMD_INIT, CMD_INIT_PARAMS_1ST, CMD_INIT_PARAMS_2ND)
+    pause CMD_INIT_TIME
+'--END OF MACRO: TEMP_HUM_INIT()
+    endif
+    return
+
+aht20_crc8_roll:
+    ; rtrnl contains the current crc to be operated on.
+    ; rtrnh is modified.
+    for rtrnh = 1 to 8
+        if rtrnl >= 0x80 then
+            ; Same as if (rtrnl & 0x80)
+            rtrnl = rtrnl * 2 ^ 0x31
+        else
+            rtrnl = rtrnl * 2
+        endif
+    next rtrnh
     return
 
 '---BEGIN include/CircularBuffer.basinc ---
@@ -587,28 +653,31 @@ buffer_restore:
 	peek 124, buffer_starth
 	return
 
-buffer_upload:
-	; Prints all stored data in the buffer to the serial console as csv in the form
-	; position, data
-	;
-	; Variables modified: tmpwd0, tmpwd1, tmpwd2
-	; Variables read: buffer_start, buffer_length
-	tmpwd1 = buffer_start
-	for tmpwd0 = 1 to buffer_length
-		'--START OF MACRO: EEPROM_SETUP
-	; ADDR is a word
-	; TMPVAR is a byte
-	; I2C address
-	 tmpwd2l = tmpwd1 / 128 & %00001110
-	 tmpwd2l =  tmpwd2l | %10100000
-    ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
-	hi2csetup i2cmaster,  tmpwd2l, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
-'--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
-		hi2cin tmpwd1l, (tmpwd2h, tmpwd2l)
-		sertxd(#tmpwd0, ",", #tmpwd2, cr, lf)
-		tmpwd1 = tmpwd1 + 2 % 2048
-	next tmpwd0
-	return
+; ; #IFDEF INCLUDE_BUFFER_UPLOAD [#IF CODE REMOVED]
+; buffer_upload: [#IF CODE REMOVED]
+; 	; Prints all stored data in the buffer to the serial console as csv in the form [#IF CODE REMOVED]
+; 	; position, data [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables modified: tmpwd0, tmpwd1, tmpwd2 [#IF CODE REMOVED]
+; 	; Variables read: buffer_start, buffer_length [#IF CODE REMOVED]
+; 	tmpwd1 = buffer_start [#IF CODE REMOVED]
+; 	for tmpwd0 = 1 to buffer_length [#IF CODE REMOVED]
+; 		'--START OF MACRO: EEPROM_SETUP
+; 	; ADDR is a word
+; 	; TMPVAR is a byte
+; 	; I2C address
+; 	TMPVAR = ADDR / 128 & %00001110
+; 	TMPVAR = TMPVAR | %10100000
+;     ; sertxd(" (", #ADDR, ", ", #TMPVAR, ")")
+; 	hi2csetup i2cmaster, TMPVAR, i2cslow_32, i2cbyte ; Reduce clock speeds when running at 3.3v
+; '--END OF MACRO: EEPROM_SETUP(tmpwd1, tmpwd2l)
+; [#IF CODE REMOVED]
+; 		hi2cin tmpwd1l, (tmpwd2h, tmpwd2l) [#IF CODE REMOVED]
+; 		sertxd(#tmpwd0, ",", #tmpwd2, cr, lf) [#IF CODE REMOVED]
+; 		tmpwd1 = tmpwd1 + 2 % 2048 [#IF CODE REMOVED]
+; 	next tmpwd0 [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+; #ENDIF
 
 buffer_average: ; TODO: Exclude everthing above base
 	; Returns the average of the contents of the buffer
@@ -2046,21 +2115,22 @@ print_table_sertxd:
     return
 
 table 0, ("Pump Monitor ","v2.2.0"," MAIN",cr,lf,"Jotham Gates, Compiled ","27-01-2024",cr,lf) ;#sertxd
-table 61, ("Long status",cr,lf) ;#sertxd
-table 74, ("Pump on time: ") ;#sertxd
-table 88, ("Average on time: ") ;#sertxd
-table 105, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd
-table 163, ("Resetting because LoRa failed.",cr,lf) ;#sertxd
-table 195, ("Done sending",cr,lf,cr,lf) ;#sertxd
-table 211, ("Short status",cr,lf) ;#sertxd
-table 225, ("Uptime: ") ;#sertxd
-table 233, (cr,lf,"Block time: ") ;#sertxd
-table 247, (cr,lf,"On Time (not including current start): ") ;#sertxd
-table 288, (cr,lf,"Options:",cr,lf," u Upload data in buffer as csv",cr,lf," p Programming mode",cr,lf,">>> ") ;#sertxd
-table 358, ("Record,On Time",cr,lf) ;#sertxd
-table 374, ("Programming mode. NOT MONITORING! Anything sent resets",cr,lf) ;#sertxd
-table 430, ("Unknown command",cr,lf) ;#sertxd
-table 447, (cr,lf,"Returning to monitoring",cr,lf) ;#sertxd
+table 61, ("AHT20 busy",cr,lf) ;#sertxd
+table 73, ("Long status",cr,lf) ;#sertxd
+table 86, ("Pump on time: ") ;#sertxd
+table 100, ("Average on time: ") ;#sertxd
+table 117, ("LoRa failed. Will reset in a minute to see if that helps",cr,lf) ;#sertxd
+table 175, ("Resetting because LoRa failed.",cr,lf) ;#sertxd
+table 207, ("Done sending",cr,lf,cr,lf) ;#sertxd
+table 223, ("Short status",cr,lf) ;#sertxd
+table 237, ("Uptime: ") ;#sertxd
+table 245, (cr,lf,"Block time: ") ;#sertxd
+table 259, (cr,lf,"On Time (not including current start): ") ;#sertxd
+table 300, (cr,lf,"Options (more available in bootloader):",cr,lf," p Programming mode",cr,lf,">>> ") ;#sertxd
+table 368, ("Programming mode. NOT MONITORING! Anything sent resets",cr,lf) ;#sertxd
+table 424, ("Unknown command",cr,lf) ;#sertxd
+table 441, (cr,lf,"Returning to monitoring",cr,lf) ;#sertxd
+table 468, ("AHT20 CRC fail, busy or not initialised.",cr,lf) ;#sertxd
 print_newline_sertxd:
     sertxd(cr, lf)
     return

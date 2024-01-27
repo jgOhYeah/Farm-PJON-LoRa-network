@@ -2,7 +2,7 @@
 ; Handles reading and writing to and from a circular buffer in eeprom
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 15/03/2021
+; Modified 27/01/2024
 buffer_backup:
 	; Saves buffer_start and buffer_length to storage ram so it can be used for something else
 	poke BUFFER_LENGTH_BACKUP_LOC_L, buffer_lengthl
@@ -19,6 +19,7 @@ buffer_restore:
 	peek BUFFER_START_BACKUP_LOC_H, buffer_starth
 	return
 
+#IFDEF INCLUDE_BUFFER_UPLOAD
 buffer_upload:
 	; Prints all stored data in the buffer to the serial console as csv in the form
 	; position, data
@@ -33,6 +34,7 @@ buffer_upload:
 		tmpwd1 = tmpwd1 + 2 % BUFFER_SIZE
 	next tmpwd0
 	return
+#ENDIF
 
 buffer_average: ; TODO: Exclude everthing above base
 	; Returns the average of the contents of the buffer

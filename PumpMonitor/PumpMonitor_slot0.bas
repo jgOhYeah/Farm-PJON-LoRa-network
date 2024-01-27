@@ -11,6 +11,7 @@
 
 ; #COM /dev/ttyUSB0
 #DEFINE INCLUDE_BUFFER_INIT
+#DEFINE INCLUDE_BUFFER_UPLOAD
 #INCLUDE "include/PumpMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
 #INCLUDE "include/aht20.basinc"
@@ -24,6 +25,8 @@ init:
 	;#sertxd("Pump Monitor ", VERSION , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     gosub buffer_index
     gosub buffer_backup
+
+    pause 4000 ; Wait for a while to give the programmer a chance if need be.
 
     ;#sertxd("Press 't' for EEPROM tools or '`' for computers", cr, lf)
     low PIN_LED_ALARM

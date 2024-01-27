@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:06PM, January 27, 2024----
+'----UPDATED AT 08:52PM, January 27, 2024----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -16,6 +16,7 @@
 
 ; #COM /dev/ttyUSB0
 ; #DEFINE INCLUDE_BUFFER_INIT
+; #DEFINE INCLUDE_BUFFER_UPLOAD
 '---BEGIN include/PumpMonitorCommon.basinc ---
 ; Pump duty cycle monitor common code
 ; Defines and symbols shared between each slot
@@ -240,6 +241,8 @@ rtrn = 66
 gosub print_table_sertxd
     gosub buffer_index
     gosub buffer_backup
+
+    pause 4000 ; Wait for a while to give the programmer a chance if need be.
 
 ;#sertxd("Press 't' for EEPROM tools or '`' for computers", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
@@ -1284,6 +1287,7 @@ buffer_restore:
 	peek 124, buffer_starth
 	return
 
+; #IFDEF INCLUDE_BUFFER_UPLOAD
 buffer_upload:
 	; Prints all stored data in the buffer to the serial console as csv in the form
 	; position, data
@@ -1306,6 +1310,7 @@ buffer_upload:
 		tmpwd1 = tmpwd1 + 2 % 2048
 	next tmpwd0
 	return
+; #ENDIF
 
 buffer_average: ; TODO: Exclude everthing above base
 	; Returns the average of the contents of the buffer
