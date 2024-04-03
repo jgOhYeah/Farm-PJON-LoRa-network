@@ -2,9 +2,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 27/01/2024
+; Modified 03/04/2024
 
-#DEFINE VERSION "v2.2.0"
+#DEFINE VERSION "v2.2.1"
 
 #DEFINE TABLE_SERTXD_BACKUP_VARS
 #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -87,27 +87,28 @@ symbol rtrn = w13
 symbol rtrnl = b26
 symbol rtrnh = b27
 
+; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
+#DEFINE INTERVAL_START_BACKUP_LOC_L 121
+#DEFINE INTERVAL_START_BACKUP_LOC_H 122
+
 ; To save and restore the words used by the buffer
 #DEFINE BUFFER_START_BACKUP_LOC_L 123
 #DEFINE BUFFER_START_BACKUP_LOC_H 124
 #DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
 #DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
+; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here, defined above.
 
-; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
-#DEFINE INTERVAL_START_BACKUP_LOC_L 121
-#DEFINE INTERVAL_START_BACKUP_LOC_H 122
-
-#DEFINE MAX_TIME_LOC_L 132
-#DEFINE MAX_TIME_LOC_H 133
-#DEFINE MIN_TIME_LOC_L 134
-#DEFINE MIN_TIME_LOC_H 135
-#DEFINE SWITCH_ON_COUNT_LOC_L 136
-#DEFINE SWITCH_ON_COUNT_LOC_H 137
-#DEFINE STD_TIME_LOC_L 138 ; TODO see https://math.stackexchange.com/a/1769248 for a possible implementations
-#DEFINE STD_TIME_LOC_H 139
+; #DEFINE MAX_TIME_LOC_L 132
+; #DEFINE MAX_TIME_LOC_H 133
+; #DEFINE MIN_TIME_LOC_L 134
+; #DEFINE MIN_TIME_LOC_H 135
+#DEFINE SWITCH_ON_COUNT_LOC_L 132
+#DEFINE SWITCH_ON_COUNT_LOC_H 133
+; #DEFINE STD_TIME_LOC_L 138 ; TODO see https://math.stackexchange.com/a/1769248 for a possible implementations
+; #DEFINE STD_TIME_LOC_H 139
 ; #DEFINE BLOCK_ON_TIME 140
 ; #DEFINE BLOCK_ON_TIME 141
-#DEFINE STORE_INTERVAL_COUNT_LOC 140 ; Used to count the number of sub intervals that have elapsed.
+#DEFINE STORE_INTERVAL_COUNT_LOC 134 ; Used to count the number of sub intervals that have elapsed.
 
 #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
@@ -180,10 +181,10 @@ symbol rtrnh = b27
 
 #MACRO RESET_STATS()
 	; Reset all of the above
-    poke MAX_TIME_LOC_L, 0
-    poke MAX_TIME_LOC_H, 0
-    poke MIN_TIME_LOC_L, 255
-    poke MIN_TIME_LOC_H, 255
+    ; poke MAX_TIME_LOC_L, 0
+    ; poke MAX_TIME_LOC_H, 0
+    ; poke MIN_TIME_LOC_L, 255
+    ; poke MIN_TIME_LOC_H, 255
     poke SWITCH_ON_COUNT_LOC_L, 0
     poke SWITCH_ON_COUNT_LOC_H, 0
 #ENDMACRO

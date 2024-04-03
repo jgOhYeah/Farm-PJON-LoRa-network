@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 08:52PM, January 27, 2024----
+'----UPDATED AT 02:45PM, April 03, 2024----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -22,9 +22,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 27/01/2024
+; Modified 03/04/2024
 
-; #DEFINE VERSION "v2.2.0"
+; #DEFINE VERSION "v2.2.1"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -107,27 +107,28 @@ symbol rtrn = w13
 symbol rtrnl = b26
 symbol rtrnh = b27
 
+; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
+; #DEFINE INTERVAL_START_BACKUP_LOC_L 121
+; #DEFINE INTERVAL_START_BACKUP_LOC_H 122
+
 ; To save and restore the words used by the buffer
 ; #DEFINE BUFFER_START_BACKUP_LOC_L 123
 ; #DEFINE BUFFER_START_BACKUP_LOC_H 124
 ; #DEFINE BUFFER_LENGTH_BACKUP_LOC_L 125
 ; #DEFINE BUFFER_LENGTH_BACKUP_LOC_H 126
-
-; To save and restore the time at the start of the interval so that hopefully the time between calls is always 30 minutes no matter how long the call is.
-; #DEFINE INTERVAL_START_BACKUP_LOC_L 121
-; #DEFINE INTERVAL_START_BACKUP_LOC_H 122
+; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here, defined above.
 
 ; #DEFINE MAX_TIME_LOC_L 132
 ; #DEFINE MAX_TIME_LOC_H 133
 ; #DEFINE MIN_TIME_LOC_L 134
 ; #DEFINE MIN_TIME_LOC_H 135
-; #DEFINE SWITCH_ON_COUNT_LOC_L 136
-; #DEFINE SWITCH_ON_COUNT_LOC_H 137
+; #DEFINE SWITCH_ON_COUNT_LOC_L 132
+; #DEFINE SWITCH_ON_COUNT_LOC_H 133
 ; #DEFINE STD_TIME_LOC_L 138 ; TODO see https://math.stackexchange.com/a/1769248 for a possible implementations
 ; #DEFINE STD_TIME_LOC_H 139
 ; #DEFINE BLOCK_ON_TIME 140
 ; #DEFINE BLOCK_ON_TIME 141
-; #DEFINE STORE_INTERVAL_COUNT_LOC 140 ; Used to count the number of sub intervals that have elapsed.
+; #DEFINE STORE_INTERVAL_COUNT_LOC 134 ; Used to count the number of sub intervals that have elapsed.
 
 ; #DEFINE EEPROM_ALARM_CONSECUTIVE_BLOCKS 0
 ; #DEFINE EEPROM_ALARM_MULT_NUM 1 ; Multiplier for the average (numerator)
@@ -234,7 +235,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.2.0" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "27-01-2024", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.2.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "03-04-2024", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -306,12 +307,12 @@ gosub print_table_sertxd
     ; Used in slot 2
     '--START OF MACRO: RESET_STATS
 	; Reset all of the above
+    ; poke MAX_TIME_LOC_L, 0
+    ; poke MAX_TIME_LOC_H, 0
+    ; poke MIN_TIME_LOC_L, 255
+    ; poke MIN_TIME_LOC_H, 255
     poke 132, 0
     poke 133, 0
-    poke 134, 255
-    poke 135, 255
-    poke 136, 0
-    poke 137, 0
 '--END OF MACRO: RESET_STATS()
     ; Fall throught to start slot 1 if the received char wasn't "t".
 ;#sertxd("Starting slot 1", cr, lf, "------", cr, lf, cr, lf) 'Evaluated below
@@ -1270,7 +1271,7 @@ spi_byte:
 ; Handles reading and writing to and from a circular buffer in eeprom
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 15/03/2021
+; Modified 27/01/2024
 buffer_backup:
 	; Saves buffer_start and buffer_length to storage ram so it can be used for something else
 	poke 125, buffer_lengthl
@@ -1516,7 +1517,7 @@ print_table_sertxd:
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.2.0"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","27-01-2024",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.2.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","03-04-2024",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
 table 116, ("AHT20 busy or NC.",cr,lf) ;#sertxd
 table 135, ("LoRa Failed to connect. Will reset to try again in 15s.",cr,lf) ;#sertxd

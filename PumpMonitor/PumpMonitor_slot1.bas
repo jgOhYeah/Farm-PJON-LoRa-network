@@ -2,7 +2,7 @@
 ; Designed to detect if the pump is running excessively because of a leak or lost prime.
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 27/04/2024
+; Modified 03/04/2024
 ; NOTE: Need to swap pins C.2 and B.3 from V1 as the current shunt needs to be connected to an interrupt
 ; capable pin (schematic should be updated to match)
 ; TODO: Make smaller
@@ -54,7 +54,8 @@ main:
 
         ; Check if this is a sub interval or the main deal.
         peek STORE_INTERVAL_COUNT_LOC, tmpwd0l
-        inc tmpwd0l ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
+        tmpwd0l = tmpwd0l + 1 ; Poking this back in each side of the if statement so that tmpwd0l doesn't get modified accidentally.
+        sertxd("Sub int ", #tmpwd0l, cr, lf)
         if tmpwd0l >= STORE_SUBS then
             ; Main store / analyse pump occured.
             tmpwd0l = 0
@@ -202,10 +203,9 @@ send_short_status:
 add_word:
 	; Adds a word to @bptr in little endian format.
 	; rtrn contains the word to add (it is a word)
-	@bptrinc = rtrn & 0xff
-	@bptrinc = rtrn / 0xff
+	@bptrinc = rtrnl
+	@bptrinc = rtrnh
 	return
-
 
 user_interface:
     ; Print help and ask for input
