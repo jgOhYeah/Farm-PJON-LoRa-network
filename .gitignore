@@ -2,3 +2,8 @@
 */compiled.err
 */compiled*.err
 *-backups/
+
+# LTspice
+*.net
+*.raw
+*.log
