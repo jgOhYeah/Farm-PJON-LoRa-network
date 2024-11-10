@@ -1,6 +1,6 @@
 ; Pins
-symbol PIN_WATER = B.2
-symbol PIN_LED = B.1
+symbol PIN_WATER = B.1
+symbol PIN_LED = B.4
 
 init:
     sertxd("Touch test", cr, lf)

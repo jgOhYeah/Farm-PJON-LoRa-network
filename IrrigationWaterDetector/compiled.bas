@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 08:35PM, November 26, 2021----
+'----UPDATED AT 12:57AM, November 11, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN IrrigationWaterDetector.bas ---
@@ -8,9 +8,9 @@
 ; Jotham Gates, November 2021
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
-#picaxe 18M2      'CHIP VERSION PARSED
+#picaxe 14M2      'CHIP VERSION PARSED
 #terminal 38400
-; #define VERSION "v0.1.0"
+; #define VERSION "v0.2.0"
 #NO_DATA
 
 '---BEGIN include/symbols.basinc ---
@@ -23,12 +23,12 @@
 
 ; Pins
 ; LoRa module
-symbol SS = C.6
-symbol SCK = C.0
-symbol MOSI = C.7
-symbol MISO = pinB.0
-symbol RST = C.1
-symbol DIO0 = pinC.5 ; High when a packet has been received
+symbol SS = B.5
+symbol SCK = C.1
+symbol MOSI = C.4
+symbol MISO = pinC.2
+symbol RST = C.0
+symbol DIO0 = pinC.3 ; High when a packet has been received
 
 ; Variables
 symbol mask = b1
@@ -90,8 +90,8 @@ symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 ; #define TABLE_SERTXD_TMP_BYTE b16
 
 ; Pins
-symbol PIN_WATER = B.2
-symbol PIN_LED = B.1
+symbol PIN_WATER = B.1
+symbol PIN_LED = B.4
 symbol IN_PIN_RATE_SELECT = pinB.3
 symbol MASK_RATE_SELECT = %00001000
 
@@ -99,7 +99,9 @@ init:
     ; Initial setup
     setfreq m32
     pullup MASK_RATE_SELECT
-;#sertxd("Irrigation water detector ", "v0.1.0", cr, lf, "By Jotham Gates, Compiled ", "26-11-2021", cr, lf) 'Evaluated below
+	high PIN_LED
+	sleep 1
+;#sertxd("Irrigation water detector ", "v0.2.0", cr, lf, "By Jotham Gates, Compiled ", "11-11-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 71
 gosub print_table_sertxd
@@ -123,10 +125,10 @@ gosub print_table_sertxd
 
 	; gosub idle_lora ; 4.95mA
 	gosub sleep_lora ; 3.16mA
+	LOW PIN_LED
 
 main:
     ; Measure the capacitance and send it
-    high PIN_LED
 ;#sertxd("Sending packet", cr, lf) 'Evaluated below
 w6 = 108
 w7 = 123
@@ -145,9 +147,18 @@ gosub print_table_sertxd
     sertxd(#rtrn, cr, lf)
     gosub add_word
 
+	; Battery voltage
+	@bptrinc = "V"
+	calibadc10 rtrn ; Do twice to try to make a bit more stable?
+	calibadc10 rtrn
+	rtrn = 10476/rtrn
+	gosub add_word
+
     ; Send the packet
+	high PIN_LED
     param1 = UPRSTEAM_ADDRESS
     gosub end_pjon_packet ; Stack is 6
+	low PIN_LED
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa dropped out.") 'Evaluated below
 w6 = 132
@@ -173,7 +184,6 @@ w7 = 181
 gosub print_table_sertxd
 		endif
 	endif
-	low PIN_LED
 
 ;#sertxd("Packet sent. Entering sleep mode", cr, lf) 'Evaluated below
 w6 = 182
@@ -182,17 +192,17 @@ gosub print_table_sertxd
 	gosub sleep_lora
 
     ; Sleep for a while
-    setfreq m4
+	disablebod
     if IN_PIN_RATE_SELECT = 0 then
 ;#sertxd("Fast mode enabled", cr, lf) 'Evaluated below
 w6 = 216
 w7 = 234
 gosub print_table_sertxd
-        pause 10000
+		sleep 4
     else
-        pause 60000
-        pause 60000
+		sleep 13
     endif
+	enablebod
     setfreq m32
     goto main
 
@@ -313,7 +323,7 @@ begin_lora:
 	param1 = REG_VERSION
 	gosub read_register
 	if rtrn != 0x12 then
-		; sertxd("Got: ",#rtrn," ")
+		sertxd("Got: ",#rtrn," ")
 		rtrn = 0
 		return
 	endif
@@ -1374,13 +1384,13 @@ crc32_compute:
 '---Extras added by the preprocessor---
 print_table_sertxd:
     for w6 = w6 to w7
-    readtable w6, b16
-    sertxd(b16)
-next w6
+        readtable w6, b16
+        sertxd(b16)
+    next w6
 
     return
 
-table 0, ("Irrigation water detector ","v0.1.0",cr,lf,"By Jotham Gates, Compiled ","26-11-2021",cr,lf) ;#sertxd
+table 0, ("Irrigation water detector ","v0.2.0",cr,lf,"By Jotham Gates, Compiled ","11-11-2024",cr,lf) ;#sertxd
 table 72, ("Failed to start LoRa",cr,lf) ;#sertxd
 table 94, ("LoRa Started",cr,lf) ;#sertxd
 table 108, ("Sending packet",cr,lf) ;#sertxd
