@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 12:57AM, November 11, 2024----
+'----UPDATED AT 12:17PM, November 11, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN IrrigationWaterDetector.bas ---
@@ -92,6 +92,7 @@ symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 ; Pins
 symbol PIN_WATER = B.1
 symbol PIN_LED = B.4
+symbol PIN_UNUSED = B.2 ; Set this to a known state so that 
 symbol IN_PIN_RATE_SELECT = pinB.3
 symbol MASK_RATE_SELECT = %00001000
 
@@ -99,8 +100,9 @@ init:
     ; Initial setup
     setfreq m32
     pullup MASK_RATE_SELECT
+	low PIN_UNUSED
 	high PIN_LED
-	sleep 1
+	nap 4
 ;#sertxd("Irrigation water detector ", "v0.2.0", cr, lf, "By Jotham Gates, Compiled ", "11-11-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 71
@@ -135,6 +137,7 @@ w7 = 123
 gosub print_table_sertxd
     gosub begin_pjon_packet
 
+	high PIN_LED
     ; Water level
     @bptrinc = "w"
     setfreq m4 ; touch reading varies with clock speed
@@ -154,11 +157,12 @@ gosub print_table_sertxd
 	rtrn = 10476/rtrn
 	gosub add_word
 
+	low PIN_LED
+
     ; Send the packet
-	high PIN_LED
     param1 = UPRSTEAM_ADDRESS
     gosub end_pjon_packet ; Stack is 6
-	low PIN_LED
+	
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa dropped out.") 'Evaluated below
 w6 = 132
@@ -198,7 +202,7 @@ gosub print_table_sertxd
 w6 = 216
 w7 = 234
 gosub print_table_sertxd
-		sleep 4
+		sleep 2
     else
 		sleep 13
     endif
@@ -323,7 +327,7 @@ begin_lora:
 	param1 = REG_VERSION
 	gosub read_register
 	if rtrn != 0x12 then
-		sertxd("Got: ",#rtrn," ")
+		; sertxd("Got: ",#rtrn," ")
 		rtrn = 0
 		return
 	endif

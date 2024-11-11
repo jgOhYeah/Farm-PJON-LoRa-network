@@ -23,6 +23,7 @@
 ; Pins
 symbol PIN_WATER = B.1
 symbol PIN_LED = B.4
+symbol PIN_UNUSED = B.2 ; Set this to a known state so that 
 symbol IN_PIN_RATE_SELECT = pinB.3
 symbol MASK_RATE_SELECT = %00001000
 
@@ -30,8 +31,9 @@ init:
     ; Initial setup
     setfreq m32
     pullup MASK_RATE_SELECT
+	low PIN_UNUSED
 	high PIN_LED
-	sleep 1
+	nap 4
     ;#sertxd("Irrigation water detector ", VERSION, cr, lf, "By Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
     ; Attempt to start the module
 	gosub begin_lora
@@ -54,6 +56,7 @@ main:
     ;#sertxd("Sending packet", cr, lf)
     gosub begin_pjon_packet
 
+	high PIN_LED
     ; Water level
     @bptrinc = "w"
     setfreq m4 ; touch reading varies with clock speed
@@ -70,11 +73,12 @@ main:
 	rtrn = 10476/rtrn
 	gosub add_word
 
+	low PIN_LED
+
     ; Send the packet
-	high PIN_LED
     param1 = UPRSTEAM_ADDRESS
     gosub end_pjon_packet ; Stack is 6
-	low PIN_LED
+	
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 		;#sertxd("LoRa dropped out.")
 		for tmpwd = 0 to 15
@@ -99,7 +103,7 @@ main:
 	disablebod
     if IN_PIN_RATE_SELECT = 0 then
         ;#sertxd("Fast mode enabled", cr, lf)
-		sleep 4
+		sleep 2
     else
 		sleep 13
     endif
