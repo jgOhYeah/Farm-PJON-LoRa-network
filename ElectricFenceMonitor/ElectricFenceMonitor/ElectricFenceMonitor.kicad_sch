@@ -3778,16 +3778,6 @@
 	)
 	(wire
 		(pts
-			(xy 106.68 50.8) (xy 106.68 53.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9e8834d2-7605-4233-be40-8824df2081c4")
-	)
-	(wire
-		(pts
 			(xy 80.01 92.71) (xy 92.71 92.71)
 		)
 		(stroke
@@ -5375,71 +5365,6 @@
 			(project "ElectricFenceMonitor"
 				(path "/17c9612a-07a4-41df-91a9-f6c583bb55f9"
 					(reference "R10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 106.68 50.8 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "4c4a2081-2abd-47d8-b78c-da54a3383337")
-		(property "Reference" "#PWR03"
-			(at 106.68 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 107.061 46.4058 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 106.68 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 106.68 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 106.68 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "ecfb847f-39e0-4fa5-bd39-0161ea350d6f")
-		)
-		(instances
-			(project "ElectricFenceMonitor"
-				(path "/17c9612a-07a4-41df-91a9-f6c583bb55f9"
-					(reference "#PWR03")
 					(unit 1)
 				)
 			)
