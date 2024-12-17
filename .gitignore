@@ -1,6 +1,6 @@
 *.pyc
-*/compiled.err
-*/compiled*.err
+compiled.err
+compiled*.err
 *-backups/
 
 # LTspice
