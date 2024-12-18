@@ -1,6 +1,7 @@
 *.pyc
 compiled.err
 compiled*.err
+ElectricFenceMonitor/IsolatedTest/compiled.bas
 *-backups/
 
 # LTspice
