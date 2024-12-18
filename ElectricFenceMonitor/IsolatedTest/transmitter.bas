@@ -10,9 +10,12 @@
 #define out w3
 #define out_l b6
 #define out_h b7
+#define letter b8
 
 init:
+    setfreq m32
     out = 0
+    letter = "a"
     sertxd("Isolated test - transmitter", cr, lf)
 
 main:
@@ -34,5 +37,11 @@ main:
     irout PIN_IR, 1, result_l
     pause 48
     irout PIN_IR, 1, result_h
-    sertxd(#out, cr, lf)
+
+    ; Serial print
+    sertxd(letter, " ", #out, cr, lf)
+    inc letter
+    if letter > "z" then
+        letter = "a"
+    endif
     goto main
