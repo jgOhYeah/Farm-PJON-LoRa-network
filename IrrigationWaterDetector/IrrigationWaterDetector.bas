@@ -1,6 +1,6 @@
 ; IrrigationWaterDetector.bas
 ; A remote LoRa water detector for use with flood irrigation
-; Jotham Gates, November 2021
+; Jotham Gates, November 2024
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 #picaxe 14M2

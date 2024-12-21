@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 12:17PM, November 11, 2024----
+'----UPDATED AT 10:57AM, December 14, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN IrrigationWaterDetector.bas ---
@@ -103,7 +103,7 @@ init:
 	low PIN_UNUSED
 	high PIN_LED
 	nap 4
-;#sertxd("Irrigation water detector ", "v0.2.0", cr, lf, "By Jotham Gates, Compiled ", "11-11-2024", cr, lf) 'Evaluated below
+;#sertxd("Irrigation water detector ", "v0.2.0", cr, lf, "By Jotham Gates, Compiled ", "14-12-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 71
 gosub print_table_sertxd
@@ -1394,7 +1394,7 @@ print_table_sertxd:
 
     return
 
-table 0, ("Irrigation water detector ","v0.2.0",cr,lf,"By Jotham Gates, Compiled ","11-11-2024",cr,lf) ;#sertxd
+table 0, ("Irrigation water detector ","v0.2.0",cr,lf,"By Jotham Gates, Compiled ","14-12-2024",cr,lf) ;#sertxd
 table 72, ("Failed to start LoRa",cr,lf) ;#sertxd
 table 94, ("LoRa Started",cr,lf) ;#sertxd
 table 108, ("Sending packet",cr,lf) ;#sertxd

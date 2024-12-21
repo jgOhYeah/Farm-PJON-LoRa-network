@@ -1,0 +1,88 @@
+; BatteryVoltsMonitor_slot0.bas
+; A remote LoRa battery monitor and electric fence energiser switch
+; (Bootloader).
+; Written by Jotham Gates
+; Created 22/02/2023
+; Modified 22/02/2023
+;
+; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
+;
+; FLASH MODES:
+; Sleeping: One flash ~once per minute
+; Actively listening: One flash every half second
+; Cannot connect to LoRa module on start: Constant long flashes (on half second, off half second).
+;
+#SLOT 0
+; We do want eeprom data for defaults.
+
+#INCLUDE "include/BatteryVoltsMonitorCommon.basinc"
+#INCLUDE "include/symbols.basinc"
+#INCLUDE "include/generated.basinc"
+; #DEFINE ENABLE_LORA_RECEIVE
+; #DEFINE ENABLE_PJON_RECEIVE
+; #DEFINE ENABLE_LORA_TRANSMIT
+; #DEFINE ENABLE_PJON_TRANSMIT
+#PICAXE 14M2
+#TERMINAL 38400
+
+; Default settings on upload
+eeprom EEPROM_FENCE_ENABLED, (DEFAULT_FENCE_ENABLED)
+eeprom EEPROM_TX_ENABLED, (DEFAULT_TX_ENABLED)
+eeprom EEPROM_TX_INTERVALS, (DEFAULT_TX_INTERVALS)
+
+init:
+    ; Initial setup
+	setfreq m32
+	high LED_PIN
+    ;#sertxd(NAME, " ", VERSION , " BOOTLOADER", cr,lf, "Jotham Gates, Compiled ", ppp_date_uk, cr, lf, "Seeing as I have lots of space in the bootloader section, here is a URL to look at:", cr, lf, URL, cr, lf)
+
+	; Load settings from EEPROM
+	read EEPROM_FENCE_ENABLED, fence_enable
+	read EEPROM_TX_ENABLED,  transmit_enable
+	read EEPROM_TX_INTERVALS, tx_intervals
+	if fence_enable = 1 then
+		high FENCE_PIN
+	else
+		low FENCE_PIN
+	endif
+
+	poke RAM_ITERATIONS_COUNT_L, 0, 0 ; Set iterations count to 0
+
+	; Attempt to start the module
+	gosub begin_lora
+	if rtrn = 0 then
+		;#sertxd("LoRa Failed",cr,lf)
+		goto failed
+	else
+		;#sertxd("LoRa Started",cr,lf)
+	endif
+
+	; Set the spreading factor
+	gosub set_spreading_factor
+
+	; gosub idle_lora ; 4.95mA
+	; gosub sleep_lora ; 3.16mA
+	; gosub setup_lora_receive ; 14mA
+	; Everything in sleep ; 0.18 to 0.25mA
+	; Finish setup
+
+	;#sertxd("Starting slot 1...", cr, lf, cr, lf)
+	low LED_PIN
+
+    run 1
+
+failed:
+	tmpwd_l = 0
+failed_loop:
+	; Flashes the LED on and off to give an indication it isn't happy.
+	toggle LED_PIN
+	pause 4000
+	if tmpwd_l > FAILED_RESET_ITERATIONS_COUNT then
+		;#sertxd("Resetting...", cr, lf, cr, lf)
+		reset
+	endif
+	inc tmpwd_l
+	goto failed_loop
+
+; Libraries that will not be run first thing.
+#INCLUDE "include/LoRa.basinc"

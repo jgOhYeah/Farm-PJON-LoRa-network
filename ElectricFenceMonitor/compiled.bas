@@ -1,17 +1,17 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 10:33PM, December 18, 2024----
+'----UPDATED AT 08:26PM, December 21, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN ElectricFenceMonitor.bas ---
 ; ElectricFenceMonitor.bas
 ; A remote LoRa electric fence monitor.
 ; Jotham Gates, December 2024
-; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
+; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
 
 #picaxe 14M2      'CHIP VERSION PARSED
 #terminal 38400
 ; #define VERSION "v0.0.0"
-#NO_DATA
+#no_data
 
 '---BEGIN include/symbols.basinc ---
 ; symbols.basinc
@@ -90,20 +90,22 @@ symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 ; #define TABLE_SERTXD_TMP_BYTE b16
 
 ; Pins
-symbol PIN_FENCE = B.1
+symbol PIN_ADC_REF = B.1
+symbol PIN_FENCE_SW = B.2
+symbol PIN_FENCE_PEAK = B.3
 symbol PIN_LED = B.4
-symbol PIN_UNUSED = B.2 ; Set this to a known state so that 
-symbol IN_PIN_RATE_SELECT = pinB.3
-symbol MASK_RATE_SELECT = %00001000
+
+; Calibration
+symbol CAL_OFFSET = 55
+symbol CAL_NUM = 7
+symbol CAL_DEN = 82
 
 init:
     ; Initial setup
     setfreq m32
-    pullup MASK_RATE_SELECT
-	low PIN_UNUSED
 	high PIN_LED
 	nap 4
-;#sertxd("Electric fence monitor ", "v0.0.0", cr, lf, "By Jotham Gates, Compiled ", "18-12-2024", cr, lf) 'Evaluated below
+;#sertxd("Electric fence monitor ", "v0.0.0", cr, lf, "By Jotham Gates, Compiled ", "21-12-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 68
 gosub print_table_sertxd
@@ -131,24 +133,31 @@ gosub print_table_sertxd
 
 main:
     ; Measure the capacitance and send it
-;#sertxd("Sending packet", cr, lf) 'Evaluated below
-w6 = 105
-w7 = 120
-gosub print_table_sertxd
-    gosub begin_pjon_packet
-
+    ; // #sertxd("Sending packet", cr, lf)
 	high PIN_LED
+	high PIN_FENCE_SW
+	adcconfig %010 ; Use the PIN_ADC_REF as the positive reference.
+    gosub begin_pjon_packet
+	low PIN_LED
 
-    ; Fence voltage
+    ; Fence voltage measurement
     @bptrinc = "k"
-	readadc PIN_FENCE, param1 ; Clear any previous values in the mux.
+	readadc PIN_FENCE_PEAK, param1 ; Clear any previous values in the mux.
     param1 = 0
     for tmpwd = 1 to 7000
-        readadc PIN_FENCE, param2
+        readadc PIN_FENCE_PEAK, param2
         if param2 > param1 then
             param1 = param2
         endif
     next tmpwd
+
+	; Return back to normal and scale result
+	low PIN_FENCE_SW
+	adcconfig %000 ; Set positive reference back to normal.
+	if param1 < CAL_OFFSET then ; Stop underflow.
+		param1 = CAL_OFFSET
+	endif
+	; @bptrinc = param1 * CAL_NUM / CAL_DEN
 	@bptrinc = param1
 
 	; Battery voltage
@@ -158,7 +167,8 @@ gosub print_table_sertxd
 	rtrn = 10476/rtrn
 	gosub add_word
 
-	low PIN_LED
+
+	high PIN_LED
 
     ; Send the packet
     param1 = UPRSTEAM_ADDRESS
@@ -166,8 +176,8 @@ gosub print_table_sertxd
 	
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa dropped out.") 'Evaluated below
-w6 = 121
-w7 = 137
+w6 = 105
+w7 = 121
 gosub print_table_sertxd
 		for tmpwd = 0 to 15
 			toggle PIN_LED
@@ -177,36 +187,27 @@ gosub print_table_sertxd
 		gosub begin_lora ; Stack is 6
 		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
 ;#sertxd("Reconnected ok") 'Evaluated below
-w6 = 138
-w7 = 151
+w6 = 122
+w7 = 135
 gosub print_table_sertxd
 			param1 = 9
 			gosub set_spreading_factor
 		else
 ;#sertxd("Could not reconnect") 'Evaluated below
-w6 = 152
-w7 = 170
+w6 = 136
+w7 = 154
 gosub print_table_sertxd
 		endif
 	endif
 
-;#sertxd("Packet sent. Entering sleep mode", cr, lf) 'Evaluated below
-w6 = 171
-w7 = 204
-gosub print_table_sertxd
+	low PIN_LED
+
+    ; // #sertxd("Packet sent. Entering sleep mode", cr, lf)
 	gosub sleep_lora
 
     ; Sleep for a while
 	disablebod
-    if IN_PIN_RATE_SELECT = 1 then ; TODO
-;#sertxd("Fast mode enabled", cr, lf) 'Evaluated below
-w6 = 205
-w7 = 223
-gosub print_table_sertxd
-		sleep 2
-    else
-		sleep 13
-    endif
+	sleep 2 ; TODO
 	enablebod
     setfreq m32
     goto main
@@ -221,11 +222,21 @@ add_word:
 
 failed:
 	; Flashes the LED on and off to give an indication it isn't happy.
-	high PIN_LED
-	pause 4000
-	low PIN_LED
-	pause 4000
-	goto failed
+	for rtrn = 1 to 120
+;#sertxd("Failed", cr, lf) 'Evaluated below
+w6 = 155
+w7 = 162
+gosub print_table_sertxd
+		high PIN_LED
+		pause 4000
+		low PIN_LED
+		pause 4000
+	next rtrn
+;#sertxd("Resetting and trying again.", cr, lf, cr, lf) 'Evaluated below
+w6 = 163
+w7 = 193
+gosub print_table_sertxd
+	reset
 
 
 ; Libraries that will not be run first thing.
@@ -1395,12 +1406,11 @@ print_table_sertxd:
 
     return
 
-table 0, ("Electric fence monitor ","v0.0.0",cr,lf,"By Jotham Gates, Compiled ","18-12-2024",cr,lf) ;#sertxd
+table 0, ("Electric fence monitor ","v0.0.0",cr,lf,"By Jotham Gates, Compiled ","21-12-2024",cr,lf) ;#sertxd
 table 69, ("Failed to start LoRa",cr,lf) ;#sertxd
 table 91, ("LoRa Started",cr,lf) ;#sertxd
-table 105, ("Sending packet",cr,lf) ;#sertxd
-table 121, ("LoRa dropped out.") ;#sertxd
-table 138, ("Reconnected ok") ;#sertxd
-table 152, ("Could not reconnect") ;#sertxd
-table 171, ("Packet sent. Entering sleep mode",cr,lf) ;#sertxd
-table 205, ("Fast mode enabled",cr,lf) ;#sertxd
+table 105, ("LoRa dropped out.") ;#sertxd
+table 122, ("Reconnected ok") ;#sertxd
+table 136, ("Could not reconnect") ;#sertxd
+table 155, ("Failed",cr,lf) ;#sertxd
+table 163, ("Resetting and trying again.",cr,lf,cr,lf) ;#sertxd
