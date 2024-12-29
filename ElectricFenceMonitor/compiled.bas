@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 08:26PM, December 21, 2024----
+'----UPDATED AT 12:01AM, December 30, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN ElectricFenceMonitor.bas ---
@@ -100,27 +100,29 @@ symbol CAL_OFFSET = 55
 symbol CAL_NUM = 7
 symbol CAL_DEN = 82
 
+symbol SLEEP_INTERVALS = 130 ; 5 min for testing.
 init:
     ; Initial setup
     setfreq m32
 	high PIN_LED
 	nap 4
-;#sertxd("Electric fence monitor ", "v0.0.0", cr, lf, "By Jotham Gates, Compiled ", "21-12-2024", cr, lf) 'Evaluated below
+;#sertxd("Electric fence monitor ", "v0.0.0", cr, lf, "By Jotham Gates, Compiled ", "30-12-2024", cr, lf, "Transmit interval is ") 'Evaluated below
 w6 = 0
-w7 = 68
+w7 = 89
 gosub print_table_sertxd
+	sertxd(#SLEEP_INTERVALS, "*2.3s", cr, lf)
     ; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
 ;#sertxd("Failed to start LoRa",cr,lf) 'Evaluated below
-w6 = 69
-w7 = 90
+w6 = 90
+w7 = 111
 gosub print_table_sertxd
 		goto failed
 	else
 ;#sertxd("LoRa Started",cr,lf) 'Evaluated below
-w6 = 91
-w7 = 104
+w6 = 112
+w7 = 125
 gosub print_table_sertxd
 	endif
 
@@ -162,22 +164,32 @@ main:
 
 	; Battery voltage
 	@bptrinc = "V"
-	calibadc10 rtrn ; Do twice to try to make a bit more stable?
-	calibadc10 rtrn
-	rtrn = 10476/rtrn
+	calibadc rtrn ; Do twice to try to make a bit more stable?
+	; calibadc rtrn ; No point trying to do a 10 bit read as the output resolution is limited.
+	; ; rtrn = 10476/rtrn ; Simple, but integer rounds down.
+	; ; More complicated, but rounds as expected:
+	; ; voltage = (int(vref*max_reading)*10 + adc//2)//adc
+	; rtrn = rtrn / 2 + 2621 / rtrn ; ((rtrn / 2) + 2621) / rtrn
+	gosub read_vdd
+	start_time = rtrn ; Save for later.
+	rtrn = rtrn + 50 / 100
 	gosub add_word
 
-
-	high PIN_LED
+	; Temperature
+	@bptrinc = "T"
+	gosub read_temp ; start_time contains the voltage.
+	gosub convert_temp
+	gosub add_word
 
     ; Send the packet
     param1 = UPRSTEAM_ADDRESS
     gosub end_pjon_packet ; Stack is 6
-	
+	high PIN_LED
+
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa dropped out.") 'Evaluated below
-w6 = 105
-w7 = 121
+w6 = 126
+w7 = 142
 gosub print_table_sertxd
 		for tmpwd = 0 to 15
 			toggle PIN_LED
@@ -187,15 +199,15 @@ gosub print_table_sertxd
 		gosub begin_lora ; Stack is 6
 		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
 ;#sertxd("Reconnected ok") 'Evaluated below
-w6 = 122
-w7 = 135
+w6 = 143
+w7 = 156
 gosub print_table_sertxd
 			param1 = 9
 			gosub set_spreading_factor
 		else
 ;#sertxd("Could not reconnect") 'Evaluated below
-w6 = 136
-w7 = 154
+w6 = 157
+w7 = 175
 gosub print_table_sertxd
 		endif
 	endif
@@ -207,7 +219,7 @@ gosub print_table_sertxd
 
     ; Sleep for a while
 	disablebod
-	sleep 2 ; TODO
+	sleep SLEEP_INTERVALS
 	enablebod
     setfreq m32
     goto main
@@ -224,8 +236,8 @@ failed:
 	; Flashes the LED on and off to give an indication it isn't happy.
 	for rtrn = 1 to 120
 ;#sertxd("Failed", cr, lf) 'Evaluated below
-w6 = 155
-w7 = 162
+w6 = 176
+w7 = 183
 gosub print_table_sertxd
 		high PIN_LED
 		pause 4000
@@ -233,8 +245,8 @@ gosub print_table_sertxd
 		pause 4000
 	next rtrn
 ;#sertxd("Resetting and trying again.", cr, lf, cr, lf) 'Evaluated below
-w6 = 163
-w7 = 193
+w6 = 184
+w7 = 214
 gosub print_table_sertxd
 	reset
 
@@ -1393,6 +1405,78 @@ crc32_compute:
 	crc0 = crc0 ^ 0xFF
 	return
 '---END include/PJON.basinc---
+'---BEGIN include/chiptemp.basinc ---
+; "Universal" PICaxe Chip temperature measurement for ANY valid Vdd <2 to 6 volts (<4v preferable)
+; AllyCat, March 2018, Revised July 2020.
+; https://picaxeforum.co.uk/threads/chiptemp-10-an-algorithm-to-calculate-the-picaxe-chip-temperature.28481/post-333561
+; This has been modified by JG to include in the monitor.
+
+symbol ESTIMATEDVDD = 3                ; ** Nominal supply voltage (to compensate for FVR tempco) **
+symbol ZEROC = 557                     ; ** Adjust to calibrate to room temperature (+/- 1 unit per deg C) **, Initiall 585
+symbol VDDTCO = ESTIMATEDVDD * 13      ; Supply Volts * PP100k/C (e.g. 4 * 130ppm) **
+symbol CALVDD2 = 57826                 ; 64 / 34 levels @ 2mV/step  =(65536 + 57826) / 65536
+symbol TEMPCO = 275 - VDDTCO           ; Temperature coefficient of both diodes and VDD (-mV/C * 100)
+symbol SLOPE = 6553600 / TEMPCO        ; C/mV (fractional) multiplier - 65536 divided by Tempco (mV/C)
+; SFR addresses
+symbol ADRESL = $3B                    ; ADC result Low byte
+symbol ADRESH = $3C                    ; ADC High byte
+symbol ADCON0 = $3D                    ; ADC control register 0
+symbol ADCON1 = $3E                    ; ADC control register 1
+symbol FVRCON = $57                    ; FVR & Temperature sensor Control Register (same as FVRSETUP)
+
+read_vdd:
+    ; Measures the supply voltage in mV relatively accurately.
+    ; Modifies mask, tmpwd and rtrn. The result is saved in rtrn.
+    fvrsetup fvr2048                   ; Will be used as ADC/DAC reference voltage 
+    dacsetup $80                       ; Enable DAC with Vdd reference
+    adcconfig 3                        ; FVR reference for ADC                                
+    rtrn = 0                           ; Prepare to accumulate the Vdd measurements
+    for mask = 7 to 10                 ; 10 is Highest level to accommodate Vdd = 6v (if FVR = 2048)     
+        daclevel mask                  ; "Randomise" the pot-divided sample
+        readdac10 tmpwd                ; Note this command uses DAC (not ADC)
+        rtrn = rtrn + tmpwd            ; Accumulate scaled Vdd = 4 loops of 1023max * Vdd / 32 
+    next mask
+    dacsetup $00                       ; Disable DAC again.
+    rtrn = rtrn ** CALVDD2 + rtrn      ; Calibrate to mV units (1 < coefficient < 2)
+    return
+
+read_temp:
+    ; Universal Chip Temperature (sub)routine to use ANY supply voltage.
+    ; Supply the current supply voltage in mV in start_time. The temperature in degrees C, 2's complement is placed in rtrn.
+    ; tmpwd and rtrn are modified.
+rawinternaltemp_L:                     ; [~8 bytes]
+    pokesfr ADCON1, %10010000          ; Right justify result (0 - 1023); clock/8; REFerence = Vdd
+    pokesfr FVRCON, %10100000          ; 2 diode Temperature sensor ON [$20] & (optional) FVR ON [$80]        
+readitemp:                             ; [~13 bytes]
+    pokesfr ADCON0, %01110101          ; Select Temperature input and Turn ADC On
+    pokesfr ADCON0, %01110111          ; Start conversion
+    peeksfr ADRESL,WORD tmpwd          ; Read lower and upper bytes into tmpwd and fall into chiptemp
+    tmpwd = tmpwd * 64 ** start_time       ; Number of ADC steps * stepsize (= Vdd / 1024)
+    tmpwd = start_time - tmpwd ** SLOPE    ; Subtract from Vdd and Scale to degrees
+    tmpwd = ZEROC - tmpwd                  ; Calibrate to reference base temperature (0C, or -40, etc.)    
+    ; Non-linear compensation:  T * T * 0.00075 - T * 0.067 + 1.5  becomes T * T * 737 / 65535 - T + 23 / 15    
+    rtrn = tmpwd * tmpwd ** 737 - tmpwd + 23 / 15 + tmpwd    ; Add Non-linear component  [~13 bytes]
+    return
+
+convert_temp:
+    ; Converts the temperature into tenths of a degree for consistency with the other devices on the farm with more accurate temperature sensors.
+    ; Modifies tmpwd and rtrn. The result is placed in rtrn.
+    tmpwd = rtrn & $8000              ; Is the most significant bit 1, indicating a negative?
+	if tmpwd != 0 then
+		; Negative, sign extend as needed.
+		; Take the two's complement
+		rtrn = NOT rtrn + 1
+
+		; Scale as needed
+		rtrn = rtrn * 10
+
+		; Take the two's complement again to make negative.
+		rtrn = NOT rtrn + 1
+	else
+		rtrn = rtrn * 10
+	endif
+    return
+'---END include/chiptemp.basinc---
 
 '---END ElectricFenceMonitor.bas---
 
@@ -1406,11 +1490,11 @@ print_table_sertxd:
 
     return
 
-table 0, ("Electric fence monitor ","v0.0.0",cr,lf,"By Jotham Gates, Compiled ","21-12-2024",cr,lf) ;#sertxd
-table 69, ("Failed to start LoRa",cr,lf) ;#sertxd
-table 91, ("LoRa Started",cr,lf) ;#sertxd
-table 105, ("LoRa dropped out.") ;#sertxd
-table 122, ("Reconnected ok") ;#sertxd
-table 136, ("Could not reconnect") ;#sertxd
-table 155, ("Failed",cr,lf) ;#sertxd
-table 163, ("Resetting and trying again.",cr,lf,cr,lf) ;#sertxd
+table 0, ("Electric fence monitor ","v0.0.0",cr,lf,"By Jotham Gates, Compiled ","30-12-2024",cr,lf,"Transmit interval is ") ;#sertxd
+table 90, ("Failed to start LoRa",cr,lf) ;#sertxd
+table 112, ("LoRa Started",cr,lf) ;#sertxd
+table 126, ("LoRa dropped out.") ;#sertxd
+table 143, ("Reconnected ok") ;#sertxd
+table 157, ("Could not reconnect") ;#sertxd
+table 176, ("Failed",cr,lf) ;#sertxd
+table 184, ("Resetting and trying again.",cr,lf,cr,lf) ;#sertxd

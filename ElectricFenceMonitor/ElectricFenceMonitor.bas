@@ -31,12 +31,14 @@ symbol CAL_OFFSET = 55
 symbol CAL_NUM = 7
 symbol CAL_DEN = 82
 
+symbol SLEEP_INTERVALS = 130 ; 5 min for testing.
 init:
     ; Initial setup
     setfreq m32
 	high PIN_LED
 	nap 4
-    ;#sertxd("Electric fence monitor ", VERSION, cr, lf, "By Jotham Gates, Compiled ", ppp_date_uk, cr, lf)
+    ;#sertxd("Electric fence monitor ", VERSION, cr, lf, "By Jotham Gates, Compiled ", ppp_date_uk, cr, lf, "Transmit interval is ")
+	sertxd(#SLEEP_INTERVALS, "*2.3s", cr, lf)
     ; Attempt to start the module
 	gosub begin_lora
 	if rtrn = 0 then
@@ -84,18 +86,28 @@ main:
 
 	; Battery voltage
 	@bptrinc = "V"
-	calibadc10 rtrn ; Do twice to try to make a bit more stable?
-	calibadc10 rtrn
-	rtrn = 10476/rtrn
+	calibadc rtrn ; Do twice to try to make a bit more stable?
+	; calibadc rtrn ; No point trying to do a 10 bit read as the output resolution is limited.
+	; ; rtrn = 10476/rtrn ; Simple, but integer rounds down.
+	; ; More complicated, but rounds as expected:
+	; ; voltage = (int(vref*max_reading)*10 + adc//2)//adc
+	; rtrn = rtrn / 2 + 2621 / rtrn ; ((rtrn / 2) + 2621) / rtrn
+	gosub read_vdd
+	start_time = rtrn ; Save for later.
+	rtrn = rtrn + 50 / 100
 	gosub add_word
 
-
-	high PIN_LED
+	; Temperature
+	@bptrinc = "T"
+	gosub read_temp ; start_time contains the voltage.
+	gosub convert_temp
+	gosub add_word
 
     ; Send the packet
     param1 = UPRSTEAM_ADDRESS
     gosub end_pjon_packet ; Stack is 6
-	
+	high PIN_LED
+
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 		;#sertxd("LoRa dropped out.")
 		for tmpwd = 0 to 15
@@ -120,7 +132,7 @@ main:
 
     ; Sleep for a while
 	disablebod
-	sleep 2 ; TODO
+	sleep SLEEP_INTERVALS
 	enablebod
     setfreq m32
     goto main
@@ -149,3 +161,4 @@ failed:
 ; Libraries that will not be run first thing.
 #INCLUDE "include/LoRa.basinc"
 #INCLUDE "include/PJON.basinc"
+#INCLUDE "include/chiptemp.basinc"

@@ -1,0 +1,70 @@
+; "Universal" PICaxe Chip temperature measurement for ANY valid Vdd <2 to 6 volts (<4v preferable)
+; AllyCat, March 2018, Revised July 2020.
+; https://picaxeforum.co.uk/threads/chiptemp-10-an-algorithm-to-calculate-the-picaxe-chip-temperature.28481/post-333561
+; This has been modified by JG to include in the monitor.
+
+symbol ESTIMATEDVDD = 3                ; ** Nominal supply voltage (to compensate for FVR tempco) **
+symbol ZEROC = 557                     ; ** Adjust to calibrate to room temperature (+/- 1 unit per deg C) **, Initiall 585
+symbol VDDTCO = ESTIMATEDVDD * 13      ; Supply Volts * PP100k/C (e.g. 4 * 130ppm) **
+symbol CALVDD2 = 57826                 ; 64 / 34 levels @ 2mV/step  =(65536 + 57826) / 65536
+symbol TEMPCO = 275 - VDDTCO           ; Temperature coefficient of both diodes and VDD (-mV/C * 100)
+symbol SLOPE = 6553600 / TEMPCO        ; C/mV (fractional) multiplier - 65536 divided by Tempco (mV/C)
+; SFR addresses
+symbol ADRESL = $3B                    ; ADC result Low byte
+symbol ADRESH = $3C                    ; ADC High byte
+symbol ADCON0 = $3D                    ; ADC control register 0
+symbol ADCON1 = $3E                    ; ADC control register 1
+symbol FVRCON = $57                    ; FVR & Temperature sensor Control Register (same as FVRSETUP)
+
+read_vdd:
+    ; Measures the supply voltage in mV relatively accurately.
+    ; Modifies mask, tmpwd and rtrn. The result is saved in rtrn.
+    fvrsetup fvr2048                   ; Will be used as ADC/DAC reference voltage 
+    dacsetup $80                       ; Enable DAC with Vdd reference
+    adcconfig 3                        ; FVR reference for ADC                                
+    rtrn = 0                           ; Prepare to accumulate the Vdd measurements
+    for mask = 7 to 10                 ; 10 is Highest level to accommodate Vdd = 6v (if FVR = 2048)     
+        daclevel mask                  ; "Randomise" the pot-divided sample
+        readdac10 tmpwd                ; Note this command uses DAC (not ADC)
+        rtrn = rtrn + tmpwd            ; Accumulate scaled Vdd = 4 loops of 1023max * Vdd / 32 
+    next mask
+    dacsetup $00                       ; Disable DAC again.
+    rtrn = rtrn ** CALVDD2 + rtrn      ; Calibrate to mV units (1 < coefficient < 2)
+    return
+
+read_temp:
+    ; Universal Chip Temperature (sub)routine to use ANY supply voltage.
+    ; Supply the current supply voltage in mV in start_time. The temperature in degrees C, 2's complement is placed in rtrn.
+    ; tmpwd and rtrn are modified.
+rawinternaltemp_L:                     ; [~8 bytes]
+    pokesfr ADCON1, %10010000          ; Right justify result (0 - 1023); clock/8; REFerence = Vdd
+    pokesfr FVRCON, %10100000          ; 2 diode Temperature sensor ON [$20] & (optional) FVR ON [$80]        
+readitemp:                             ; [~13 bytes]
+    pokesfr ADCON0, %01110101          ; Select Temperature input and Turn ADC On
+    pokesfr ADCON0, %01110111          ; Start conversion
+    peeksfr ADRESL,WORD tmpwd          ; Read lower and upper bytes into tmpwd and fall into chiptemp
+    tmpwd = tmpwd * 64 ** start_time       ; Number of ADC steps * stepsize (= Vdd / 1024)
+    tmpwd = start_time - tmpwd ** SLOPE    ; Subtract from Vdd and Scale to degrees
+    tmpwd = ZEROC - tmpwd                  ; Calibrate to reference base temperature (0C, or -40, etc.)    
+    ; Non-linear compensation:  T * T * 0.00075 - T * 0.067 + 1.5  becomes T * T * 737 / 65535 - T + 23 / 15    
+    rtrn = tmpwd * tmpwd ** 737 - tmpwd + 23 / 15 + tmpwd    ; Add Non-linear component  [~13 bytes]
+    return
+
+convert_temp:
+    ; Converts the temperature into tenths of a degree for consistency with the other devices on the farm with more accurate temperature sensors.
+    ; Modifies tmpwd and rtrn. The result is placed in rtrn.
+    tmpwd = rtrn & $8000              ; Is the most significant bit 1, indicating a negative?
+	if tmpwd != 0 then
+		; Negative, sign extend as needed.
+		; Take the two's complement
+		rtrn = NOT rtrn + 1
+
+		; Scale as needed
+		rtrn = rtrn * 10
+
+		; Take the two's complement again to make negative.
+		rtrn = NOT rtrn + 1
+	else
+		rtrn = rtrn * 10
+	endif
+    return
