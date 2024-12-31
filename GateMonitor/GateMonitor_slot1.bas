@@ -1,8 +1,9 @@
-; BatteryVoltsMonitor.bas
-; A remote LoRa battery monitor and electric fence energiser switch.
+; GateMonitor_slot1.bas
+; A remote LoRa farm gate monitor and movement detector.
+; (Main slot).
 ; Written by Jotham Gates
-; Created Jan 2021
-; Modified 22/02/2023
+; Created 31/12/2024 (based on the battery voltage monitor).
+; Modified 31/12/2024
 ;
 ; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
 ;
@@ -14,7 +15,7 @@
 #SLOT 1
 #NO_DATA ; EEPROM settings set when uploading slot 0
 
-#INCLUDE "include/BatteryVoltsMonitorCommon.basinc"
+#INCLUDE "include/GateMonitorCommon.basinc"
 #INCLUDE "include/symbols.basinc"
 #INCLUDE "include/generated.basinc"
 #DEFINE ENABLE_LORA_RECEIVE
@@ -34,24 +35,13 @@ main:
 		gosub send_status
 	endif
 	;#sertxd("Sent packet", cr, lf)
-
+	gosub sleep_mode
+	
 	; Alternate between sleeping and receiving for a while
-	for tx_interval_count = 1 to tx_intervals
-		gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
-		gosub sleep_mode ; Sleep for 2.5m
-
-		; Reset the unit on a timed basis.
-		peek RAM_ITERATIONS_COUNT_L, tmpwd_l, tmpwd_h
-		inc tmpwd
-		poke RAM_ITERATIONS_COUNT_L, tmpwd_l, tmpwd_h
-		sertxd(#tmpwd)
-		;#sertxd(" iterations of ")
-		sertxd(#RESET_ITERATIONS_COUNT, cr, lf)
-		if tmpwd = RESET_ITERATIONS_COUNT then
-			;#sertxd("Timed reset", cr, lf)
-			reset
-		endif
-	next tx_interval_count
+	; for tx_interval_count = 1 to tx_intervals
+	; 	gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
+	; 	gosub sleep_mode ; Sleep for 2.5m
+	; next tx_interval_count
 	goto main
 
 receive_mode:
@@ -85,14 +75,14 @@ receive_mode:
 							if rtrn > 0 then
 								if @bptrinc = 0 then
 									;#sertxd("Off", cr, lf)
-									fence_enable = 0
-									low FENCE_PIN
+									light_enable = 0
+									low LIGHT_PIN
 								else
 									;#sertxd("On", cr, lf)
-									fence_enable = 1
-									high FENCE_PIN
+									light_enable = 1
+									high LIGHT_PIN
 								endif
-								UPDATE_EEPROM(EEPROM_FENCE_ENABLED, fence_enable, tmpwd_l)
+								UPDATE_EEPROM(EEPROM_LIGHT_ENABLED, light_enable, tmpwd_l)
 								dec rtrn
 							endif
 							level = 1
@@ -221,19 +211,19 @@ send_status:
 	gosub add_word
 
 	; Temperature
-#IFDEF ENABLE_TEMP
-	@bptrinc = "T"
-	gosub get_temperature
-	gosub add_word
-	sertxd(#rtrn)
-	;#sertxd("*0.1 C", cr, lf)
-#ENDIF
+; #IFDEF ENABLE_TEMP
+; 	@bptrinc = "T"
+; 	gosub get_temperature
+; 	gosub add_word
+; 	sertxd(#rtrn)
+; 	;#sertxd("*0.1 C", cr, lf)
+; #ENDIF
 
-	; Fence enable
-	;#sertxd("Fence: ")
-	sertxd(#fence_enable, cr, lf)
-	@bptrinc = "F"
-	@bptrinc = fence_enable
+	; Gate state
+	;#sertxd("Gate: ")
+	sertxd(#GATE_PIN, cr, lf)
+	@bptrinc = "g"
+	@bptrinc = GATE_PIN
 
 	; Transmit enable
 	;#sertxd("Transmit: ")
@@ -275,31 +265,31 @@ get_voltage:
 	rtrn = rtrn * CAL_BATT_NUMERATOR / CAL_BATT_DENOMINATOR
 	return
 
-#IFDEF ENABLE_TEMP
-get_temperature: ; DS18B20
-	; sertxd("Temp ADC: ",#rtrn)
-	; Attempt to get two fairly close together readings (avoid the 51.1C issue / read errors hopefully).
-	readtemp12 TEMPERATURE_PIN, rtrn
+; #IFDEF ENABLE_TEMP
+; get_temperature: ; DS18B20
+; 	; sertxd("Temp ADC: ",#rtrn)
+; 	; Attempt to get two fairly close together readings (avoid the 51.1C issue / read errors hopefully).
+; 	readtemp12 TEMPERATURE_PIN, rtrn
 	
-	; rtrn contains the temperature and both readings were close.
-	; sertxd("Temp raw: ",#rtrn)
-	tmpwd = rtrn & $8000 ; Is the most significant bit 1, indicating a negative?
-	if tmpwd != 0 then
-		; Negative, sign extend as needed.
-		; Take the two's complement
-		rtrn = NOT rtrn + 1
+; 	; rtrn contains the temperature and both readings were close.
+; 	; sertxd("Temp raw: ",#rtrn)
+; 	tmpwd = rtrn & $8000 ; Is the most significant bit 1, indicating a negative?
+; 	if tmpwd != 0 then
+; 		; Negative, sign extend as needed.
+; 		; Take the two's complement
+; 		rtrn = NOT rtrn + 1
 
-		; Scale as needed
-		rtrn = rtrn * 5 / 8
+; 		; Scale as needed
+; 		rtrn = rtrn * 5 / 8
 
-		; Take the two's complement again to make negative.
-		rtrn = NOT rtrn + 1
-	else
-		rtrn = rtrn * 5 / 8
-	endif
-	; sertxd(" Calc: ",#rtrn,cr,lf)
-	return
-#ENDIF
+; 		; Take the two's complement again to make negative.
+; 		rtrn = NOT rtrn + 1
+; 	else
+; 		rtrn = rtrn * 5 / 8
+; 	endif
+; 	; sertxd(" Calc: ",#rtrn,cr,lf)
+; 	return
+; #ENDIF
 
 add_word:
 	; Adds a word to @bptr in little endian format.

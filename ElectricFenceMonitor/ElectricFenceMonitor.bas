@@ -28,7 +28,7 @@ symbol PIN_LED = B.4
 
 ; Calibration
 symbol CAL_OFFSET = 55
-symbol CAL_NUM = 7
+symbol CAL_NUM = 70
 symbol CAL_DEN = 82
 
 symbol SLEEP_INTERVALS = 510 ; 130=5 min (for testing), 510=20 min.

@@ -10,12 +10,12 @@
 ; RX = C.5
 ; TX = B.0
 ; LoRa module
-symbol SS = C.0 ; Current (keep the B register free for other stuff, which seems to have more features in terms of adc)
-symbol SCK = C.1
-symbol MOSI = C.2
-symbol MISO = pinC.3
-symbol RST = C.4
-symbol DIO0 = pinB.5 ; High when a packet has been received
+symbol SS = B.7 ; Current (keep the B register free for other stuff, which seems to have more features in terms of adc)
+symbol SCK = B.2
+symbol MOSI = B.0
+symbol MISO = pinB.5
+symbol RST = B.3
+symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; Variables
 symbol mask = b1
@@ -52,7 +52,7 @@ symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the modul
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by setup_lora_read
 symbol PJON_INVALID_PACKET = 65534 ; Says the packet is invalid, not a PJON packet, or not addressed to us
 
-symbol MY_ID = 0x4A ; PJON id of this device
+symbol MY_ID = 169 ; PJON id of this device
 symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 
 #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly

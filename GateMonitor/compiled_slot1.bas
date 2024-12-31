@@ -1,34 +1,112 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 08:34PM, December 31, 2024----
-'----SAVING AS compiled.bas ----
+'----UPDATED AT 11:29PM, December 31, 2024----
+'----SAVING AS compiled_slot1.bas ----
 
-'---BEGIN ElectricFenceMonitor.bas ---
-; ElectricFenceMonitor.bas
-; A remote LoRa electric fence monitor.
-; Jotham Gates, December 2024
+'---BEGIN GateMonitor_slot1.bas ---
+; GateMonitor_slot1.bas
+; A remote LoRa farm gate monitor and movement detector.
+; (Main slot).
+; Written by Jotham Gates
+; Created 31/12/2024 (based on the battery voltage monitor).
+; Modified 31/12/2024
+;
 ; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
+;
+; FLASH MODES:
+; Sleeping: One flash ~once per minute
+; Actively listening: One flash every half second
+; Cannot connect to LoRa module on start: Constant long flashes (on half second, off half second).
+;
+#SLOT 1
+#NO_DATA ; EEPROM settings set when uploading slot 0
 
-#picaxe 14M2      'CHIP VERSION PARSED
-#terminal 38400
-; #define VERSION "v0.0.1"
-#no_data
+'---BEGIN include/GateMonitorCommon.basinc ---
+; Battery voltage monitor monitor common code
+; Defines and symbols shared between each slot
+; Written by Jotham Gates
+; Created 22/02/2023
+; Modified 22/03/2023
 
+; #DEFINE VERSION "v2.0.2"
+; #DEFINE NAME "Battery voltage monitor and fence control"
+; #DEFINE URL "https://github.com/jgOhYeah/Farm-PJON-LoRa-network"
+
+#PICAXE 18M2      'CHIP VERSION PARSED
+#TERMINAL 38400
+; #COM /dev/ttyUSB0
+
+; Sensors
+; #DEFINE ENABLE_TEMP
+; #DEFINE ENABLE_FVR
+
+; Sensors and control
+symbol BATTERY_PIN = C.2
+symbol I2C_SDA_PIN = B.1
+symbol I2C_SCL_PIN = B.4
+symbol LIGHT_PIN = B.6
+symbol PIR_PIN = C.6
+symbol LDR_PIN = C.1 ; TODO: Probably not needed.
+symbol GATE_PIN = pinC.0
+
+; Status LED
+symbol LED_PIN = C.7
+
+; Variables unique to this - see symbols.basinc for the rest
+symbol light_enable = bit0
+symbol transmit_enable = bit1
+symbol long_listen_time = bit2
+symbol tx_intervals = b18
+symbol tx_interval_count = b19
+
+; TableSertxd extension settings
+; Before conversion to tablesertxd: 2005
+; After conversion to tablesertxd: 1765
+; #DEFINE TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
+; #DEFINE TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
+; #DEFINE TABLE_SERTXD_TMP_BYTE b16
+
+; Constants
+symbol LISTEN_TIME_NORMAL = 30 ; Listen for 15s (number of 0.5s counts) after each transmission and every so often.
+; 15s should be 2 transmission attempts with the current base station setup.
+symbol LISTEN_TIME_AWAKE = 600 ; Listedn for a longer time continuously in case someone wants to send more commands in quick succession.
+symbol SLEEP_TIME = 2 ; 33 ; Roughly 75s
+symbol RECEIVE_FLASH_INT = 1 ; Every half second
+symbol RESET_CODE = 101 ; Needs to be present as the payload of the reset command in order to reset.
+symbol TEMP_DIFFERENCE_THRESHOLD = 63
+
+; Temperature and battery voltage calibration
+symbol CAL_BATT_NUMERATOR = 58
+symbol CAL_BATT_DENOMINATOR = 85
+
+'PARSED MACRO UPDATE_EEPROM
+symbol EEPROM_LIGHT_ENABLED = 0
+symbol EEPROM_TX_ENABLED = 1
+symbol EEPROM_TX_INTERVALS = 2
+
+; Values to be loaded into EEPROM on slot 0 upload
+symbol DEFAULT_LIGHT_ENABLED = 1
+symbol DEFAULT_TX_ENABLED = 1
+symbol DEFAULT_TX_INTERVALS = 10
+'---END include/GateMonitorCommon.basinc---
 '---BEGIN include/symbols.basinc ---
 ; symbols.basinc
 ; Definitions to be used in other files
 ; Jotham Gates
 ; Created 22/11/2020
-; Modified 18/12/2024
+; Modified 25/01/2020
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 ; Pins
+; Serial
+; RX = C.5
+; TX = B.0
 ; LoRa module
-symbol SS = B.5
-symbol SCK = C.1
-symbol MOSI = C.4
-symbol MISO = pinC.2
-symbol RST = C.0
-symbol DIO0 = pinC.3 ; High when a packet has been received
+symbol SS = B.7 ; Current (keep the B register free for other stuff, which seems to have more features in terms of adc)
+symbol SCK = B.2
+symbol MOSI = B.0
+symbol MISO = pinB.5
+symbol RST = B.3
+symbol DIO0 = pinC.5 ; High when a packet has been received
 
 ; Variables
 symbol mask = b1
@@ -42,14 +120,19 @@ symbol crc1 = b8
 symbol crc2 = b9
 symbol crc3 = b10
 symbol counter3 = b11
-; b12, b13, b1, b15, b16, b17, b18, b19 are free
+; b12, b13, b14, b15, b16, b17, b18, b19 are free for the main program
 symbol start_time = w10
 symbol start_time_h = b21
 symbol start_time_l = b20
 symbol tmpwd = w11
+symbol tmpwd_l = b22
+symbol tmpwd_h = b23
+symbol paramwd = w12
 symbol param1 = b24
 symbol param2 = b25
 symbol rtrn = w13
+symbol rtrn_l = b26
+symbol rtrn_h = b27
 
 symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the module has dropped out
                         ; due to a dodgy connection or breadboard and should be reset.
@@ -60,14 +143,14 @@ symbol LORA_TIMEOUT = 2 ; Number of seconds after which it is presumed the modul
 symbol LORA_RECEIVED_CRC_ERROR = 65535 ; Says there is a CRC error if returned by setup_lora_read
 symbol PJON_INVALID_PACKET = 65534 ; Says the packet is invalid, not a PJON packet, or not addressed to us
 
-symbol MY_ID = 168 ; PJON id of this device
+symbol MY_ID = 169 ; PJON id of this device
 symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 
 ; #DEFINE FILE_SYMBOLS_INCLUDED ; Prove this file is included properly
 
 '---END include/symbols.basinc---
 '---BEGIN include/generated.basinc ---
-; Autogenerated by calculations.py at 2021-01-25 23:03:30
+; Autogenerated by calculations.py at 2024-12-31 23:29:07
 ; For a FREQUENCY of 433.0MHz, a SPREAD FACTOR of 9 and a bandwidth of 125000kHz:
 ; #DEFINE LORA_FREQ 433000000
 ; #DEFINE LORA_FREQ_MSB 0x6C
@@ -79,179 +162,387 @@ symbol UPRSTEAM_ADDRESS = 255 ; Address to send things to using PJON
 ; #DEFINE FILE_GENERATED_INCLUDED ; Prove this file is included properly
 
 '---END include/generated.basinc---
+; #DEFINE ENABLE_LORA_RECEIVE
+; #DEFINE ENABLE_PJON_RECEIVE
+; #DEFINE ENABLE_LORA_TRANSMIT
+; #DEFINE ENABLE_PJON_TRANSMIT
+; #DEFINE DISABLE_LORA_SETUP
 
-; #define ENABLE_LORA_RECEIVE
-; #define ENABLE_PJON_RECEIVE
-; #define ENABLE_LORA_TRANSMIT
-; #define ENABLE_PJON_TRANSMIT
-
-; #define TABLE_SERTXD_ADDRESS_VAR w6 ; b12, b13
-; #define TABLE_SERTXD_ADDRESS_END_VAR w7 ; b14, b15
-; #define TABLE_SERTXD_TMP_BYTE b16
-
-; Pins
-symbol PIN_ADC_REF = B.1
-symbol PIN_FENCE_SW = B.2
-symbol PIN_FENCE_PEAK = B.3
-symbol PIN_LED = B.4
-
-; Calibration
-symbol CAL_OFFSET = 55
-symbol CAL_NUM = 70
-symbol CAL_DEN = 82
-
-symbol SLEEP_INTERVALS = 510 ; 130=5 min (for testing), 510=20 min.
 init:
-    ; Initial setup
-    setfreq m32
-	high PIN_LED
-	nap 4
-;#sertxd("Electric fence monitor ", "v0.0.1", cr, lf, "By Jotham Gates, Compiled ", "31-12-2024", cr, lf, "Transmit interval is ") 'Evaluated below
+	; Initial setup (need to have run slot 0 for radio init)
+	setfreq m32
+;#sertxd("Battery voltage monitor and fence control", " ",    "v2.0.2" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "31-12-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 89
 gosub print_table_sertxd
-	sertxd(#SLEEP_INTERVALS, "*2.3s", cr, lf)
-    ; Attempt to start the module
-	gosub begin_lora
-	if rtrn = 0 then
-;#sertxd("Failed to start LoRa",cr,lf) 'Evaluated below
+	
+main:
+	; Create and send a packet with the temperature and measured battery voltage
+	if transmit_enable = 1 then
+		gosub send_status
+	endif
+;#sertxd("Sent packet", cr, lf) 'Evaluated below
 w6 = 90
-w7 = 111
+w7 = 102
 gosub print_table_sertxd
-		goto failed
-	else
-;#sertxd("LoRa Started",cr,lf) 'Evaluated below
-w6 = 112
+	gosub sleep_mode
+	
+	; Alternate between sleeping and receiving for a while
+	; for tx_interval_count = 1 to tx_intervals
+	; 	gosub receive_mode ; Listen for 30s ; Stack is now at 8 for this branch. Cannot add any more levels to this branch.
+	; 	gosub sleep_mode ; Sleep for 2.5m
+	; next tx_interval_count
+	goto main
+
+receive_mode:
+	; Go into listen mode
+	; Listens for the designated time and handles incoming packets
+	; Maximum stack depth used: 7
+
+	pulsout LED_PIN, 10000
+;#sertxd("Entering receive mode", cr, lf) 'Evaluated below
+w6 = 103
 w7 = 125
 gosub print_table_sertxd
+	long_listen_time = 0 ; By default, listen for only a short while.
+	gosub setup_lora_receive ; Stack depth 4
+	start_time = time
+	rtrn = time ; Start time for led flashing
+	do
+		; Handle packets arriving
+		if DIO0 = 1 then
+			gosub read_pjon_packet ; Stack depth 4
+			if rtrn != PJON_INVALID_PACKET then
+;#sertxd("Valid packet received", cr, lf) 'Evaluated below
+w6 = 126
+w7 = 148
+gosub print_table_sertxd
+				; Valid packet
+				high LED_PIN
+				; Processing and actions
+				level = 0 ; Whether to send the status back and stay listening for a while after.
+				do while rtrn > 0 ; rtrn is the length left
+					mask = @bptrinc ; Field is stored in mask
+					dec rtrn
+					select mask
+						case 0xC6 ; "F" | 0x80 ; Fence on and off
+							; 1 byte, 0 for off, anything else for on.
+;#sertxd("Fence ") 'Evaluated below
+w6 = 149
+w7 = 154
+gosub print_table_sertxd
+							if rtrn > 0 then
+								if @bptrinc = 0 then
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 155
+w7 = 159
+gosub print_table_sertxd
+									light_enable = 0
+									low LIGHT_PIN
+								else
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 160
+w7 = 163
+gosub print_table_sertxd
+									light_enable = 1
+									high LIGHT_PIN
+								endif
+								'--START OF MACRO: UPDATE_EEPROM
+	read EEPROM_LIGHT_ENABLED,  tmpwd_l
+	if  tmpwd_l !=  light_enable then
+		write EEPROM_LIGHT_ENABLED,  light_enable
 	endif
-
-	; Set the spreading factor
-	gosub set_spreading_factor
-
-	; gosub idle_lora ; 4.95mA
-	gosub sleep_lora ; 3.16mA
-	LOW PIN_LED
-
-main:
-    ; Measure the capacitance and send it
-    ; // #sertxd("Sending packet", cr, lf)
-	high PIN_LED
-	high PIN_FENCE_SW
-	adcconfig %010 ; Use the PIN_ADC_REF as the positive reference.
-    gosub begin_pjon_packet
-	low PIN_LED
-
-    ; Fence voltage measurement
-    @bptrinc = "k"
-	readadc PIN_FENCE_PEAK, param1 ; Clear any previous values in the mux.
-
-	; Get the maximum ADC reading over a period of time.
-    param1 = 0
-    for tmpwd = 1 to 7000
-        readadc PIN_FENCE_PEAK, param2
-        if param2 > param1 then
-            param1 = param2
-        endif
-    next tmpwd
-
-	; Turn off the fence monitoring hardware and scale result
-	low PIN_FENCE_SW
-	adcconfig %000 ; Set positive reference back to normal.
-	if param1 < CAL_OFFSET then ; Stop underflow.
-		param1 = CAL_OFFSET
+'--END OF MACRO: UPDATE_EEPROM(EEPROM_LIGHT_ENABLED, light_enable, tmpwd_l)
+								dec rtrn
+							endif
+							level = 1
+						case 0xF2 ; "r" | 0x80 ; Radio transmissions on and off
+							; 1 byte, 0 for off, anything else for on.
+;#sertxd("Transmit ") 'Evaluated below
+w6 = 164
+w7 = 172
+gosub print_table_sertxd
+							if rtrn > 0 then
+								if @bptrinc = 0 then
+;#sertxd("Off", cr, lf) 'Evaluated below
+w6 = 173
+w7 = 177
+gosub print_table_sertxd
+									transmit_enable = 0
+								else
+;#sertxd("On", cr, lf) 'Evaluated below
+w6 = 178
+w7 = 181
+gosub print_table_sertxd
+									transmit_enable = 1
+								endif
+								'--START OF MACRO: UPDATE_EEPROM
+	read EEPROM_TX_ENABLED,  tmpwd_l
+	if  tmpwd_l !=  transmit_enable then
+		write EEPROM_TX_ENABLED,  transmit_enable
 	endif
-	@bptrinc = param1  - CAL_OFFSET * CAL_NUM / CAL_DEN
-	; @bptrinc = param1
+'--END OF MACRO: UPDATE_EEPROM(EEPROM_TX_ENABLED, transmit_enable, tmpwd_l)
+								dec rtrn
+							endif
+							level = 1
+						case 201 ; "I" | 0x80 ; Interval between transmissions
+							; 1 byte, number of blocks to skip between transmissions.
+;#sertxd("Transmit interval is ") 'Evaluated below
+w6 = 182
+w7 = 202
+gosub print_table_sertxd
+							if rtrn > 0 then
+								if @bptr != 0 then
+									tx_intervals = @bptrinc
+									sertxd(#tx_intervals)
+;#sertxd(" *1.5 minutes", cr, lf) 'Evaluated below
+w6 = 203
+w7 = 217
+gosub print_table_sertxd
+									'--START OF MACRO: UPDATE_EEPROM
+	read EEPROM_TX_INTERVALS,  tmpwd_l
+	if  tmpwd_l !=  tx_intervals then
+		write EEPROM_TX_INTERVALS,  tx_intervals
+	endif
+'--END OF MACRO: UPDATE_EEPROM(EEPROM_TX_INTERVALS, tx_intervals, tmpwd_l)
+								else
+									inc bptr
+;#sertxd("invalid. Ignoring", cr, lf) 'Evaluated below
+w6 = 218
+w7 = 236
+gosub print_table_sertxd
+								endif
+								dec rtrn
+							endif
+							level = 1
+						case 0xF3 ; "s" | 0x80 ; Request status, msb is high as it is an instruction
+							; No payload.
+;#sertxd("Status", cr, lf) 'Evaluated below
+w6 = 237
+w7 = 244
+gosub print_table_sertxd
+							level = 1
+						case 0xD8 ; "X" | 0x80 ; Reset
+							if rtrn > 0 then
+								if @bptrinc = RESET_CODE then
+;#sertxd("Resetting", cr, lf) 'Evaluated below
+w6 = 245
+w7 = 255
+gosub print_table_sertxd
+									reset
+								else
+;#sertxd("Bad code", cr, lf) 'Evaluated below
+w6 = 256
+w7 = 265
+gosub print_table_sertxd
+								endif
+								dec rtrn
+							endif
+							level = 1
+						else
+							; Something not recognised or implemented
+							; NOTE: Should the rest of the packet be discarded to ensure any possible data of unkown length is not treated as a field?
+;#sertxd("Field ") 'Evaluated below
+w6 = 266
+w7 = 271
+gosub print_table_sertxd
+							sertxd(#mask)
+;#sertxd(" unkown", cr, lf) 'Evaluated below
+w6 = 272
+w7 = 280
+gosub print_table_sertxd
+					endselect
+				loop
+
+				; Send a message back if needed.
+				if level = 1 then
+;#sertxd("Replying", cr, lf) 'Evaluated below
+w6 = 281
+w7 = 290
+gosub print_table_sertxd
+					nap 5 ; Wait for things to settle (576ms)
+					gosub send_status ; Reply with the current settings if needed
+					gosub setup_lora_receive ; Go back to listening
+					; Am going to be in long receive mode, so due for a status message when we leave.
+					tx_interval_count = tx_intervals
+					long_listen_time = 1 ; Stay in receive mode for a longer time to make it easier to send subsequent commands.
+
+				endif
+
+				low LED_PIN
+				start_time = time ; Reset the time. ; NOTE Possible security risk of being able to keep the box in high power state?
+				rtrn = time
+			else
+;#sertxd("Invalid packet recieved. Ignoring", cr, lf) 'Evaluated below
+w6 = 291
+w7 = 325
+gosub print_table_sertxd
+			endif
+		endif
+
+		; Flash the LED every half second
+		tmpwd = time - rtrn
+		if tmpwd >= RECEIVE_FLASH_INT then
+			if long_listen_time = 1 then
+				high LED_PIN
+;#sertxd("Long listen time", cr, lf) 'Evaluated below
+w6 = 326
+w7 = 343
+gosub print_table_sertxd
+				low LED_PIN
+			else
+				pulsout LED_PIN, 10000
+			endif
+			rtrn = time
+		endif
+		; nap 2 ; Save some power hopefully
+
+		; How long do we stay in listening mode?
+		tmpwd = time - start_time
+		if long_listen_time = 1 then
+			paramwd = LISTEN_TIME_AWAKE
+		else
+			paramwd	= LISTEN_TIME_NORMAL
+		endif
+	loop while tmpwd < paramwd
+	return
+
+sleep_mode:
+	; Go into power saving mode
+;#sertxd("Entering sleep mode", cr, lf) 'Evaluated below
+w6 = 344
+w7 = 364
+gosub print_table_sertxd
+	gosub sleep_lora
+	low LED_PIN
+	
+	disablebod
+	sleep SLEEP_TIME
+	enablebod
+	return
+
+send_status:
+	; Sends the monitor's status
+	; Maximum stack depth used: 6
+	high LED_PIN
+;#sertxd("Sending state", cr, lf) 'Evaluated below
+w6 = 365
+w7 = 379
+gosub print_table_sertxd
+	gosub begin_pjon_packet
 
 	; Battery voltage
 	@bptrinc = "V"
-	calibadc rtrn ; Do twice to try to make a bit more stable?
-	; calibadc rtrn ; No point trying to do a 10 bit read as the output resolution is limited.
-	; ; rtrn = 10476/rtrn ; Simple, but integer rounds down.
-	; ; More complicated, but rounds as expected:
-	; ; voltage = (int(vref*max_reading)*10 + adc//2)//adc
-	; rtrn = rtrn / 2 + 2621 / rtrn ; ((rtrn / 2) + 2621) / rtrn
-	gosub read_vdd
-	start_time = rtrn ; Save for later.
-	rtrn = rtrn + 50 / 100
+	gosub get_voltage
+	sertxd(#rtrn)
+;#sertxd(" (*0.1) V", cr, lf) 'Evaluated below
+w6 = 380
+w7 = 390
+gosub print_table_sertxd
 	gosub add_word
 
 	; Temperature
-	@bptrinc = "T"
-	gosub read_temp ; start_time contains the voltage.
-	gosub convert_temp
-	gosub add_word
+; #IFDEF ENABLE_TEMP
+; 	@bptrinc = "T"
+; 	gosub get_temperature
+; 	gosub add_word
+; 	sertxd(#rtrn)
+; 	;#sertxd("*0.1 C", cr, lf)
+; #ENDIF
 
-    ; Send the packet
-    param1 = UPRSTEAM_ADDRESS
-    gosub end_pjon_packet ; Stack is 6
-	high PIN_LED
+	; Gate state
+;#sertxd("Gate: ") 'Evaluated below
+w6 = 391
+w7 = 396
+gosub print_table_sertxd
+	sertxd(#GATE_PIN, cr, lf)
+	@bptrinc = "g"
+	@bptrinc = GATE_PIN
 
+	; Transmit enable
+;#sertxd("Transmit: ") 'Evaluated below
+w6 = 397
+w7 = 406
+gosub print_table_sertxd
+	sertxd(#transmit_enable, cr, lf)
+	@bptrinc = "r"
+	@bptrinc = transmit_enable
+
+	; TX interval
+;#sertxd("TX Interval: ") 'Evaluated below
+w6 = 407
+w7 = 419
+gosub print_table_sertxd
+	sertxd(#tx_intervals, cr, lf)
+	@bptrinc = "I"
+	@bptrinc = tx_intervals
+
+	param1 = UPRSTEAM_ADDRESS
+	gosub end_pjon_packet ; Stack is 6
 	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
 ;#sertxd("LoRa dropped out.") 'Evaluated below
-w6 = 126
-w7 = 142
+w6 = 420
+w7 = 436
 gosub print_table_sertxd
 		for tmpwd = 0 to 15
-			toggle PIN_LED
+			toggle LED_PIN
 			pause 4000
 		next tmpwd
 
-		gosub begin_lora ; Stack is 6
-		if rtrn != 0 then ; Reconnected ok. Set up the spreading factor.
-;#sertxd("Reconnected ok") 'Evaluated below
-w6 = 143
-w7 = 156
+;#sertxd("Will reset and have another go.", cr, lf, cr, lf) 'Evaluated below
+w6 = 437
+w7 = 471
 gosub print_table_sertxd
-			param1 = 9
-			gosub set_spreading_factor
-		else
-;#sertxd("Could not reconnect") 'Evaluated below
-w6 = 157
-w7 = 175
-gosub print_table_sertxd
-		endif
+		reset
 	endif
+	low LED_PIN
+	return
 
-	low PIN_LED
+get_voltage:
+	; Calculates the supply voltage in 0.1V steps (255 = 25.5V)
+	; fvrsetup FVR2048 ; set FVR as 2.048V
+	; adcconfig %011 ; set FVR as ADC Vref+, 0V Vref-
+	; readadc10 BATTERY_PIN, rtrn
+; ; #IFDEF ENABLE_FVR [#IF CODE REMOVED]
+; 	fvrsetup FVR2048 ; set FVR as 2.048V [#IF CODE REMOVED]
+; 	adcconfig %011 ; set FVR as ADC Vref+, 0V Vref- [#IF CODE REMOVED]
+; #ENDIF
+	readadc10 BATTERY_PIN, rtrn ; Do it twice to try and avoid croos talk from the first reading
+	rtrn = rtrn * CAL_BATT_NUMERATOR / CAL_BATT_DENOMINATOR
+	return
 
-    ; // #sertxd("Packet sent. Entering sleep mode", cr, lf)
-	gosub sleep_lora
+; #IFDEF ENABLE_TEMP
+; get_temperature: ; DS18B20
+; 	; sertxd("Temp ADC: ",#rtrn)
+; 	; Attempt to get two fairly close together readings (avoid the 51.1C issue / read errors hopefully).
+; 	readtemp12 TEMPERATURE_PIN, rtrn
+	
+; 	; rtrn contains the temperature and both readings were close.
+; 	; sertxd("Temp raw: ",#rtrn)
+; 	tmpwd = rtrn & $8000 ; Is the most significant bit 1, indicating a negative?
+; 	if tmpwd != 0 then
+; 		; Negative, sign extend as needed.
+; 		; Take the two's complement
+; 		rtrn = NOT rtrn + 1
 
-    ; Sleep for a while
-	disablebod
-	sleep SLEEP_INTERVALS
-	enablebod
-    setfreq m32
-    goto main
+; 		; Scale as needed
+; 		rtrn = rtrn * 5 / 8
+
+; 		; Take the two's complement again to make negative.
+; 		rtrn = NOT rtrn + 1
+; 	else
+; 		rtrn = rtrn * 5 / 8
+; 	endif
+; 	; sertxd(" Calc: ",#rtrn,cr,lf)
+; 	return
+; #ENDIF
 
 add_word:
 	; Adds a word to @bptr in little endian format.
 	; rtrn contains the word to add (it is a word)
-	@bptrinc = rtrn & 0xff
-	tmpwd = rtrn / 0xff
-	@bptrinc = tmpwd
+	@bptrinc = rtrn_l
+	@bptrinc = rtrn_h
 	return
-
-failed:
-	; Flashes the LED on and off to give an indication it isn't happy.
-	for rtrn = 1 to 120
-;#sertxd("Failed", cr, lf) 'Evaluated below
-w6 = 176
-w7 = 183
-gosub print_table_sertxd
-		high PIN_LED
-		pause 4000
-		low PIN_LED
-		pause 4000
-	next rtrn
-;#sertxd("Resetting and trying again.", cr, lf, cr, lf) 'Evaluated below
-w6 = 184
-w7 = 214
-gosub print_table_sertxd
-	reset
-
 
 ; Libraries that will not be run first thing.
 '---BEGIN include/LoRa.basinc ---
@@ -260,7 +551,7 @@ gosub print_table_sertxd
 ; Heavily based on the Arduino LoRa library found here: https://github.com/sandeepmistry/arduino-LoRa
 ; Jotham Gates
 ; Created 22/11/2020
-; Modified 25/01/2021
+; Modified 22/02/2023
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 ; Symbols only used for LoRa
@@ -327,78 +618,81 @@ symbol MAX_PKT_LENGTH = 255
 ; 	#ERROR "'generated.basinc' is not included. Please make sure it included above 'LoRa.basinc'." [#IF CODE REMOVED]
 ; #ENDIF
 
-begin_lora:
-	; Sets the module up.
-	; Initialises the LoRa module (begin)
-	; Usage:
-	;	gosub begin_lora
-	;
-	; Variables read: none
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
-	; Maximum stack depth used: 5
-
-	high SS
-	
-	; Reset the module
-	low RST
-	pause 10
-	high RST
-	
-	; Begin spi
-	; Check version
-	; uint8_t version = readRegister(REG_VERSION);
-  	; if (version != 0x12) {
-      ;     return 0;
-	; }
-	param1 = REG_VERSION
-	gosub read_register
-	if rtrn != 0x12 then
-		; sertxd("Got: ",#rtrn," ")
-		rtrn = 0
-		return
-	endif
-	
-	; put in sleep mode
-	gosub sleep_lora
-	
-	; set frequency
-	; setFrequency(frequency);
-	gosub set_frequency
-
-	; set base addresses
-	; writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
-	param1 = REG_FIFO_TX_BASE_ADDR
-	param2 = 0
-	gosub write_register
-	
-	; writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
-	param1 = REG_FIFO_RX_BASE_ADDR
-	gosub write_register
-
-	; set LNA boost
-	; writeRegister(REG_LNA, readRegister(REG_LNA) | 0x03);
-	param1 = REG_LNA
-	gosub read_register ; Should not change param1
-	param2 = rtrn | 0x03
-	gosub write_register
-	
-	; set auto AGC
-	; writeRegister(REG_MODEM_CONFIG_3, 0x04);
-	param1 = REG_MODEM_CONFIG_3
-	param2 = 0x04
-	gosub write_register
-
-	; set output power to 17 dBm
-	; setTxPower(17);
-	param1 = 17
-	gosub set_tx_power
-
-	; put in standby mode
-	gosub idle_lora
-
-	; Success. Return
-	rtrn = 1
-	return
+; ; #IFNDEF DISABLE_LORA_SETUP [#IF CODE REMOVED]
+; begin_lora: [#IF CODE REMOVED]
+; 	; Sets the module up. [#IF CODE REMOVED]
+; 	; Initialises the LoRa module (begin) [#IF CODE REMOVED]
+; 	; Usage: [#IF CODE REMOVED]
+; 	;	gosub begin_lora [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 5 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	high SS [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Reset the module [#IF CODE REMOVED]
+; 	low RST [#IF CODE REMOVED]
+; 	pause 10 [#IF CODE REMOVED]
+; 	high RST [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Begin spi [#IF CODE REMOVED]
+; 	; Check version [#IF CODE REMOVED]
+; 	; uint8_t version = readRegister(REG_VERSION); [#IF CODE REMOVED]
+;   	; if (version != 0x12) { [#IF CODE REMOVED]
+;       ;     return 0; [#IF CODE REMOVED]
+; 	; } [#IF CODE REMOVED]
+; 	param1 = REG_VERSION [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	if rtrn != 0x12 then [#IF CODE REMOVED]
+; 		; sertxd("Got: ",#rtrn," ") [#IF CODE REMOVED]
+; 		rtrn = 0 [#IF CODE REMOVED]
+; 		return [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; put in sleep mode [#IF CODE REMOVED]
+; 	gosub sleep_lora [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; set frequency [#IF CODE REMOVED]
+; 	; setFrequency(frequency); [#IF CODE REMOVED]
+; 	gosub set_frequency [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; set base addresses [#IF CODE REMOVED]
+; 	; writeRegister(REG_FIFO_TX_BASE_ADDR, 0); [#IF CODE REMOVED]
+; 	param1 = REG_FIFO_TX_BASE_ADDR [#IF CODE REMOVED]
+; 	param2 = 0 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_FIFO_RX_BASE_ADDR, 0); [#IF CODE REMOVED]
+; 	param1 = REG_FIFO_RX_BASE_ADDR [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; set LNA boost [#IF CODE REMOVED]
+; 	; writeRegister(REG_LNA, readRegister(REG_LNA) | 0x03); [#IF CODE REMOVED]
+; 	param1 = REG_LNA [#IF CODE REMOVED]
+; 	gosub read_register ; Should not change param1 [#IF CODE REMOVED]
+; 	param2 = rtrn | 0x03 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; set auto AGC [#IF CODE REMOVED]
+; 	; writeRegister(REG_MODEM_CONFIG_3, 0x04); [#IF CODE REMOVED]
+; 	param1 = REG_MODEM_CONFIG_3 [#IF CODE REMOVED]
+; 	param2 = 0x04 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; set output power to 17 dBm [#IF CODE REMOVED]
+; 	; setTxPower(17); [#IF CODE REMOVED]
+; 	param1 = 17 [#IF CODE REMOVED]
+; 	gosub set_tx_power [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; put in standby mode [#IF CODE REMOVED]
+; 	gosub idle_lora [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; Success. Return [#IF CODE REMOVED]
+; 	rtrn = 1 [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; #ENDIF
 
 ; #IFDEF ENABLE_LORA_TRANSMIT
 begin_lora_packet:
@@ -676,170 +970,173 @@ packet_snr:
 	
 ; #ENDIF
 
-set_spreading_factor:
-	; Sets the spreading factor. If not called, defaults to 7.
-	; Spread factor 6 is not supported as implicit header mode is not enabled.
-	; Spread factor and LDO flag are hardcoded in symbols.basinc as symbols LORA_SPREADING_FACTOR and LORA_LDO_ON
-	; Usage:
-	;	gosub set_spreading_factor
-	;
-	; Variables read: none
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	; Maximum stack depth used: 4
-
+; ; #IFNDEF DISABLE_LORA_SETUP [#IF CODE REMOVED]
+; set_spreading_factor: [#IF CODE REMOVED]
+; 	; Sets the spreading factor. If not called, defaults to 7. [#IF CODE REMOVED]
+; 	; Spread factor 6 is not supported as implicit header mode is not enabled. [#IF CODE REMOVED]
+; 	; Spread factor and LDO flag are hardcoded in symbols.basinc as symbols LORA_SPREADING_FACTOR and LORA_LDO_ON [#IF CODE REMOVED]
+; 	; Usage: [#IF CODE REMOVED]
+; 	;	gosub set_spreading_factor [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 4 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
 ; ; #IF 9 < 7 [#IF CODE REMOVED]
 ; 	#ERROR "Spread factors less than 7 are not currently supported" [#IF CODE REMOVED]
 ; #ELSEIF 9 > 12 [#IF CODE REMOVED]
 ; 	#ERROR "Spread factors greater than 12 are not currently supported" [#IF CODE REMOVED]
-; #ENDIF
-	; TODO: Spread factor 6 implementation
-	; if param1 = 6 then
-	; Spread factor 6 (not implemented):
-	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc5);
-	; writeRegister(REG_DETECTION_THRESHOLD, 0x0c);
-	
-	; All other spread factors
-	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc3);
-	param1 = REG_DETECTION_OPTIMIZE
-	param2 = 0xc3
-	gosub write_register
-	
-	; writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
-	param1 = REG_DETECTION_THRESHOLD
-	param2 = 0x0a
-	gosub write_register
-	
-	; writeRegister(REG_MODEM_CONFIG_2, (readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0));
-	param1 = REG_MODEM_CONFIG_2
-	gosub read_register
-	param2 = rtrn & 0x0f
-	tmpwd = 9 * 16 & 0xf0
-	param2 = param2 | tmpwd
-	gosub write_register
-	
-	; setLdoFlag();
-	gosub set_ldo_flag
-	
-	return
-
-set_ldo_flag:
-	; param1 contains the spreading factor
-	; Uses the LORA_LDO_ON symbol for now. Use the included python file to calculate if this should
-	; be 0 (false) or 1 (true).
-	;
-	; Variables read: none
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	; Maximum stack depth used: 3
-
-	param1 = REG_MODEM_CONFIG_3
-	gosub read_register
-	
-	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared
-	;tmpwd = LORA_LDO_ON
+; ; #ENDIF [#IF CODE REMOVED]
+; 	; TODO: Spread factor 6 implementation [#IF CODE REMOVED]
+; 	; if param1 = 6 then [#IF CODE REMOVED]
+; 	; Spread factor 6 (not implemented): [#IF CODE REMOVED]
+; 	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc5); [#IF CODE REMOVED]
+; 	; writeRegister(REG_DETECTION_THRESHOLD, 0x0c); [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; All other spread factors [#IF CODE REMOVED]
+; 	; writeRegister(REG_DETECTION_OPTIMIZE, 0xc3); [#IF CODE REMOVED]
+; 	param1 = REG_DETECTION_OPTIMIZE [#IF CODE REMOVED]
+; 	param2 = 0xc3 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_DETECTION_THRESHOLD, 0x0a); [#IF CODE REMOVED]
+; 	param1 = REG_DETECTION_THRESHOLD [#IF CODE REMOVED]
+; 	param2 = 0x0a [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_MODEM_CONFIG_2, (readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0)); [#IF CODE REMOVED]
+; 	param1 = REG_MODEM_CONFIG_2 [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+; 	param2 = rtrn & 0x0f [#IF CODE REMOVED]
+; 	tmpwd = 9 * 16 & 0xf0 [#IF CODE REMOVED]
+; 	param2 = param2 | tmpwd [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; setLdoFlag(); [#IF CODE REMOVED]
+; 	gosub set_ldo_flag [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; set_ldo_flag: [#IF CODE REMOVED]
+; 	; param1 contains the spreading factor [#IF CODE REMOVED]
+; 	; Uses the LORA_LDO_ON symbol for now. Use the included python file to calculate if this should [#IF CODE REMOVED]
+; 	; be 0 (false) or 1 (true). [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; Maximum stack depth used: 3 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	param1 = REG_MODEM_CONFIG_3 [#IF CODE REMOVED]
+; 	gosub read_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	param2 = rtrn & %11110111 ; Clear the ldo bit in case it needs to be cleared [#IF CODE REMOVED]
+; 	;tmpwd = LORA_LDO_ON [#IF CODE REMOVED]
 ; ; #IF 0 = 1 [#IF CODE REMOVED]
 ; 	; if tmpwd = 1 then [#IF CODE REMOVED]
 ; 	param2 = param2 | %1000 ; Set the bit [#IF CODE REMOVED]
 ; 	; endif [#IF CODE REMOVED]
+; ; #ENDIF [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; set_tx_power: [#IF CODE REMOVED]
+; 	; PA Boost only implemented to save memory (not RFO) [#IF CODE REMOVED]
+; 	; Does NOT preserve param1! [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: param1 [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	level = param1 ; Need to save param 1 for later [#IF CODE REMOVED]
+; 	if level > 17 then [#IF CODE REMOVED]
+; 		if level > 20 then [#IF CODE REMOVED]
+; 			level = 20 [#IF CODE REMOVED]
+; 		endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		level = level - 3 ; Map 18 - 20 to 15 - 17 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		; High Power +20 dBm Operation (Semtech SX1276/77/78/79 5.4.3.) [#IF CODE REMOVED]
+;       	; writeRegister(REG_PA_DAC, 0x87); [#IF CODE REMOVED]
+; 		param1 = REG_PA_DAC [#IF CODE REMOVED]
+; 		param2 = 0x87 [#IF CODE REMOVED]
+; 		gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+;       	; setOCP(140); [#IF CODE REMOVED]
+; 		param1 = 140 [#IF CODE REMOVED]
+; 		gosub set_OCP [#IF CODE REMOVED]
+; 	else [#IF CODE REMOVED]
+; 		if level < 2 then [#IF CODE REMOVED]
+; 			level = 2 [#IF CODE REMOVED]
+; 		endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 		; Default value PA_HF/LF or +17dBm [#IF CODE REMOVED]
+;       	; writeRegister(REG_PA_DAC, 0x84); [#IF CODE REMOVED]
+; 		param1 = REG_PA_DAC [#IF CODE REMOVED]
+; 		param2 = 0x84 [#IF CODE REMOVED]
+; 		gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+;       	; setOCP(100); [#IF CODE REMOVED]
+; 		param1 = 100 [#IF CODE REMOVED]
+; 		gosub set_OCP [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2)); [#IF CODE REMOVED]
+; 	param1 = REG_PA_CONFIG [#IF CODE REMOVED]
+; 	param2 = level - 2 [#IF CODE REMOVED]
+; 	param2 = PA_BOOST | param2 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; set_OCP: [#IF CODE REMOVED]
+; 	; Sets the overcurrent protection [#IF CODE REMOVED]
+; 	; param1: mA [#IF CODE REMOVED]
+; 	; Does not preserve param1 [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: param1 [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	tmpwd = 27 [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	if param1 <= 120 then [#IF CODE REMOVED]
+; 		tmpwd = param1 - 45 [#IF CODE REMOVED]
+; 		tmpwd = tmpwd / 5 [#IF CODE REMOVED]
+; 	elseif param1 <= 240 then [#IF CODE REMOVED]
+; 		tmpwd = param1 + 30 [#IF CODE REMOVED]
+; 		tmpwd = tmpwd / 10 [#IF CODE REMOVED]
+; 	endif [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	param1 = REG_OCP [#IF CODE REMOVED]
+; 	param2 = 0x1f & tmpwd [#IF CODE REMOVED]
+; 	param2 = 0x20 | param2 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; set_frequency: [#IF CODE REMOVED]
+; 	; Sets the frequency using the LORA_FREQ_MSB, LORA_FREQ_MID and LORA_FREQ_LSB symbols. [#IF CODE REMOVED]
+; 	; There should be a python script to calculate these. [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; Variables read: none [#IF CODE REMOVED]
+; 	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2 [#IF CODE REMOVED]
+; 	; [#IF CODE REMOVED]
+; 	; uint64_t frf = ((uint64_t)frequency << 19) / 32000000; [#IF CODE REMOVED]
+; 	; writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16)); [#IF CODE REMOVED]
+; 	param1 = REG_FRF_MSB [#IF CODE REMOVED]
+; 	param2 = 0x6C [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8)); [#IF CODE REMOVED]
+; 	param1 = REG_FRF_MID [#IF CODE REMOVED]
+; 	param2 = 0x40 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
+; 	; writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0)); [#IF CODE REMOVED]
+; 	param1 = REG_FRF_LSB [#IF CODE REMOVED]
+; 	param2 = 0x00 [#IF CODE REMOVED]
+; 	gosub write_register [#IF CODE REMOVED]
+; 	return [#IF CODE REMOVED]
+;  [#IF CODE REMOVED]
 ; #ENDIF
-	gosub write_register
-	
-	return
-
-set_tx_power:
-	; PA Boost only implemented to save memory (not RFO)
-	; Does NOT preserve param1!
-	;
-	; Variables read: param1
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2, level
-
-	level = param1 ; Need to save param 1 for later
-	if level > 17 then
-		if level > 20 then
-			level = 20
-		endif
-		
-		level = level - 3 ; Map 18 - 20 to 15 - 17
-		
-		; High Power +20 dBm Operation (Semtech SX1276/77/78/79 5.4.3.)
-      	; writeRegister(REG_PA_DAC, 0x87);
-		param1 = REG_PA_DAC
-		param2 = 0x87
-		gosub write_register
-		
-      	; setOCP(140);
-		param1 = 140
-		gosub set_OCP
-	else
-		if level < 2 then
-			level = 2
-		endif
-		
-		; Default value PA_HF/LF or +17dBm
-      	; writeRegister(REG_PA_DAC, 0x84);
-		param1 = REG_PA_DAC
-		param2 = 0x84
-		gosub write_register
-		
-      	; setOCP(100);
-		param1 = 100
-		gosub set_OCP
-	endif
-	
-	; writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
-	param1 = REG_PA_CONFIG
-	param2 = level - 2
-	param2 = PA_BOOST | param2
-	gosub write_register
-
-	return
-
-set_OCP:
-	; Sets the overcurrent protection
-	; param1: mA
-	; Does not preserve param1
-	;
-	; Variables read: param1
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	tmpwd = 27
-	
-	if param1 <= 120 then
-		tmpwd = param1 - 45
-		tmpwd = tmpwd / 5
-	elseif param1 <= 240 then
-		tmpwd = param1 + 30
-		tmpwd = tmpwd / 10
-	endif
-	
-	param1 = REG_OCP
-	param2 = 0x1f & tmpwd
-	param2 = 0x20 | param2
-	gosub write_register
-	return
-
-
-set_frequency:
-	; Sets the frequency using the LORA_FREQ_MSB, LORA_FREQ_MID and LORA_FREQ_LSB symbols.
-	; There should be a python script to calculate these.
-	;
-	; Variables read: none
-	; Variables modified: rtrn, tmpwd, counter, mask, s_transfer_storage, param1, param2
-	;
-	; uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
-	; writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
-	param1 = REG_FRF_MSB
-	param2 = 0x6C
-	gosub write_register
-	
-	; writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
-	param1 = REG_FRF_MID
-	param2 = 0x40
-	gosub write_register
-	
-	; writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
-	param1 = REG_FRF_LSB
-	param2 = 0x00
-	gosub write_register
-	return
 
 sleep_lora:
 	; Puts the LoRa module into sleep (low power) mode.
@@ -955,12 +1252,13 @@ spi_byte:
 ; The official C++ library can be found here: https://www.pjon.org/
 ; Jotham Gates
 ; Created: 24/11/2020
-; Modified: 25/01/2021
+; Modified: 22/02/2023
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
 symbol PACKET_HEADER = %00100010 ; CRC32, TX info
+symbol PACKET_HEADER_ACK = %00100110 ; CRC32, ACK, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
@@ -1406,80 +1704,8 @@ crc32_compute:
 	crc0 = crc0 ^ 0xFF
 	return
 '---END include/PJON.basinc---
-'---BEGIN include/chiptemp.basinc ---
-; "Universal" PICaxe Chip temperature measurement for ANY valid Vdd <2 to 6 volts (<4v preferable)
-; AllyCat, March 2018, Revised July 2020.
-; https://picaxeforum.co.uk/threads/chiptemp-10-an-algorithm-to-calculate-the-picaxe-chip-temperature.28481/post-333561
-; This has been modified by JG to include in the monitor.
 
-symbol ESTIMATEDVDD = 3                ; ** Nominal supply voltage (to compensate for FVR tempco) **
-symbol ZEROC = 557                     ; ** Adjust to calibrate to room temperature (+/- 1 unit per deg C) **, Initiall 585
-symbol VDDTCO = ESTIMATEDVDD * 13      ; Supply Volts * PP100k/C (e.g. 4 * 130ppm) **
-symbol CALVDD2 = 57826                 ; 64 / 34 levels @ 2mV/step  =(65536 + 57826) / 65536
-symbol TEMPCO = 275 - VDDTCO           ; Temperature coefficient of both diodes and VDD (-mV/C * 100)
-symbol SLOPE = 6553600 / TEMPCO        ; C/mV (fractional) multiplier - 65536 divided by Tempco (mV/C)
-; SFR addresses
-symbol ADRESL = $3B                    ; ADC result Low byte
-symbol ADRESH = $3C                    ; ADC High byte
-symbol ADCON0 = $3D                    ; ADC control register 0
-symbol ADCON1 = $3E                    ; ADC control register 1
-symbol FVRCON = $57                    ; FVR & Temperature sensor Control Register (same as FVRSETUP)
-
-read_vdd:
-    ; Measures the supply voltage in mV relatively accurately.
-    ; Modifies mask, tmpwd and rtrn. The result is saved in rtrn.
-    fvrsetup fvr2048                   ; Will be used as ADC/DAC reference voltage 
-    dacsetup $80                       ; Enable DAC with Vdd reference
-    adcconfig 3                        ; FVR reference for ADC                                
-    rtrn = 0                           ; Prepare to accumulate the Vdd measurements
-    for mask = 7 to 10                 ; 10 is Highest level to accommodate Vdd = 6v (if FVR = 2048)     
-        daclevel mask                  ; "Randomise" the pot-divided sample
-        readdac10 tmpwd                ; Note this command uses DAC (not ADC)
-        rtrn = rtrn + tmpwd            ; Accumulate scaled Vdd = 4 loops of 1023max * Vdd / 32 
-    next mask
-    dacsetup $00                       ; Disable DAC again.
-    rtrn = rtrn ** CALVDD2 + rtrn      ; Calibrate to mV units (1 < coefficient < 2)
-    return
-
-read_temp:
-    ; Universal Chip Temperature (sub)routine to use ANY supply voltage.
-    ; Supply the current supply voltage in mV in start_time. The temperature in degrees C, 2's complement is placed in rtrn.
-    ; tmpwd and rtrn are modified.
-rawinternaltemp_L:                     ; [~8 bytes]
-    pokesfr ADCON1, %10010000          ; Right justify result (0 - 1023); clock/8; REFerence = Vdd
-    pokesfr FVRCON, %10100000          ; 2 diode Temperature sensor ON [$20] & (optional) FVR ON [$80]        
-readitemp:                             ; [~13 bytes]
-    pokesfr ADCON0, %01110101          ; Select Temperature input and Turn ADC On
-    pokesfr ADCON0, %01110111          ; Start conversion
-    peeksfr ADRESL,WORD tmpwd          ; Read lower and upper bytes into tmpwd and fall into chiptemp
-    tmpwd = tmpwd * 64 ** start_time       ; Number of ADC steps * stepsize (= Vdd / 1024)
-    tmpwd = start_time - tmpwd ** SLOPE    ; Subtract from Vdd and Scale to degrees
-    tmpwd = ZEROC - tmpwd                  ; Calibrate to reference base temperature (0C, or -40, etc.)    
-    ; Non-linear compensation:  T * T * 0.00075 - T * 0.067 + 1.5  becomes T * T * 737 / 65535 - T + 23 / 15    
-    rtrn = tmpwd * tmpwd ** 737 - tmpwd + 23 / 15 + tmpwd    ; Add Non-linear component  [~13 bytes]
-    return
-
-convert_temp:
-    ; Converts the temperature into tenths of a degree for consistency with the other devices on the farm with more accurate temperature sensors.
-    ; Modifies tmpwd and rtrn. The result is placed in rtrn.
-    tmpwd = rtrn & $8000              ; Is the most significant bit 1, indicating a negative?
-	if tmpwd != 0 then
-		; Negative, sign extend as needed.
-		; Take the two's complement
-		rtrn = NOT rtrn + 1
-
-		; Scale as needed
-		rtrn = rtrn * 10
-
-		; Take the two's complement again to make negative.
-		rtrn = NOT rtrn + 1
-	else
-		rtrn = rtrn * 10
-	endif
-    return
-'---END include/chiptemp.basinc---
-
-'---END ElectricFenceMonitor.bas---
+'---END GateMonitor_slot1.bas---
 
 
 '---Extras added by the preprocessor---
@@ -1491,11 +1717,32 @@ print_table_sertxd:
 
     return
 
-table 0, ("Electric fence monitor ","v0.0.1",cr,lf,"By Jotham Gates, Compiled ","31-12-2024",cr,lf,"Transmit interval is ") ;#sertxd
-table 90, ("Failed to start LoRa",cr,lf) ;#sertxd
-table 112, ("LoRa Started",cr,lf) ;#sertxd
-table 126, ("LoRa dropped out.") ;#sertxd
-table 143, ("Reconnected ok") ;#sertxd
-table 157, ("Could not reconnect") ;#sertxd
-table 176, ("Failed",cr,lf) ;#sertxd
-table 184, ("Resetting and trying again.",cr,lf,cr,lf) ;#sertxd
+table 0, ("Battery voltage monitor and fence control"," ","v2.0.2"," MAIN",cr,lf,"Jotham Gates, Compiled ","31-12-2024",cr,lf) ;#sertxd
+table 90, ("Sent packet",cr,lf) ;#sertxd
+table 103, ("Entering receive mode",cr,lf) ;#sertxd
+table 126, ("Valid packet received",cr,lf) ;#sertxd
+table 149, ("Fence ") ;#sertxd
+table 155, ("Off",cr,lf) ;#sertxd
+table 160, ("On",cr,lf) ;#sertxd
+table 164, ("Transmit ") ;#sertxd
+table 173, ("Off",cr,lf) ;#sertxd
+table 178, ("On",cr,lf) ;#sertxd
+table 182, ("Transmit interval is ") ;#sertxd
+table 203, (" *1.5 minutes",cr,lf) ;#sertxd
+table 218, ("invalid. Ignoring",cr,lf) ;#sertxd
+table 237, ("Status",cr,lf) ;#sertxd
+table 245, ("Resetting",cr,lf) ;#sertxd
+table 256, ("Bad code",cr,lf) ;#sertxd
+table 266, ("Field ") ;#sertxd
+table 272, (" unkown",cr,lf) ;#sertxd
+table 281, ("Replying",cr,lf) ;#sertxd
+table 291, ("Invalid packet recieved. Ignoring",cr,lf) ;#sertxd
+table 326, ("Long listen time",cr,lf) ;#sertxd
+table 344, ("Entering sleep mode",cr,lf) ;#sertxd
+table 365, ("Sending state",cr,lf) ;#sertxd
+table 380, (" (*0.1) V",cr,lf) ;#sertxd
+table 391, ("Gate: ") ;#sertxd
+table 397, ("Transmit: ") ;#sertxd
+table 407, ("TX Interval: ") ;#sertxd
+table 420, ("LoRa dropped out.") ;#sertxd
+table 437, ("Will reset and have another go.",cr,lf,cr,lf) ;#sertxd
