@@ -1,16 +1,16 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 10:57AM, December 14, 2024----
+'----UPDATED AT 06:53PM, December 31, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN IrrigationWaterDetector.bas ---
 ; IrrigationWaterDetector.bas
 ; A remote LoRa water detector for use with flood irrigation
-; Jotham Gates, November 2021
+; Jotham Gates, November 2024
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 
 #picaxe 14M2      'CHIP VERSION PARSED
 #terminal 38400
-; #define VERSION "v0.2.0"
+; #define VERSION "v0.2.1"
 #NO_DATA
 
 '---BEGIN include/symbols.basinc ---
@@ -103,7 +103,7 @@ init:
 	low PIN_UNUSED
 	high PIN_LED
 	nap 4
-;#sertxd("Irrigation water detector ", "v0.2.0", cr, lf, "By Jotham Gates, Compiled ", "14-12-2024", cr, lf) 'Evaluated below
+;#sertxd("Irrigation water detector ", "v0.2.1", cr, lf, "By Jotham Gates, Compiled ", "31-12-2024", cr, lf) 'Evaluated below
 w6 = 0
 w7 = 71
 gosub print_table_sertxd
@@ -934,8 +934,7 @@ spi_byte:
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
-; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
-symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
+symbol PACKET_HEADER = %00100010 ; CRC32, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
@@ -1394,7 +1393,7 @@ print_table_sertxd:
 
     return
 
-table 0, ("Irrigation water detector ","v0.2.0",cr,lf,"By Jotham Gates, Compiled ","14-12-2024",cr,lf) ;#sertxd
+table 0, ("Irrigation water detector ","v0.2.1",cr,lf,"By Jotham Gates, Compiled ","31-12-2024",cr,lf) ;#sertxd
 table 72, ("Failed to start LoRa",cr,lf) ;#sertxd
 table 94, ("LoRa Started",cr,lf) ;#sertxd
 table 108, ("Sending packet",cr,lf) ;#sertxd

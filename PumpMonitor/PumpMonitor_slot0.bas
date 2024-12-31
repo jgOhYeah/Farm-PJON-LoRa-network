@@ -4,7 +4,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 27/01/2024
+; Modified 31/12/2024
 #PICAXE 18M2
 #SLOT 0
 #NO_DATA
@@ -149,7 +149,7 @@ print_help:
 
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
-    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ")
+    ;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at address", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ")
     return
 
 print_block:

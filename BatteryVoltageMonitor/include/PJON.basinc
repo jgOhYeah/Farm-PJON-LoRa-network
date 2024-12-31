@@ -3,13 +3,12 @@
 ; The official C++ library can be found here: https://www.pjon.org/
 ; Jotham Gates
 ; Created: 24/11/2020
-; Modified: 22/02/2023
+; Modified: 31/12/2024
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
-; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
-symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
+symbol PACKET_HEADER = %00100010 ; CRC32, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0

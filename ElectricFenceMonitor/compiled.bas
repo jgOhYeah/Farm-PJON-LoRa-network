@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 12:01AM, December 30, 2024----
+'----UPDATED AT 06:58PM, December 31, 2024----
 '----SAVING AS compiled.bas ----
 
 '---BEGIN ElectricFenceMonitor.bas ---
@@ -10,7 +10,7 @@
 
 #picaxe 14M2      'CHIP VERSION PARSED
 #terminal 38400
-; #define VERSION "v0.0.0"
+; #define VERSION "v0.0.1"
 #no_data
 
 '---BEGIN include/symbols.basinc ---
@@ -100,13 +100,13 @@ symbol CAL_OFFSET = 55
 symbol CAL_NUM = 7
 symbol CAL_DEN = 82
 
-symbol SLEEP_INTERVALS = 130 ; 5 min for testing.
+symbol SLEEP_INTERVALS = 510 ; 130=5 min (for testing), 510=20 min.
 init:
     ; Initial setup
     setfreq m32
 	high PIN_LED
 	nap 4
-;#sertxd("Electric fence monitor ", "v0.0.0", cr, lf, "By Jotham Gates, Compiled ", "30-12-2024", cr, lf, "Transmit interval is ") 'Evaluated below
+;#sertxd("Electric fence monitor ", "v0.0.1", cr, lf, "By Jotham Gates, Compiled ", "31-12-2024", cr, lf, "Transmit interval is ") 'Evaluated below
 w6 = 0
 w7 = 89
 gosub print_table_sertxd
@@ -145,6 +145,8 @@ main:
     ; Fence voltage measurement
     @bptrinc = "k"
 	readadc PIN_FENCE_PEAK, param1 ; Clear any previous values in the mux.
+
+	; Get the maximum ADC reading over a period of time.
     param1 = 0
     for tmpwd = 1 to 7000
         readadc PIN_FENCE_PEAK, param2
@@ -153,14 +155,14 @@ main:
         endif
     next tmpwd
 
-	; Return back to normal and scale result
+	; Turn off the fence monitoring hardware and scale result
 	low PIN_FENCE_SW
 	adcconfig %000 ; Set positive reference back to normal.
 	if param1 < CAL_OFFSET then ; Stop underflow.
 		param1 = CAL_OFFSET
 	endif
-	; @bptrinc = param1 * CAL_NUM / CAL_DEN
-	@bptrinc = param1
+	@bptrinc = param1  - CAL_OFFSET * CAL_NUM / CAL_DEN
+	; @bptrinc = param1
 
 	; Battery voltage
 	@bptrinc = "V"
@@ -958,8 +960,7 @@ spi_byte:
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
-; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
-symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
+symbol PACKET_HEADER = %00100010 ; CRC32, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
@@ -1490,7 +1491,7 @@ print_table_sertxd:
 
     return
 
-table 0, ("Electric fence monitor ","v0.0.0",cr,lf,"By Jotham Gates, Compiled ","30-12-2024",cr,lf,"Transmit interval is ") ;#sertxd
+table 0, ("Electric fence monitor ","v0.0.1",cr,lf,"By Jotham Gates, Compiled ","31-12-2024",cr,lf,"Transmit interval is ") ;#sertxd
 table 90, ("Failed to start LoRa",cr,lf) ;#sertxd
 table 112, ("LoRa Started",cr,lf) ;#sertxd
 table 126, ("LoRa dropped out.") ;#sertxd

@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:46PM, April 03, 2024----
+'----UPDATED AT 06:28PM, December 31, 2024----
 '----SAVING AS compiled_slot1.bas ----
 
 '---BEGIN PumpMonitor_slot1.bas ---
@@ -29,9 +29,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 03/04/2024
+; Modified 31/12/2024
 
-; #DEFINE VERSION "v2.2.1"
+; #DEFINE VERSION "v2.2.2"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -239,7 +239,7 @@ symbol CMD_STATUS = 0x71 ;Get status word command
 init:
     disconnect
     setfreq m32 ; Seems to reset the frequency
-;#sertxd("Pump Monitor ", "v2.2.1" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "03-04-2024", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.2.2" , " MAIN", cr,lf, "Jotham Gates, Compiled ", "31-12-2024", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 60
@@ -1579,13 +1579,12 @@ spi_byte:
 ; The official C++ library can be found here: https://www.pjon.org/
 ; Jotham Gates
 ; Created: 24/11/2020
-; Modified: 22/02/2023
+; Modified: 31/12/2024
 ; https://github.com/jgOhYeah/PICAXE-Libraries-Extras
 ; TODO: Allow bus ids and more flexibility in packet types
 ; TODO: Allow it to work with other strategies
 
-; symbol PACKET_HEADER = %00000010 ; Local mode, no bus id, tx sender info
-symbol PACKET_HEADER = %00100110 ; CRC32, ACK, TX info
+symbol PACKET_HEADER = %00100010 ; CRC32, TX info
 symbol PACKET_HEAD_LENGTH = 5 ; Local mode, no bus id, tx sender info
 ; symbol BUS_ID_0 = 0 ; Not implemented yet
 ; symbol BUS_ID_1 = 0
@@ -2115,7 +2114,7 @@ print_table_sertxd:
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.2.1"," MAIN",cr,lf,"Jotham Gates, Compiled ","03-04-2024",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.2.2"," MAIN",cr,lf,"Jotham Gates, Compiled ","31-12-2024",cr,lf) ;#sertxd
 table 61, ("AHT20 busy",cr,lf) ;#sertxd
 table 73, ("Long status",cr,lf) ;#sertxd
 table 86, ("Pump on time: ") ;#sertxd

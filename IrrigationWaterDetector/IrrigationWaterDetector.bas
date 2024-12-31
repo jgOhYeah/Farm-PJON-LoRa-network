@@ -5,7 +5,7 @@
 
 #picaxe 14M2
 #terminal 38400
-#define VERSION "v0.2.0"
+#define VERSION "v0.2.1"
 #NO_DATA
 
 #include "include/symbols.basinc"

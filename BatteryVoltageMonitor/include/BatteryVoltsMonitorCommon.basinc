@@ -2,9 +2,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 22/02/2023
-; Modified 22/03/2023
+; Modified 31/12/2024
 
-#DEFINE VERSION "v2.0.2"
+#DEFINE VERSION "v2.0.3"
 #DEFINE NAME "Battery voltage monitor and fence control"
 #DEFINE URL "https://github.com/jgOhYeah/Farm-PJON-LoRa-network"
 

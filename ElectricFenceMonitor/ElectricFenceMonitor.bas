@@ -5,7 +5,7 @@
 
 #picaxe 14M2
 #terminal 38400
-#define VERSION "v0.0.0"
+#define VERSION "v0.0.1"
 #no_data
 
 #include "include/symbols.basinc"
@@ -31,7 +31,7 @@ symbol CAL_OFFSET = 55
 symbol CAL_NUM = 7
 symbol CAL_DEN = 82
 
-symbol SLEEP_INTERVALS = 130 ; 5 min for testing.
+symbol SLEEP_INTERVALS = 510 ; 130=5 min (for testing), 510=20 min.
 init:
     ; Initial setup
     setfreq m32
@@ -67,6 +67,8 @@ main:
     ; Fence voltage measurement
     @bptrinc = "k"
 	readadc PIN_FENCE_PEAK, param1 ; Clear any previous values in the mux.
+
+	; Get the maximum ADC reading over a period of time.
     param1 = 0
     for tmpwd = 1 to 7000
         readadc PIN_FENCE_PEAK, param2
@@ -75,14 +77,14 @@ main:
         endif
     next tmpwd
 
-	; Return back to normal and scale result
+	; Turn off the fence monitoring hardware and scale result
 	low PIN_FENCE_SW
 	adcconfig %000 ; Set positive reference back to normal.
 	if param1 < CAL_OFFSET then ; Stop underflow.
 		param1 = CAL_OFFSET
 	endif
-	; @bptrinc = param1 * CAL_NUM / CAL_DEN
-	@bptrinc = param1
+	@bptrinc = param1  - CAL_OFFSET * CAL_NUM / CAL_DEN
+	; @bptrinc = param1
 
 	; Battery voltage
 	@bptrinc = "V"

@@ -1,5 +1,5 @@
 '-----PREPROCESSED BY picaxepreprocess.py-----
-'----UPDATED AT 02:45PM, April 03, 2024----
+'----UPDATED AT 06:27PM, December 31, 2024----
 '----SAVING AS compiled_slot0.bas ----
 
 '---BEGIN PumpMonitor_slot0.bas ---
@@ -9,7 +9,7 @@
 ; tools if needed, then starts the main program in slot 1
 ; Written by Jotham Gates
 ; Created 27/12/2020
-; Modified 27/01/2024
+; Modified 31/12/2024
 #PICAXE 18M2      'CHIP VERSION PARSED
 #SLOT 0
 #NO_DATA
@@ -22,9 +22,9 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 15/03/2021
-; Modified 03/04/2024
+; Modified 31/12/2024
 
-; #DEFINE VERSION "v2.2.1"
+; #DEFINE VERSION "v2.2.2"
 
 ; #DEFINE TABLE_SERTXD_BACKUP_VARS
 ; #DEFINE TABLE_SERTXD_BACKUP_LOC 127 ; 5 bytes from here
@@ -235,7 +235,7 @@ init:
     high B.6
     high B.3
 
-;#sertxd("Pump Monitor ", "v2.2.1" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "03-04-2024", cr, lf) 'Evaluated below
+;#sertxd("Pump Monitor ", "v2.2.2" , " BOOTLOADER", cr, lf, "Jotham Gates, Compiled ", "31-12-2024", cr, lf) 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 0
 rtrn = 66
@@ -424,10 +424,10 @@ print_help:
 
     ; Don't have enough table memory to store all strings in there, so some still have to be part
     ; of the program.
-;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at adress", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ") 'Evaluated below
+;#sertxd(cr, lf, "EEPROM Tools", cr, lf, "Commands:", cr, lf, " a Read all", cr, lf, " b Read 1st block", cr, lf, " u Read buffer old to new", cr, lf, " z Add value to buffer", cr, lf, " w Write at address", cr, lf, " i Buffer info", cr, lf, " e Erase all", cr, lf, " p Enter programming mode", cr, lf, " q Reset", cr, lf, " h Show this help", cr, lf, ">>> ") 'Evaluated below
 gosub backup_table_sertxd ; Save the values currently in the variables
 param1 = 290
-rtrn = 509
+rtrn = 510
 gosub print_table_sertxd
     return
 
@@ -1517,11 +1517,11 @@ print_table_sertxd:
     peek 131, rtrnh
     return
 
-table 0, ("Pump Monitor ","v2.2.1"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","03-04-2024",cr,lf) ;#sertxd
+table 0, ("Pump Monitor ","v2.2.2"," BOOTLOADER",cr,lf,"Jotham Gates, Compiled ","31-12-2024",cr,lf) ;#sertxd
 table 67, ("Press 't' for EEPROM tools or '`' for computers",cr,lf) ;#sertxd
 table 116, ("AHT20 busy or NC.",cr,lf) ;#sertxd
 table 135, ("LoRa Failed to connect. Will reset to try again in 15s.",cr,lf) ;#sertxd
 table 192, ("Starting slot 1",cr,lf,"------",cr,lf,cr,lf) ;#sertxd
 table 219, ("Programming mode. Anything sent will reset.",cr,lf) ;#sertxd
 table 264, (cr,lf,"Unknown. Please retry.",cr,lf) ;#sertxd
-table 290, (cr,lf,"EEPROM Tools",cr,lf,"Commands:",cr,lf," a Read all",cr,lf," b Read 1st block",cr,lf," u Read buffer old to new",cr,lf," z Add value to buffer",cr,lf," w Write at adress",cr,lf," i Buffer info",cr,lf," e Erase all",cr,lf," p Enter programming mode",cr,lf," q Reset",cr,lf," h Show this help",cr,lf,">>> ") ;#sertxd
+table 290, (cr,lf,"EEPROM Tools",cr,lf,"Commands:",cr,lf," a Read all",cr,lf," b Read 1st block",cr,lf," u Read buffer old to new",cr,lf," z Add value to buffer",cr,lf," w Write at address",cr,lf," i Buffer info",cr,lf," e Erase all",cr,lf," p Enter programming mode",cr,lf," q Reset",cr,lf," h Show this help",cr,lf,">>> ") ;#sertxd
