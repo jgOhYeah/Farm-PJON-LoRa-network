@@ -2,7 +2,7 @@
 ; Defines and symbols shared between each slot
 ; Written by Jotham Gates
 ; Created 22/02/2023
-; Modified 31/12/2024
+; Modified 01/01/2025
 
 #DEFINE VERSION "v2.0.3"
 #DEFINE NAME "Battery voltage monitor and fence control"
@@ -55,6 +55,7 @@ symbol TEMP_DIFFERENCE_THRESHOLD = 63
 ; Temperature and battery voltage calibration
 symbol CAL_BATT_NUMERATOR = 58
 symbol CAL_BATT_DENOMINATOR = 85
+symbol CAL_BATT_DENOMINATOR_2 = 42 ; CAL_BATT_DENOMINATOR / 2 so that rounding works as expected.
 
 #MACRO UPDATE_EEPROM(ADDRESS,VALUE,TMP_VAR)
 	read ADDRESS, TMP_VAR

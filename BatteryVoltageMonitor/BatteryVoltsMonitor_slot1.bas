@@ -2,7 +2,7 @@
 ; A remote LoRa battery monitor and electric fence energiser switch.
 ; Written by Jotham Gates
 ; Created Jan 2021
-; Modified 22/02/2023
+; Modified 01/01/2024
 ;
 ; https://github.com/jgOhYeah/Farm-PJON-LoRa-network
 ;
@@ -272,7 +272,7 @@ get_voltage:
 	adcconfig %011 ; set FVR as ADC Vref+, 0V Vref-
 #ENDIF
 	readadc10 BATTERY_PIN, rtrn ; Do it twice to try and avoid croos talk from the first reading
-	rtrn = rtrn * CAL_BATT_NUMERATOR / CAL_BATT_DENOMINATOR
+	rtrn = rtrn * CAL_BATT_NUMERATOR + CAL_BATT_DENOMINATOR_2 / CAL_BATT_DENOMINATOR ; Add 0.5 so that rounding works as expected.
 	return
 
 #IFDEF ENABLE_TEMP
