@@ -67,9 +67,12 @@ begin_pjon_packet:
 
 end_pjon_packet:
 	; Finalises the packet, writes the header and sends it using LoRa radio
-	; param1 contains the id
+	; param1 contains the id to send to.
+	; The address of the checksum start (bptr) is copied into crc0.
 	; Maximum stack depth used: 5
-	
+	counter = PACKET_HEADER
+end_pjon_packet_header: ; Label so that a packet can be sent with a different header (for acknowledgement requests).
+	; counter contains the new header (PACKET_HEADER or PACKET_HEADER_ACK).
 	level = bptr
 	param2 = bptr - PACKET_TX_START + 4 ; Length of packet with the crc bytes
 	gosub write_pjon_header
@@ -82,7 +85,9 @@ end_pjon_packet:
 	@bptrinc = crc2
 	@bptrinc = crc1
 	@bptrinc = crc0
-	
+	; Copy the length somewhere safe for use with the acknowledgement.
+	crc0 = level
+
 	; Send the packet
 	gosub begin_lora_packet ; Stack is 5
 	param1 = bptr - PACKET_TX_START
@@ -94,12 +99,13 @@ end_pjon_packet:
 write_pjon_header:
 	; param1 contains the id
 	; param2 contains the length
+	; counter contains the new header (PACKET_HEADER or PACKET_HEADER_ACK).
 	; Afterwards, bptr is at the correct location to begin writing the packet contents.
 	; Maximum stack depth used: 2
 
 	bptr = PACKET_TX_START
 	@bptrinc = param1
-	@bptrinc = PACKET_HEADER
+	@bptrinc = counter
 	@bptrinc = param2
 	; CRC of everything up to now
 	bptr = PACKET_TX_START
@@ -110,6 +116,70 @@ write_pjon_header:
 	@bptrinc = MY_ID ; Add sender id
 	return
 
+#IFDEF ENABLE_PJON_TX_ACK
+end_pjon_packet_ack_single:
+	; Sends a PJON packet and requests acknowledgement.
+	; param1 contains the id to send to.
+	; bptr points to the address after the last byte to send.
+	; Max stack depth used: 6
+	; Send the message
+	counter = PACKET_HEADER_ACK
+	gosub end_pjon_packet_header
+
+	; Wait for receive
+	gosub setup_lora_receive
+	; Wait for a while to receive the acknowledgement.
+pjon_ack_wait:
+	tmpwd = time - start_time
+	if tmpwd > TL_RESPONSE_TIME_OUT then ; On a breadboard, occasionally the spi seems to drop out and the chip gets stuck here.
+		rtrn = PJON_INVALID_ACK
+		return
+	endif
+	if DIO0 = 0 then pjon_ack_wait
+
+	; We received a packet. Now we need to verify it is the one we want.
+	; Check the length and get ready to read.
+	gosub setup_lora_read
+	if rtrn != TL_RESPONSE_LENGTH then
+		; This packet isn't the correct length for an acknowledgement.
+		rtrn = PJON_INVALID_ACK
+		return
+	endif
+	; Compare each byte of the response to that stored in memory.
+	bptr = crc0 + 4 - TL_RESPONSE_LENGTH ; Address in memory to start comparing with
+	for crc1 = 1 to TL_RESPONSE_LENGTH
+		gosub read_lora
+		if @bptrinc != rtrn then
+			; Mismatch between received and expected, fail this acknowledgement.
+			rtrn = PJON_INVALID_ACK
+			return
+		endif
+	next crc1
+
+	; We got this far, so must be good.
+	rtrn = LORA_RADIO_SUCCESS
+	return
+
+#IFDEF ENABLE_PJON_TX_ACK_REPEATEDLY
+end_pjon_packet_ack:
+	; Sends a PJON packet and requests acknowledgement. If nothing is received, will try again, with a total of TL_MAX_ATTEMPTS attempts.
+	; param1 contains the id to send to.
+	; bptr points to the address after the last byte to send.
+	last_address = bptr ; Address of the byte after the end of the message (save for later attempts).
+	counter3 = param1 ; Who to send to (save for later).
+	for total_length = 1 to TL_MAX_ATTEMPTS
+		; Attempt at sending.
+		bptr = last_address
+		param1 = counter3
+		gosub end_pjon_packet_ack_single
+
+		; Check if this was successful or not.
+		if rtrn = LORA_RADIO_SUCCESS then exit
+	next total_length
+	; rtrn will contain the result of the last attempt.
+	return
+#ENDIF
+#ENDIF
 #ENDIF
 
 #IFDEF ENABLE_PJON_RECEIVE
@@ -123,7 +193,7 @@ read_pjon_packet:
 	;
 	; Variables read: none
 	; Variables modified: crc0, crc1, crc2, crc3, counter, param1, param2, counter2, tmpwd, mask,
-	;                     level, rtrn, s_transfer_Storage, bptr, total_length, start_time,
+	;                     level, rtrn, bptr, total_length, start_time,
 	;                     start_time_h, start_time_l, counter3 (in other words, everything defined
 	;                     as of when this was written)
 	; Maximum stack depth used: 3
@@ -402,7 +472,7 @@ crc32_compute:
 	; bptr points to the byte after.
 	;
 	; Variables read: none
-	; Variables modified: crc0, crc1, crc2, crc3, counter, param1, counter2, tmpwd, mask, level,
+	; Variables modified: crc0, crc1, crc2, crc3, counter, counter2, tmpwd, mask,
 	;                     bptr
 	; Maximum stack depth used: 0
 
@@ -416,29 +486,29 @@ crc32_compute:
 		for counter2 = 0 to 7
 			; Right bitshift everything by 1
 			; crc >>= 1
-			tmpwd = crc3 & 1
+			tmpwd_l = crc3 & 1
 				crc3 = crc3 / 2
 
 			mask = crc2 & 1
         		crc2 = crc2 / 2
-        		if tmpwd != 0 then
+        		if tmpwd_l != 0 then
             		crc2 = crc2 + 0x80
 			endif
 		
-			tmpwd = crc1 & 1
+			tmpwd_l = crc1 & 1
 			crc1 = crc1 / 2
         		if mask != 0 then
             		crc1 = crc1 + 0x80
 			endif
 
-			level = crc0 & 1
+			tmpwd_h = crc0 & 1
         		crc0 = crc0 / 2
-        		if tmpwd != 0 then
+        		if tmpwd_l != 0 then
             		crc0 = crc0 + 0x80
 			endif
 
 			; XOR the crc if needed
-			if level != 0 then
+			if tmpwd_h != 0 then
 				; crc = (crc >> 1) ^ 0xEDB88320
 				crc3 = crc3 ^ 0xED
 				crc2 = crc2 ^ 0xB8

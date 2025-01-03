@@ -22,6 +22,8 @@
 #DEFINE ENABLE_PJON_RECEIVE
 #DEFINE ENABLE_LORA_TRANSMIT
 #DEFINE ENABLE_PJON_TRANSMIT
+#DEFINE ENABLE_PJON_TX_ACK
+#DEFINE ENABLE_PJON_TX_ACK_REPEATEDLY
 #DEFINE DISABLE_LORA_SETUP
 
 init:
@@ -238,8 +240,8 @@ send_status:
 	@bptrinc = tx_intervals
 
 	param1 = UPRSTEAM_ADDRESS
-	gosub end_pjon_packet ; Stack is 6
-	if rtrn = 0 then ; Something went wrong. Attempt to reinitialise the radio module.
+	gosub end_pjon_packet_ack ; Stack is 6
+	if rtrn = LORA_RADIO_FAIL then ; Something went wrong. Attempt to reinitialise the radio module.
 		;#sertxd("LoRa dropped out.")
 		for tmpwd = 0 to 15
 			toggle LED_PIN
@@ -248,6 +250,8 @@ send_status:
 
 		;#sertxd("Will reset and have another go.", cr, lf, cr, lf)
 		reset
+	elseif rtrn = PJON_INVALID_ACK then
+		;#sertxd("Invalid acknowledgement.", cr, lf)
 	endif
 	low LED_PIN
 	return
